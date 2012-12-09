@@ -28,5 +28,5 @@
 ;------------------------------------------------------------------------------
 (defclass core::ParentedHint 
  "The hint class with an added parent slot"
- (is-a core::Hint core::ParentedObject))
+ (is-a Hint ParentedObject))
 ;------------------------------------------------------------------------------

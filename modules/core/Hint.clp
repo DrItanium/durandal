@@ -29,13 +29,13 @@
 ;------------------------------------------------------------------------------
 (defclass core::Hint 
   "An object that makes it easy to create temporary entities."
-  (is-a core::Object)
+  (is-a Object)
   (multislot values (visibility public))
   (slot reference-count (type NUMBER) (visibility public))
   (slot type (visibility public) (type SYMBOL))
   (slot point (visibility public) (type SYMBOL)))
 ;------------------------------------------------------------------------------
-(defmessage-handler core::Hint increment-reference-count ($?by)
+(defmessage-handler core::Hint increment-reference-count primary ($?by)
 "Incrementes the reference count of the given hint.  If no parameters are given 
 then the default is one. If a parameter is given then that is the value 
 incremented by. If more than one parameter is given then those numbers are 
@@ -47,7 +47,8 @@ added together and then added to the current reference count"
 												(+ 1 ?self:reference-count)))
 									 (case 1 then 
 										(bind ?self:reference-count 
-												(+ (first$ ?by) ?self:reference-count)))
+										      (eval (format nil "(+ %i %i)", (first$ ?by)
+														 ?self:reference-count))))
 									 (default 
 										(bind ?v (eval (format nil "(+ %s)" 
 																	  (implode$ ?by))))
@@ -67,7 +68,8 @@ added together and then subtracted from the current reference count"
 												(- 1 ?self:reference-count)))
 									 (case 1 then 
 										(bind ?self:reference-count 
-												(- (first$ ?by) ?self:reference-count)))
+										      (eval (format nil "(- %i %i)" (first$ ?by)
+														 ?self:reference-count))))
 									 (default 
 										;add all of the element together so that the
 										;subtraction is correct

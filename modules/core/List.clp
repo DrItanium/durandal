@@ -26,12 +26,13 @@
 ;------------------------------------------------------------------------------
 ; List.clp - represents a wrapper over a multifield
 ;------------------------------------------------------------------------------
-(defclass core::List (is-a core::Object)
+(defclass core::List 
+ (is-a Object)
  (multislot contents (visibility public)))
 ;------------------------------------------------------------------------------
 (defmessage-handler core::List count primary
  "Returns the count of the given list." ()
- (length$ ?self:Contents))
+ (length$ ?self:contents))
 ;------------------------------------------------------------------------------
 (defmessage-handler core::List add primary
  (?first $?rest)
@@ -58,15 +59,15 @@
 ;------------------------------------------------------------------------------
 (defmessage-handler core::List element-at primary 
  (?index)
- (nth$ ?index ?self:Contents))
+ (nth$ ?index ?self:contents))
 ;------------------------------------------------------------------------------
 (defmessage-handler core::List contains primary 
  (?item)
- (member$ ?item ?self:Contents))
+ (member$ ?item ?self:contents))
 ;------------------------------------------------------------------------------
 (defmessage-handler core::List contains-subset primary 
  ($?subset)
- (subsetp ?subset ?self:Contents))
+ (subsetp ?subset ?self:contents))
 ;------------------------------------------------------------------------------
 (defmessage-handler core::List reverse primary
  "Reverses the order of the values in contents" ()
@@ -74,10 +75,6 @@
  (progn$ (?element ?self:contents)
   (bind ?copy (create$ ?element ?copy)))
  (bind ?self:contents ?copy))
-;------------------------------------------------------------------------------
-(defmessage-handler core::List implode$ primary
- "Calls implode$ on the contents of this object"
- (implode$ ?self:contents))
 ;------------------------------------------------------------------------------
 (defmessage-handler core::List exists primary 
  "Takes in the name of a function and applies the function to each element of
@@ -100,12 +97,12 @@
   (bind ?list (create$ ?list (funcall ?fn ?e))))
  (return ?list))
 ;------------------------------------------------------------------------------
-(defmessage-handler core::List first$ primary
+(defmessage-handler core::List first primary
  "Returns the first element of this list as a list." 
  () 
  (first$ ?self:contents))
 ;------------------------------------------------------------------------------
-(defmessage-handler core::List rest$ primary
+(defmessage-handler core::List rest primary
  "Returns a list missing the first element of the original list"
  ()
  (rest$ ?self:contents))
