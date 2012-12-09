@@ -29,8 +29,8 @@
 (defclass core::Object 
   "Base class of all objects"
   (is-a USER)
-  (slot id (type SYMBOL) (visiblity public) (access initialize-only))
-  (slot class (type SYMBOL) (visiblity public) (access initialize-only)))
+  (slot id (type SYMBOL) (visibility public) (access initialize-only))
+  (slot class (type SYMBOL) (visibility public) (access initialize-only)))
 ;------------------------------------------------------------------------------
 (defmessage-handler core::Object init around 
 						  "Initializes the object, setting the id and class of the 
