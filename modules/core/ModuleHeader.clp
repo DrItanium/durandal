@@ -38,7 +38,7 @@
  ; Modify this export to add more classes
  ; Just remember that these three classes are pretty critical to the rest of
  ; the optimization
- (export defclass Object InteropObject Hint)
+ (export defclass Object InteropObject Hint List)
  ; Modify this export to add more functions to be exposed
  ; I would advise against removing these functions
  (export deffunction superset equal$ has-common-element disjoint)  
@@ -46,6 +46,7 @@
 (load* "modules/core/Object.clp")
 (load* "modules/core/InteropObject.clp")
 (load* "modules/core/Hint.clp")
+(load* "modules/core/List.clp")
 ; Add more defclasses here
 ; The programmer is responsible for ordering the load statements so that
 ; class dependencies are met
