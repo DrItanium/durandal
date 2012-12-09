@@ -31,14 +31,19 @@
   (is-a USER)
   (slot id (type SYMBOL) (visiblity public) (access initialize-only))
   (slot class (type SYMBOL) (visiblity public) (access initialize-only)))
-
+;------------------------------------------------------------------------------
 (defmessage-handler core::Object init around 
 						  "Initializes the object, setting the id and class of the 
 						  object" ()
 						  (call-next-handler)
 						  ;we want to set this information as the last thing before 
-						  ;we return
+						  ;we return 
 						  (bind ?self:id (instance-name-to-symbol 
-												(instance-name ?self)))
+												 (instance-name ?self)))
 						  (bind ?self:class (class ?self)))
-
+;------------------------------------------------------------------------------
+(defclass core::ParentedObject 
+  "An object that has a parent field." 
+  (is-a core::Object)
+  (slot parent (type SYMBOL) (visibility public)))
+;------------------------------------------------------------------------------
