@@ -100,3 +100,13 @@
   (bind ?list (create$ ?list (funcall ?fn ?e))))
  (return ?list))
 ;------------------------------------------------------------------------------
+(defmessage-handler core::List first$ primary
+ "Returns the first element of this list as a list." 
+ () 
+ (first$ ?self:contents))
+;------------------------------------------------------------------------------
+(defmessage-handler core::List rest$ primary
+ "Returns a list missing the first element of the original list"
+ ()
+ (rest$ ?self:contents))
+;------------------------------------------------------------------------------
