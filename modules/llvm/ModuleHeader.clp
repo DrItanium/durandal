@@ -41,3 +41,12 @@
  (export defclass ?ALL)
  (export deffunction ?ALL))
 
+; DO NOT MESS WITH THE ORDER OF THESE COMMANDS
+; BAD THINGS CAN HAPPEN
+; Class loaders
+(load* "modules/llvm/LLVMObject.clp")
+(load* "modules/llvm/LLVMValue.clp")
+(load* "modules/llvm/LLVMUser.clp")
+(load* "modules/llvm/Diplomat.clp")
+
+; Function loaders
