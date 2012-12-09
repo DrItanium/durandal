@@ -45,6 +45,7 @@
 ; BAD THINGS CAN HAPPEN
 ; Class loaders
 (load* "modules/llvm/LLVMObject.clp")
+(load* "modules/llvm/LLVMType.clp")
 (load* "modules/llvm/LLVMValue.clp")
 (load* "modules/llvm/LLVMUser.clp")
 (load* "modules/llvm/Diplomat.clp")
