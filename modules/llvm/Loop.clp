@@ -24,33 +24,13 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; ModuleHeader.clp - Contains the entry point into the llvm module. 
+(defclass llvm::Loop 
+ (is-a llvm::Region)
+ (slot BackEdgeCount (type NUMBER) (range 0 ?VARIABLE))
+ (multislot BackEdges)
+ (multislot ExitBlocks)
+ (slot HeaderBlock)
+ (slot LatchBlock)
+ (slot LoopPreheader)
+ (slot LoopPredecessor))
 ;------------------------------------------------------------------------------
-; In CLIPS, modules are defined BEFORE their corresponding contents are defined
-; so this file doubles as a loader as well. Absolute paths must be used because 
-; CLIPS does not understand the concept of partial paths. 
-;
-; If you want to change the layout of this module then you must update these
-; paths. Failure to do so will cause the optimization to not work correctly.
-;------------------------------------------------------------------------------
-
-; Path is modules/llvm/
-(defmodule llvm 
- (import core defclass ?ALL)
- (import core deffunction ?ALL)  
- (export defclass ?ALL)
- (export deffunction ?ALL))
-
-; DO NOT MESS WITH THE ORDER OF THESE COMMANDS
-; BAD THINGS CAN HAPPEN
-; Class loaders
-(load* "modules/llvm/LLVMObject.clp")
-(load* "modules/llvm/LLVMType.clp")
-(load* "modules/llvm/LLVMValue.clp")
-(load* "modules/llvm/LLVMUser.clp")
-(load* "modules/llvm/Diplomat.clp")
-(load* "modules/llvm/MultiBlockContainer.clp")
-(load* "modules/llvm/Region.clp")
-(load* "modules/llvm/Loop.clp")
-
-; Function loaders
