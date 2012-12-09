@@ -1,0 +1,11 @@
+This module contains base classes as well as functions to be used by other
+modules.
+
+This module MUST be used by all other modules in one way or another. 
+
+STATISTICS
+
+name: core
+provided classes: Object InteropObject Hint List
+provided functions: superset equal$ has-common-element disjoint
+
