@@ -24,21 +24,11 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; Object.clp - Base class of all objects 
+; ParentedObject.clp - An interface that provides a parent field. It does not
+; extend off of core::Object
 ;------------------------------------------------------------------------------
-(defclass core::Object 
-  "Base class of all objects"
+(defclass core::ParentedObject 
+  "An interface that provides a parent field." 
   (is-a USER)
-  (slot id (type SYMBOL) (visiblity public) (access initialize-only))
-  (slot class (type SYMBOL) (visiblity public) (access initialize-only)))
-;------------------------------------------------------------------------------
-(defmessage-handler core::Object init around 
-						  "Initializes the object, setting the id and class of the 
-						  object" ()
-						  (call-next-handler)
-						  ;we want to set this information as the last thing before 
-						  ;we return 
-						  (bind ?self:id (instance-name-to-symbol 
-												 (instance-name ?self)))
-						  (bind ?self:class (class ?self)))
+  (slot parent (type SYMBOL) (visibility public)))
 ;------------------------------------------------------------------------------
