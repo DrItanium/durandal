@@ -1,0 +1,3 @@
+This module is used to contain the llvm types. It depends on the core module
+which contains the base class types that are not LLVM specific. This includes
+the Object, InteropObject, Hint, and other types.
