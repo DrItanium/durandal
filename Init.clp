@@ -31,3 +31,9 @@
 ; itself as being a batch-load command which allows multiple loads to occur as 
 ; a single command
 ;------------------------------------------------------------------------------
+(batch-load 
+  (create$ "modules/core/ModuleHeader.clp"
+	        "modules/llvm/ModuleHeader.clp"
+			  "modules/scheduler/ModuleHeader.clp"
+			  ; Add entries to other modules here
+			  ))
