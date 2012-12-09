@@ -30,7 +30,7 @@
 (defclass llvm::Diplomat 
   "A Diplomat is a collection of fields that interact with other
   objects."
-  (is-a llvm::LLVMObject)
+  (is-a LLVMObject)
   (slot IsOpen (type SYMBOL) (visibility public) (allowed-values FALSE TRUE))
   (slot HasCallBarrier (type SYMBOL) (visibility public) 
 		  (allowed-values FALSE TRUE))

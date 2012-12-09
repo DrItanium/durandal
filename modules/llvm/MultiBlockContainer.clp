@@ -28,7 +28,7 @@
 ; functionality for objects that wrap over multiple basic blocks
 ;------------------------------------------------------------------------------
 (defclass llvm::MultiBlockContainer 
- (is-a llvm::Diplomat core::ParentedObject core::List llvm::InteropObject)
+ (is-a Diplomat ParentedObject List InteropObject)
  (multislot Entrances (visibility public))
  (multislot Exits (visibility public))
  (multislot SafePaths (visibility public))

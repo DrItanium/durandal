@@ -27,7 +27,7 @@
 ; LLVMObject.clp - Base class for most LLVM objects in the llvm module
 ;------------------------------------------------------------------------------
 (defclass llvm::LLVMObject 
-  (is-a core::Object core::InteropObject core::ParentedObject)
+  (is-a Object InteropObject ParentedObject)
   (slot Name (visibility public))
   (multislot WritesTo (visibility public))
   (multislot ReadsFrom (visibility public)))

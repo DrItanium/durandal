@@ -25,7 +25,7 @@
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
 (defclass llvm::Loop 
- (is-a llvm::Region)
+ (is-a Region)
  (slot BackEdgeCount (type NUMBER) (range 0 ?VARIABLE))
  (multislot BackEdges)
  (multislot ExitBlocks)

@@ -27,12 +27,12 @@
 ; LLVMMetadata.clp - contains CLIPS classes representing LLVM metadata types
 ;------------------------------------------------------------------------------
 (defclass llvm::LLVMMDNode 
- (is-a llvm::LLVMValue)
+ (is-a LLVMValue)
  (multislot Operands)
  (slot IsFunctionLocal (type SYMBOL) (allowed-values FALSE TRUE))
  (slot TargetFunction (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::LLVMMDString 
- (is-a llvm::LLVMValue)
+ (is-a LLVMValue)
  (slot String (type STRING)))
 ;------------------------------------------------------------------------------

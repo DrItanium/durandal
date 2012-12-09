@@ -26,7 +26,8 @@
 ;------------------------------------------------------------------------------
 ; LLVMValue.clp - CLIPS representation of the LLVM Value type. 
 ;------------------------------------------------------------------------------
-(defclass llvm::LLVMValue (is-a llvm::LLVMObject)
+(defclass llvm::LLVMValue 
+ (is-a LLVMObject)
   (slot HasAddressTaken (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsLandingPad (type SYMBOL) (allowed-values FALSE TRUE))
   (slot HasOneUse (type SYMBOL) (allowed-values FALSE TRUE))

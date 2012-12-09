@@ -27,7 +27,7 @@
 ; Region.clp - Represents the LLVM Region class
 ;------------------------------------------------------------------------------
 (defclass llvm::Region 
- (is-a llvm::MultiBlockContainer)
+ (is-a MultiBlockContainer)
  (slot IsSimple (type SYMBOL) (allowed-values FALSE TRUE))
  (slot Depth (type NUMBER) (range 0 ?VARIABLE))
  (slot IsTopLevelRegion (type SYMBOL) (allowed-values FALSE TRUE)))

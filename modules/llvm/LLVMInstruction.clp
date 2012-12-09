@@ -29,11 +29,11 @@
 ;                       Instruction type is not in this file
 ;------------------------------------------------------------------------------
 (defclass llvm::PointerOperandObject 
-  (is-a core::Object core::ParentedObject core::InteropObject)
+  (is-a Object ParentedObject InteropObject)
   (slot PointerOperand (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::MemoryModifyingObject 
-  (is-a llvm::PointerOperandObject)
+  (is-a PointerOperandObject)
   (slot Alignment (type NUMBER) (range 0 ?VARIABLE))
   (slot IsAtomic (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsSimple (type SYMBOL) (allowed-values FALSE TRUE))
@@ -41,12 +41,12 @@
   (slot IsVolatile (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::PhiNode 
-  (is-a llvm::Instruction)
+  (is-a Instruction)
   (slot IncomingValueCount (type NUMBER) (range 0 ?VARIABLE))
   (slot HasConstantValue (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::CallInstruction 
-  (is-a llvm::Instruction)
+  (is-a Instruction)
   (slot CalledFunction (type SYMBOL))
   (slot IsDereferenceablePointer (type SYMBOL) (allowed-values FALSE TRUE))
   (slot HasValueHandle (type SYMBOL) (allowed-values FALSE TRUE))
@@ -65,14 +65,14 @@
   (slot IsInlineAsm (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::IntrinsicInstruction 
-  (is-a llvm::CallInstruction)
+  (is-a CallInstruction)
   (slot IntrinsicID (type NUMBER)))
 ;------------------------------------------------------------------------------
 (defclass llvm::DBGInfoIntrinsic 
-  (is-a llvm::IntrinsicInstruction))
+  (is-a IntrinsicInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::MemoryIntrinsic 
-  (is-a llvm::IntrinsicInstruction)
+  (is-a IntrinsicInstruction)
   (slot RawDestination)
   (slot Length (type NUMBER) (range 0 ?VARIABLE))
   (slot AlignmentConstant (type NUMBER))
@@ -82,16 +82,16 @@
   (slot Destination (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::BinaryOperator 
-  (is-a llvm::Instruction)
+  (is-a Instruction)
   (slot HasNoUnsignedWrap (type SYMBOL) (allowed-values FALSE TRUE))
   (slot HasNoSignedWrap (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsExact (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::UnaryInstruction 
- (is-a llvm::Instruction))
+  (is-a Instruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::AllocaInstruction 
- (is-a llvm::UnaryInstruction)
+  (is-a UnaryInstruction)
   (slot IsStaticAllocation (type SYMBOL) (allowed-values FALSE TRUE))
   (slot Alignment (type NUMBER) (range 0 ?VARIABLE))
   (slot PointerType (type SYMBOL)) ; from AllocaInst::getType
@@ -101,45 +101,45 @@
   (slot IsStatic (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::CastInstruction 
- (is-a llvm::UnaryInstruction)
+  (is-a UnaryInstruction)
   (slot IsIntegerCast (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsLosslessCast (type SYMBOL) (allowed-values FALSE TRUE))
   (slot SourceType (type SYMBOL))
   (slot DestinationType (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::BitCastInstruction 
- (is-a llvm::CastInstruction))
+  (is-a CastInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::FPExtInstruction 
- (is-a llvm::CastInstruction))
+  (is-a CastInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::FPToSIInstruction 
- (is-a llvm::CastInstruction))
+  (is-a CastInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::FPToUIInstruction 
- (is-a llvm::CastInstruction))
+  (is-a CastInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::FPTruncInstruction 
- (is-a llvm::CastInstruction))
+  (is-a CastInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::IntToPtrInstruction 
- (is-a llvm::CastInstruction))
+  (is-a CastInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::PtrToIntInstruction 
- (is-a llvm::CastInstruction))
+  (is-a CastInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::SExtInstruction 
- (is-a llvm::CastInstruction))
+  (is-a CastInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::LoadInstruction 
- (is-a llvm::UnaryInstruction llvm::MemoryModifyingObject)
+  (is-a UnaryInstruction MemoryModifyingObject)
   (slot PointerAddressSpace (type NUMBER) (range 0 ?VARIABLE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::VAArgInstruction 
- (is-a llvm::UnaryInstruction llvm::PointerOperandObject))
+  (is-a UnaryInstruction PointerOperandObject))
 ;------------------------------------------------------------------------------
 (defclass llvm::CompareInstruction 
- (is-a llvm::Instruction)
+  (is-a Instruction)
   (slot SignedPredicate)
   (slot UnsignedPredicate)
   (slot IsFPPredicate (type SYMBOL) (allowed-values FALSE TRUE))
@@ -156,28 +156,28 @@
   (slot IsFalseWhenEqual (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::FloatingPointCompareInstruction 
- (is-a llvm::CompareInstruction))
+  (is-a CompareInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::IntegerCompareInstruction 
- (is-a llvm::CompareInstruction))
+  (is-a CompareInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::TerminatorInstruction 
- (is-a llvm::Instruction)
+  (is-a Instruction)
   (multislot Successors))
 ;------------------------------------------------------------------------------
 (defclass llvm::BranchInstruction 
- (is-a llvm::TerminatorInstruction)
+  (is-a TerminatorInstruction)
   (slot IsUnconditional (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsConditional (type SYMBOL) (allowed-values FALSE TRUE))
   (slot Condition))
 ;------------------------------------------------------------------------------
 (defclass llvm::IndirectBranchInstruction 
- (is-a llvm::TerminatorInstruction)
+  (is-a TerminatorInstruction)
   (slot Address (type NUMBER) (range 0 ?VARIABLE)))
 ;------------------------------------------------------------------------------
 ;We store the destinations within the destination registers
 (defclass llvm::InvokeInstruction 
- (is-a llvm::TerminatorInstruction)
+  (is-a TerminatorInstruction)
   (multislot Arguments)
   (slot CalledFunction)
   (slot NormalDestination)
@@ -190,29 +190,29 @@
   (slot HasByValArgument (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::ResumeInstruction 
- (is-a llvm::TerminatorInstruction)
+  (is-a TerminatorInstruction)
   (slot Value (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::ReturnInstruction 
- (is-a llvm::TerminatorInstruction)
+  (is-a TerminatorInstruction)
   (slot ReturnValue (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::SwitchEntry 
-  (is-a core::Object core::ParentedObject core::InteropObject)
+  (is-a Object ParentedObject InteropObject)
   (slot Index (type NUMBER))
   (slot Target (allowed-classes BasicBlock InteropObject SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::SwitchInstruction 
- (is-a llvm::TerminatorInstruction)
+  (is-a TerminatorInstruction)
   (slot Condition (type SYMBOL))
   (slot DefaultDestination (type SYMBOL))
   (multislot Cases))
 ;------------------------------------------------------------------------------
 (defclass llvm::UnreachableInstruction 
- (is-a llvm::TerminatorInstruction))
+  (is-a llvm::TerminatorInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::GetElementPointerInstruction 
- (is-a llvm::Instruction llvm::PointerOperandObject)
+  (is-a Instruction PointerOperandObject)
   (slot PointerAddressSpace (type NUMBER) (range 0 ?VARIABLE))
   (slot NumIndices (type NUMBER) (range 0 ?VARIABLE))
   (slot HasIndices (type SYMBOL) (allowed-values FALSE TRUE))
@@ -221,20 +221,20 @@
   (slot IsInBounds (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::AtomicCompareExchangeInstruction 
- (is-a llvm::Instruction llvm::PointerOperandObject)
+  (is-a Instruction PointerOperandObject)
   (slot IsVolatile (type SYMBOL) (allowed-values FALSE TRUE))
   (slot CompareOperand (type SYMBOL))
   (slot NewValOperand (type SYMBOL))
   (slot PointerAddressSpace (type NUMBER) (range 0 ?VARIABLE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::AtomicRMWInstruction 
- (is-a llvm::Instruction llvm::PointerOperandObject)
+  (is-a Instruction PointerOperandObject)
   (slot Operation (type SYMBOL))
   (slot IsVolatile (type SYMBOL) (allowed-values FALSE TRUE))
   (slot ValueOperand (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::LandingPadInstruction 
- (is-a llvm::Instruction)
+  (is-a Instruction)
   (slot PersonalityFunction (type SYMBOL))
   (slot IsCleanup (type SYMBOL) (allowed-values FALSE TRUE))
   (multislot Clauses)
@@ -242,36 +242,36 @@
   (slot IsFilter (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::SelectInstruction 
- (is-a llvm::Instruction)
+  (is-a Instruction)
   (slot Condition (type SYMBOL))
   (slot TrueValue (type SYMBOL))
   (slot FalseValue (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::ShuffleVectorInstruction 
- (is-a llvm::Instruction)
+  (is-a Instruction)
   (slot Mask (type NUMBER))
   (multislot ShuffleMask (type NUMBER) (cardinality 0 16)))
 ;------------------------------------------------------------------------------
 (defclass llvm::StoreInstruction 
- (is-a llvm::Instruction llvm::MemoryModifyingObject)
+  (is-a Instruction MemoryModifyingObject)
   (slot ValueOperand (type SYMBOL)))
 ;------------------------------------------------------------------------------
 ;This is one of those instructions that have to be done inside C++
 ; I'm not wasting my time pulling in the entire contents of these types
 (defclass llvm::ExtractElementInstruction 
- (is-a llvm::Instruction))
+  (is-a Instruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::InsertElementInstruction 
- (is-a llvm::Instruction))
+  (is-a Instruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::InsertValueInstruction 
- (is-a llvm::Instruction))
+  (is-a Instruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::FenceInstruction 
- (is-a llvm::Instruction))
+  (is-a Instruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::ExtractValueInstruction 
- (is-a llvm::UnaryInstruction)
+  (is-a UnaryInstruction)
   (multislot Indices)
   (slot AggregateOperand))
 ;------------------------------------------------------------------------------

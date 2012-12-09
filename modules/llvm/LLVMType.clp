@@ -24,7 +24,8 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defclass llvm::LLVMType (is-a llvm::LLVMObject)
+(defclass llvm::LLVMType 
+ (is-a LLVMObject)
   (slot IsVoidType (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsHalfType  (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsFloatType (type SYMBOL) (allowed-values FALSE TRUE))
@@ -60,13 +61,15 @@
   (slot IsFunctionVarArg (type SYMBOL) (allowed-values FALSE TRUE))
   (slot QuickType (type SYMBOL)))
 ;------------------------------------------------------------------------------
-(defclass llvm::IntegerType (is-a llvm::LLVMType)
+(defclass llvm::IntegerType 
+ (is-a LLVMType)
  (slot BitWidth (type NUMBER) (range 0 ?VARIABLE))
  (slot BitMask (type NUMBER))
  (slot SignBit (type NUMBER))
  (slot IsPowerOf2ByteWidth (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
-(defclass llvm::FunctionType (is-a llvm::LLVMType)
+(defclass llvm::FunctionType 
+ (is-a LLVMType)
  (slot IsVarArg (type SYMBOL) (allowed-values FALSE TRUE))
  (slot ReturnType (allowed-classes LLVMType))
  (multislot Parameters))
@@ -79,10 +82,12 @@
  (?index)
  (nth$ ?index ?self:Parameters))
 ;------------------------------------------------------------------------------
-(defclass llvm::CompositeType (is-a llvm::LLVMType)
+(defclass llvm::CompositeType 
+ (is-a LLVMType)
  (multislot Indicies))
 ;------------------------------------------------------------------------------
-(defclass llvm::StructType (is-a llvm::CompositeType)
+(defclass llvm::StructType 
+ (is-a CompositeType)
  (slot Name (type SYMBOL))
  (slot IsPacked (type SYMBOL) (allowed-values FALSE TRUE))
  (slot IsLiteral (type SYMBOL) (allowed-values FALSE TRUE))
@@ -104,16 +109,20 @@
  (?n)
  (nth$ ?n ?self:Body))
 ;------------------------------------------------------------------------------
-(defclass llvm::SequentialType (is-a llvm::CompositeType)
+(defclass llvm::SequentialType 
+ (is-a CompositeType)
  (slot ElementType (allowed-classes LLVMType)))
 ;------------------------------------------------------------------------------
-(defclass llvm::VectorType (is-a llvm::SequentialType)
+(defclass llvm::VectorType 
+ (is-a SequentialType)
  (slot BitWidth (type NUMBER) (range 0 ?VARIABLE))
  (slot NumElements (type NUMBER) (range 0 ?VARIABLE)))
 ;------------------------------------------------------------------------------
-(defclass llvm::PointerType (is-a llvm::SequentialType)
+(defclass llvm::PointerType 
+ (is-a SequentialType)
  (slot AddressSpace (type NUMBER) (range 0 ?VARIABLE)))
 ;------------------------------------------------------------------------------
-(defclass llvm::ArrayType (is-a llvm::SequentialType)
+(defclass llvm::ArrayType 
+ (is-a SequentialType)
  (slot NumElements (type NUMBER) (range 0 ?VARIABLE)))
 ;------------------------------------------------------------------------------

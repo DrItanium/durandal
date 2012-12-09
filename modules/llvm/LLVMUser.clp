@@ -26,6 +26,6 @@
 ;------------------------------------------------------------------------------
 ; LLVMUser.clp - CLIPS representation of LLVM's User type
 ;------------------------------------------------------------------------------
-(defclass llvm::LLVMUser (is-a llvm::LLVMValue)
+(defclass llvm::LLVMUser (is-a LLVMValue)
   (multislot Operands (visibility public)))
 ;------------------------------------------------------------------------------

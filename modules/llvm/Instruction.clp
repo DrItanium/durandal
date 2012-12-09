@@ -27,7 +27,7 @@
 ; Instruction.clp - Base LLVM Instruction class
 ;------------------------------------------------------------------------------
 (defclass llvm::Instruction 
-  (is-a llvm::LLVMUser)
+  (is-a LLVMUser)
   (slot NumSuccessors)
   (slot HasValueHandle (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsDereferenceablePointer (type SYMBOL) (allowed-values FALSE TRUE))
