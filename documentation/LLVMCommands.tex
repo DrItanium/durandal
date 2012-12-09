@@ -1,0 +1,38 @@
+\documentclass[11pt]{article}
+\usepackage[vmargin=1.0in, hmargin=1.0in]{geometry}
+\usepackage{setspace}
+\begin{document}
+This document contains a listing of the different commands that are exposed
+through LibExpertSystem. This is a continually evolving document so it always
+helps to view the source code to LibExpertSystem. 
+
+The original use of LibExpertSystem was for implementing wavefront scheduling
+as an expert system that interfaced with LLVM. This was my masters thesis and
+the code was written specifically with the thesis in mind. After finishing my
+thesis it was necessary to rewrite significant portions of the wavefront
+scheduling code as well as LibExpertSystem to make it more useful and robust. 
+
+This document currently has two sections: the LLVM IO router and new functions.
+
+
+\section*{LLVM IO Router}
+During my thesis I had to choose between debugging output and getting a valid
+resultant program. This was because LLVM and CLIPS use standard out for
+different purposes. In LLVM, standard out is used to write bitcode to a file.
+In CLIPS, standard out is used to print things out to the console. This meant
+using console redirect operators would cause both resultant program code and
+any debugging messages to be saved to the redirected file. 
+
+In a recent version of LibExpertSystem, I added the LLVM I/O router that is
+responsible for printing to llvm::errs() which is where debug information
+should be sent to for printing instead of standard out. CLIPS provides a
+logical router system to make it super easy to write to different kinds of
+files, streams, etc. This router system was used to add a new router titled
+"llvm" which will write any data given to llvm::errs(). While this is a nice
+feature it does mean that the llvm io router has to be mentioned explicitly if
+one wants to use it. Thus, I modified the llvm print function to \emph{capture}
+all output and not pass it to standard out at all. This means that all commands
+that print to an IO router will be piped to llvm::errs(). 
+
+\section*{New Commands}
+\end{document}
