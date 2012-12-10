@@ -48,6 +48,7 @@
 (load* "modules/llvm/LLVMType.clp")
 (load* "modules/llvm/LLVMValue.clp")
 (load* "modules/llvm/LLVMUser.clp")
+(load* "modules/llvm/LLVMConstant.clp")
 (load* "modules/llvm/LLVMOperator.clp")
 (load* "modules/llvm/LLVMMetadata.clp")
 (load* "modules/llvm/Instruction.clp")
