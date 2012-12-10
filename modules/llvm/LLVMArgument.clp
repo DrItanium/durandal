@@ -24,39 +24,16 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; ModuleHeader.clp - Contains the entry point into the llvm module. 
+; LLVMArgument.clp - CLIPS class representing the LLVM Argument type
 ;------------------------------------------------------------------------------
-; In CLIPS, modules are defined BEFORE their corresponding contents are defined
-; so this file doubles as a loader as well. Absolute paths must be used because 
-; CLIPS does not understand the concept of partial paths. 
-;
-; If you want to change the layout of this module then you must update these
-; paths. Failure to do so will cause the optimization to not work correctly.
+(defclass llvm::Argument 
+  (is-a LLVMValue)
+  (slot Index (type NUMBER) (range 0 ?VARIABLE))
+  (slot HasByValueAttribute (type SYMBOL) (allowed-values FALSE TRUE))
+  (slot ParameterAlignment (type NUMBER) (range 0 ?VARIABLE))
+  (slot HasNestAttribute (type SYMBOL) (allowed-values FALSE TRUE))
+  (slot HasNoAliasAttribute (type SYMBOL) (allowed-values FALSE TRUE))
+  (slot HasNoCaptureAttribute (type SYMBOL) (allowed-values FALSE TRUE))
+  (slot HasStructRetAttribute (type SYMBOL) (allowed-values FALSE TRUE))
+  (multislot Attributes))
 ;------------------------------------------------------------------------------
-
-; Path is modules/llvm/
-(defmodule llvm 
- (import core defclass ?ALL)
- (import core deffunction ?ALL)  
- (export defclass ?ALL)
- (export deffunction ?ALL))
-
-; DO NOT MESS WITH THE ORDER OF THESE COMMANDS
-; BAD THINGS CAN HAPPEN
-; Class loaders
-(load* "modules/llvm/LLVMObject.clp")
-(load* "modules/llvm/LLVMType.clp")
-(load* "modules/llvm/LLVMValue.clp")
-(load* "modules/llvm/LLVMUser.clp")
-(load* "modules/llvm/LLVMConstant.clp")
-(load* "modules/llvm/LLVMOperator.clp")
-(load* "modules/llvm/LLVMMetadata.clp")
-(load* "modules/llvm/LLVMArgument.clp")
-(load* "modules/llvm/Instruction.clp")
-(load* "modules/llvm/LLVMInstruction.clp")
-(load* "modules/llvm/Diplomat.clp")
-(load* "modules/llvm/MultiBlockContainer.clp")
-(load* "modules/llvm/Region.clp")
-(load* "modules/llvm/Loop.clp")
-
-; Function loaders
