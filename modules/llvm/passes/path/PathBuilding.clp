@@ -1,4 +1,4 @@
-;------------------------------------------------------------------------------
+
 ;Copyright (c) 2012, Joshua Scoggins 
 ;All rights reserved.
 ;
@@ -24,27 +24,57 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; PathConstruction.clp - Contains rules devoted to starting the construction of
-; a given path through a given region. Rewritten to take advantage of modules
+; PathBuilding.clp - Contains rules that build up the paths through the given
+; region 
 ;------------------------------------------------------------------------------
-(defrule path::initialize-path-construction-region
-			(declare (salience 3))
-			?fct <- (compute paths in region ?id)
-			?r0 <- (object (is-a Region) (id ?id) (entrances $? ?a $?) 
-								(contents $? ?z $?))
-			(object (is-a Region) (id ?z) (parent ?id) (entrances $? ?a $?))
-			(object (is-a BasicBlock) (id ?a) (parent ~?id))
+(defrule path::add-to-path-copy
+			"Makes a copy of the current path object and concatenates the symbol 
+			in question to the end of the list. This rule is fired when the 
+			reference count of the given path object is greater than one."
+			(declare (salience 1))
+			?fct <- (Add ?next to ?id)
+			?hint <- (object (is-a Path) (closed FALSE) (id ?id) (parent ?p) 
+								  (reference-count ?rc&:(> ?rc 1))
+								  (values $?contents))
+			=>
+			(send ?hint decrement-reference-count)
+			(retract ?fct)
+			(make-instance of Path (parent ?p) (values $?contents ?next)))
+;------------------------------------------------------------------------------
+(defrule path::add-to-path-concat
+			"Concatenates the next element of the path directly to the original 
+			path object. This rule fires when the reference count of the path is 
+			equal to one"
+			(declare (salience 1))
+			?fct <- (Add ?next to ?id)
+			?hint <- (object (is-a Path) (closed FALSE) (id ?id) 
+								  (reference-count 1) (values $?values))
 			=>
 			(retract ?fct)
-			(make-instance of Path (parent ?n) (values ?z)))
+			(modify-instance ?hint (reference-count 0) (values $?values ?next)))
 ;------------------------------------------------------------------------------
-(defrule path::initialize-path-construction-basicblock
-			(declare (salience 3))
-			?fct <- (compute paths in region ?id)
-			?r0 <- (object (is-a Region) (id ?id) (entrances $? ?a $?) 
-								(contents $? ?z $?))
-			(object (is-a BasicBlock) (id ?a) (parent ?n))
+(defrule path::close-path-update
+			"Closes a path via an in-place update"
+			(declare (salience 1))
+			?fct <- (Close ?id with ?bb)
+			?hint <- (object (is-a Path) (closed FALSE) (id ?id) 
+								  (reference-count 1))
 			=>
 			(retract ?fct)
-			(make-instance of Path (parent ?n) (values ?a)))
+			(modify-instance ?hint (reference-count 0) (closed TRUE) (exit ?bb)))
+;------------------------------------------------------------------------------
+(defrule path::close-path-copy 
+			"Closes a path by making a copy of the target path"
+			(declare (salience 1))
+			?fct <- (Close ?id with ?bb)
+			?hint <- (object (is-a Path) (id ?id) (closed FALSE) (parent ?p)
+								  (reference-count ?rc&:(> ?rc 1))
+								  (values $?values))
+			=>
+			(send ?hint decrement-reference-count)
+			(retract ?fct)
+			(make-instance of Path (parent ?p) 
+			                       (closed TRUE) 
+										  (exit ?bb) 
+			                       (values $?values)))
 ;------------------------------------------------------------------------------

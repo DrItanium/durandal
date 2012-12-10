@@ -24,26 +24,27 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; ModuleHeader.clp - Contains the entry point into the path-builder
-; module. 
+; PathConstruction.clp - Contains rules devoted to starting the construction of
+; a given path through a given region. Rewritten to take advantage of modules
 ;------------------------------------------------------------------------------
-; In CLIPS, modules are defined BEFORE their corresponding contents are defined
-; so this file doubles as a loader as well. Absolute paths must be used because 
-; CLIPS does not understand the concept of partial paths. 
-;
-; If you want to change the layout of this module then you must update these
-; paths. Failure to do so will cause the optimization to not work correctly.
+(defrule path::initialize-path-construction-region
+			(declare (salience 3))
+			?fct <- (compute paths in region ?id)
+			?r0 <- (object (is-a Region) (id ?id) (entrances $? ?a $?) 
+								(contents $? ?z $?))
+			(object (is-a Region) (id ?z) (parent ?id) (entrances $? ?a $?))
+			(object (is-a BasicBlock) (id ?a) (parent ~?id))
+			=>
+			(retract ?fct)
+			(make-instance of Path (parent ?n) (values ?z)))
 ;------------------------------------------------------------------------------
-
-(defmodule path
- (import core defclass ?ALL)
- (import llvm defclass BasicBlock Region Diplomat Loop)
- (import llvm deffunction ?ALL)
- (import core deffunction ?ALL)
- (import MAIN deftemplate ?ALL)
- (export defclass Path)
- (export deffunction ?ALL))
-
-(load* "modules/llvm/passes/path/Path.clp")
-(load* "modules/llvm/passes/path/PathConstruction.clp")
-(load* "modules/llvm/passes/path/PathBuilding.clp")
+(defrule path::initialize-path-construction-basicblock
+			(declare (salience 3))
+			?fct <- (compute paths in region ?id)
+			?r0 <- (object (is-a Region) (id ?id) (entrances $? ?a $?) 
+								(contents $? ?z $?))
+			(object (is-a BasicBlock) (id ?a) (parent ?n))
+			=>
+			(retract ?fct)
+			(make-instance of Path (parent ?n) (values ?a)))
+;------------------------------------------------------------------------------
