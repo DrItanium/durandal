@@ -47,3 +47,4 @@
 (load* "modules/llvm/passes/path/Path.clp")
 (load* "modules/llvm/passes/path/PathConstruction.clp")
 (load* "modules/llvm/passes/path/PathBuilding.clp")
+(load* "modules/llvm/passes/path/PathTraversal.clp")
