@@ -24,6 +24,9 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
+; LLVMConstant.clp - Contains classes that represent the different LLVM
+; constant types
+;------------------------------------------------------------------------------
 (defclass llvm::Constant 
   (is-a LLVMUser)
   (slot IsNullValue (type SYMBOL) (allowed-values FALSE TRUE))
