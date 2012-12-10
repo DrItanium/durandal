@@ -1,0 +1,2 @@
+This pass/module schedules a given basic block with maximum parallelism in
+mind. 
