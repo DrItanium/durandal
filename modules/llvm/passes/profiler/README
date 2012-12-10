@@ -1,0 +1,5 @@
+This pass/module modifies a program to generate profiling statistics
+
+
+This module also handles the processing and usage of said profiling statistics
+as well
