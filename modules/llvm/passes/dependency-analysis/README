@@ -1,0 +1,4 @@
+This pass/module computes dependencies between instructions
+
+
+This includes loads and stores as well as call instruction barriers.
