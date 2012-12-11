@@ -14,7 +14,7 @@ TOOLNAME=clips
 # List libraries that we'll need
 # We use LIBS because sample is a dynamic library.
 #
-USEDLIBS = LibExpertSystem.a clips.a
+USEDLIBS = ExpertSystem.a clips.a
 
 #
 # Include Makefile.common so we know what to do.

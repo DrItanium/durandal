@@ -8,6 +8,6 @@ LEVEL=..
 #
 # List all of the subdirectories that we will compile.
 #
-DIRS=clips LibExpertSystem
+DIRS=clips ExpertSystem
 
 include $(LEVEL)/Makefile.common
