@@ -74,41 +74,9 @@ typedef long long PointerAddress;
 void EnvUserFunctions(
       void *theEnv)
 {
-   extern void LLVMPrint(void *theEnv);
-   extern void BatchLoad(void *theEnv);
-   extern void* IsIdenticalTo(void *theEnv);
-   extern void* IsIdenticalToWhenDefined(void *theEnv);
-   extern void* IsSameOperationAs(void *theEnv);
-   extern PointerAddress CloneInstruction(void *theEnv);
-   extern PointerAddress CreatePhiNode(void *theEnv);
-   extern void* MoveInstructionBefore(void *theEnv);
-   extern void* MoveInstructionAfter(void *theEnv);
-   extern void* UnlinkAndMoveInstructionBefore(void *theEnv);
-   extern void* UnlinkAndMoveInstructionAfter(void *theEnv);
-   extern void* UnlinkAndDeleteInstruction(void *theEnv);
-   extern void* ScheduleInstructions(void *theEnv);
-   extern void* ReplaceUsesOf(void *theEnv);
-   extern void* ReplaceAllUsesOf(void *theEnv);
-	extern void* UnlinkInstruction(void* theEnv);
-	extern void* DeleteInstruction(void* theEnv);
-
-   EnvDefineFunction(theEnv, "llvm-print",'v', PTIEF LLVMPrint, "LLVMPrint");
-   EnvDefineFunction(theEnv, "batch-load",'v', PTIEF BatchLoad, "BatchLoad");
-   EnvDefineFunction(theEnv, "llvm-instruction-is-identical-to", 'w', PTIEF IsIdenticalTo, "IsIdenticalTo");
-   EnvDefineFunction(theEnv, "llvm-instruction-is-identical-to-when-defined", 'w', PTIEF IsIdenticalToWhenDefined, "IsIdenticalToWhenDefined");
-   EnvDefineFunction(theEnv, "llvm-instruction-is-same-operation-as", 'w', PTIEF IsSameOperationAs, "IsSameOperationAs");
-   EnvDefineFunction(theEnv, "llvm-move-instruction-after", 'w', PTIEF MoveInstructionAfter, "MoveInstructionAfter");
-   EnvDefineFunction(theEnv, "llvm-move-instruction-before", 'w', PTIEF MoveInstructionBefore, "MoveInstructionBefore");
-   EnvDefineFunction(theEnv, "llvm-unlink-and-move-instruction-after", 'w',  PTIEF UnlinkAndMoveInstructionAfter, "UnlinkAndMoveInstructionAfter");
-   EnvDefineFunction(theEnv, "llvm-unlink-and-move-instruction-before", 'w', PTIEF UnlinkAndMoveInstructionBefore, "UnlinkAndMoveInstructionBefore");
-   EnvDefineFunction(theEnv, "llvm-unlink-and-delete-instruction", 'w', PTIEF UnlinkAndDeleteInstruction, "UnlinkAndDeleteInstruction");
-   EnvDefineFunction(theEnv, "llvm-clone-instruction", 'l', PTIEF CloneInstruction, "CloneInstruction");
-   EnvDefineFunction(theEnv, "llvm-make-phi-node", 'l', PTIEF CreatePhiNode, "CreatePhiNode");
-   EnvDefineFunction(theEnv, "llvm-replace-uses", 'w', PTIEF ReplaceUsesOf, "ReplaceUsesOf");
-   EnvDefineFunction(theEnv, "llvm-replace-all-uses", 'w', PTIEF ReplaceAllUsesOf, "ReplaceAllUsesOf");
-   EnvDefineFunction(theEnv, "llvm-unlink-instruction", 'w', PTIEF UnlinkInstruction, "UnlinkInstruction");
-   EnvDefineFunction(theEnv, "llvm-delete-instruction", 'w', PTIEF DeleteInstruction, "DeleteInstruction");
-   EnvDefineFunction(theEnv, "llvm-schedule-block", 'w', PTIEF ScheduleInstructions, "ScheduleInstructions");
+   extern void SetupLLVMIORouter(void* theEnv);
+   extern void RegisterExpertSystemFunctions(void* theEnv);
+   RegisterExpertSystemFunctions(theEnv);
 	SetupLLVMIORouter(theEnv);
 
 

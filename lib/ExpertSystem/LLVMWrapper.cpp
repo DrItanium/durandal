@@ -1,9 +1,33 @@
 #include "LLVMWrapper.h"
 #include <string>
 #include <cstdio>
+extern "C" {
+  #include "clips.h"
+}
 
+typedef long long PointerAddress;
 char* createPhiNodeTitle= (char*)"llvm-make-phi-node";
 char* llvmPrintTitle = (char*)"llvm-print";
+extern "C" void RegisterExpertSystemFunctions(void* theEnv) {
+
+   EnvDefineFunction(theEnv, "llvm-print",'v', PTIEF LLVMPrint, "LLVMPrint");
+   EnvDefineFunction(theEnv, "batch-load",'v', PTIEF BatchLoad, "BatchLoad");
+   EnvDefineFunction(theEnv, "llvm-instruction-is-identical-to", 'w', PTIEF IsIdenticalTo, "IsIdenticalTo");
+   EnvDefineFunction(theEnv, "llvm-instruction-is-identical-to-when-defined", 'w', PTIEF IsIdenticalToWhenDefined, "IsIdenticalToWhenDefined");
+   EnvDefineFunction(theEnv, "llvm-instruction-is-same-operation-as", 'w', PTIEF IsSameOperationAs, "IsSameOperationAs");
+   EnvDefineFunction(theEnv, "llvm-move-instruction-after", 'w', PTIEF MoveInstructionAfter, "MoveInstructionAfter");
+   EnvDefineFunction(theEnv, "llvm-move-instruction-before", 'w', PTIEF MoveInstructionBefore, "MoveInstructionBefore");
+   EnvDefineFunction(theEnv, "llvm-unlink-and-move-instruction-after", 'w',  PTIEF UnlinkAndMoveInstructionAfter, "UnlinkAndMoveInstructionAfter");
+   EnvDefineFunction(theEnv, "llvm-unlink-and-move-instruction-before", 'w', PTIEF UnlinkAndMoveInstructionBefore, "UnlinkAndMoveInstructionBefore");
+   EnvDefineFunction(theEnv, "llvm-unlink-and-delete-instruction", 'w', PTIEF UnlinkAndDeleteInstruction, "UnlinkAndDeleteInstruction");
+   EnvDefineFunction(theEnv, "llvm-clone-instruction", 'l', PTIEF CloneInstruction, "CloneInstruction");
+   EnvDefineFunction(theEnv, "llvm-make-phi-node", 'l', PTIEF CreatePhiNode, "CreatePhiNode");
+   EnvDefineFunction(theEnv, "llvm-replace-uses", 'w', PTIEF ReplaceUsesOf, "ReplaceUsesOf");
+   EnvDefineFunction(theEnv, "llvm-replace-all-uses", 'w', PTIEF ReplaceAllUsesOf, "ReplaceAllUsesOf");
+   EnvDefineFunction(theEnv, "llvm-unlink-instruction", 'w', PTIEF UnlinkInstruction, "UnlinkInstruction");
+   EnvDefineFunction(theEnv, "llvm-delete-instruction", 'w', PTIEF DeleteInstruction, "DeleteInstruction");
+   EnvDefineFunction(theEnv, "llvm-schedule-block", 'w', PTIEF ScheduleInstructions, "ScheduleInstructions");
+}
 extern "C" void LLVMPrint(void* theEnv) {
 	DATA_OBJECT argument;
 	char *tempPtr;

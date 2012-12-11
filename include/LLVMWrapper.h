@@ -9,6 +9,7 @@ extern "C" {
   #include "clips.h"
 }
 void InitializeRuntimeAnalyzer();
+extern "C" void RegisterExpertSystemFunctions(void *theEnv);
 extern "C" void LLVMPrint(void *theEnv);
 extern "C" void BatchLoad(void *theEnv);
 extern "C" void* IsIdenticalTo(void *theEnv);
