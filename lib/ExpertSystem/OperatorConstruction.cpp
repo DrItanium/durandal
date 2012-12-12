@@ -1,4 +1,4 @@
-#include "OperatorConstruction.h"
+#include "ExpertSystem/CLIPSOperatorBuilder.h"
 
 void CLIPSOperatorBuilder::addFields(Operator* v, KnowledgeConstruction* kc, char* parent) {
 	CLIPSUserBuilder::addFields((User*)v, kc, parent);

@@ -1,5 +1,5 @@
-#include "KnowledgeConstructionPass.h"
-#include "KnowledgeConstructionEngine.h"
+#include "ExpertSystem/KnowledgeConstructor.h"
+#include "ExpertSystem/KnowledgeConstructionEngine.h"
 
 #define BuildUpFullExpression(type, ty, tgt) \
 	type vb (name, ty, namer); \
@@ -17,23 +17,23 @@ free(n)
 
 #define nested_dyn_cast(Type, name, in) Type * name = dyn_cast<Type>(in)
 #define simple_dyn_cast(Type, in) nested_dyn_cast(Type, op, in)
-KnowledgeConstruction::~KnowledgeConstruction() {
+KnowledgeConstructor::~KnowledgeConstructor() {
 	delete instances;
 	delete instanceStream;
 	delete tmp;
 }
-void KnowledgeConstruction::addToInstanceStream(std::string &instance) {
+void KnowledgeConstructor::addToInstanceStream(std::string &instance) {
 	(*instanceStream) << instance << " ";
 }
-void KnowledgeConstruction::registerInstance(PointerAddress ptrAdr, std::string &instance) {
+void KnowledgeConstructor::registerInstance(PointerAddress ptrAdr, std::string &instance) {
 	std::pair<PointerAddress, std::string&> pair (ptrAdr, instance);
 	instances->insert(pair);
 }
-void KnowledgeConstruction::addToKnowledgeBase(PointerAddress ptrAddress, std::string &instance) {
+void KnowledgeConstructor::addToKnowledgeBase(PointerAddress ptrAddress, std::string &instance) {
 	addToInstanceStream(instance);
 	registerInstance(ptrAddress, instance);
 }
-std::string KnowledgeConstruction::route(Value* val, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(Value* val, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)val)) {
 		return namer.nameFromPointer((PointerAddress)val);
 	} else {
@@ -62,7 +62,7 @@ std::string KnowledgeConstruction::route(Value* val, FunctionNamer& namer, char*
 	}
 }
 
-std::string KnowledgeConstruction::route(Value* val, FunctionNamer& namer) {
+std::string KnowledgeConstructor::route(Value* val, FunctionNamer& namer) {
 	if(Instruction* inst = dyn_cast<Instruction>(val)) {
 		return route(inst, namer, (char*)inst->getParent()->getName().data());
 	} else {
@@ -70,7 +70,7 @@ std::string KnowledgeConstruction::route(Value* val, FunctionNamer& namer) {
 	}
 }
 
-std::string KnowledgeConstruction::route(User* user, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(User* user, FunctionNamer& namer, char* parent) {
 	if(Instruction* inst = dyn_cast<Instruction>(user)) {
 		return route(inst, namer, parent);
 	} else if(Constant* cnst = dyn_cast<Constant>(user)) {
@@ -88,10 +88,10 @@ std::string KnowledgeConstruction::route(User* user, FunctionNamer& namer, char*
 		return name;
 	}
 }
-std::string KnowledgeConstruction::route(Constant* cnst, FunctionNamer& namer) {
+std::string KnowledgeConstructor::route(Constant* cnst, FunctionNamer& namer) {
 	return route(cnst, namer, "nil");
 }
-std::string KnowledgeConstruction::route(Constant* val, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(Constant* val, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)val)) {
 		return namer.nameFromPointer((PointerAddress)val);
 	} else if(isa<Function>(val)) {
@@ -154,7 +154,7 @@ std::string KnowledgeConstruction::route(Constant* val, FunctionNamer& namer, ch
 		}
 	}
 }
-std::string KnowledgeConstruction::route(Instruction* val, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(Instruction* val, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)val)) {
 		return namer.nameFromPointer((PointerAddress)val);
 	} else {
@@ -257,7 +257,7 @@ std::string KnowledgeConstruction::route(Instruction* val, FunctionNamer& namer,
 		}
 	}
 }
-std::string KnowledgeConstruction::route(Type* t, FunctionNamer& namer) {
+std::string KnowledgeConstructor::route(Type* t, FunctionNamer& namer) {
 	if(namer.pointerRegistered((PointerAddress)t)) {
 		return namer.nameFromPointer((PointerAddress)t);
 	} else {
@@ -301,10 +301,10 @@ std::string KnowledgeConstruction::route(Type* t, FunctionNamer& namer) {
 	}
 
 }
-std::string KnowledgeConstruction::route(Operator* val, FunctionNamer& namer) {
+std::string KnowledgeConstructor::route(Operator* val, FunctionNamer& namer) {
 	return route(val, namer, "nil");
 }
-std::string KnowledgeConstruction::route(Operator* val, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(Operator* val, FunctionNamer& namer, char* parent) {
 
 	if(namer.pointerRegistered((PointerAddress)val)) {
 		return namer.nameFromPointer((PointerAddress)val);
@@ -327,7 +327,7 @@ std::string KnowledgeConstruction::route(Operator* val, FunctionNamer& namer, ch
 		}
 	}
 }
-std::string KnowledgeConstruction::route(BasicBlock* bb, FunctionNamer& namer, char* parent, bool constructInstructions) {
+std::string KnowledgeConstructor::route(BasicBlock* bb, FunctionNamer& namer, char* parent, bool constructInstructions) {
 	if(namer.pointerRegistered((PointerAddress)bb)) {
 		return namer.nameFromPointer((PointerAddress)bb);
 	} else {
@@ -338,7 +338,7 @@ std::string KnowledgeConstruction::route(BasicBlock* bb, FunctionNamer& namer, c
 	}
 
 }
-std::string KnowledgeConstruction::route(Region* region, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(Region* region, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)region)) {
 		return namer.nameFromPointer((PointerAddress)region);
 	} else {
@@ -352,7 +352,7 @@ std::string KnowledgeConstruction::route(Region* region, FunctionNamer& namer, c
 	}
 
 }
-std::string KnowledgeConstruction::route(Argument* arg, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(Argument* arg, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)arg)) {
 		return namer.nameFromPointer((PointerAddress)arg);
 	} else {
@@ -365,7 +365,7 @@ std::string KnowledgeConstruction::route(Argument* arg, FunctionNamer& namer, ch
 		return name;
 	}
 }
-std::string KnowledgeConstruction::route(Loop* loop, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(Loop* loop, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)loop)) {
 		return namer.nameFromPointer((PointerAddress)loop);
 	} else {
@@ -379,7 +379,7 @@ std::string KnowledgeConstruction::route(Loop* loop, FunctionNamer& namer, char*
 	}
 
 }
-std::string KnowledgeConstruction::route(MDString* mds, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(MDString* mds, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)mds)) {
 		return namer.nameFromPointer((PointerAddress)mds);
 	} else {
@@ -398,7 +398,7 @@ std::string KnowledgeConstruction::route(MDString* mds, FunctionNamer& namer, ch
 	}
 
 }
-std::string KnowledgeConstruction::route(MDNode* mdn, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(MDNode* mdn, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)mdn)) {
 		return namer.nameFromPointer((PointerAddress)mdn);
 	} else {
@@ -429,7 +429,7 @@ std::string KnowledgeConstruction::route(MDNode* mdn, FunctionNamer& namer, char
 		return name;
 	}
 }
-std::string KnowledgeConstruction::route(InlineAsm* iasm, FunctionNamer& namer, char* parent) {
+std::string KnowledgeConstructor::route(InlineAsm* iasm, FunctionNamer& namer, char* parent) {
 	if(namer.pointerRegistered((PointerAddress)iasm)) {
 		return namer.nameFromPointer((PointerAddress)iasm);
 	} else {
@@ -452,16 +452,16 @@ std::string KnowledgeConstruction::route(InlineAsm* iasm, FunctionNamer& namer, 
 		return name;
 	}
 }
-void KnowledgeConstruction::route(RegionInfo& ri, FunctionNamer& namer, char* parent) {
+void KnowledgeConstructor::route(RegionInfo& ri, FunctionNamer& namer, char* parent) {
 	route(ri.getTopLevelRegion(), namer, parent);
 }
-void KnowledgeConstruction::route(LoopInfo& li, FunctionNamer& namer, char* parent) {
+void KnowledgeConstructor::route(LoopInfo& li, FunctionNamer& namer, char* parent) {
 	for(LoopInfo::iterator b = li.begin(), e = li.end(); b != e; ++b) {
 		Loop* l = *b;
 		route(l, namer, parent);
 	}
 }
-void KnowledgeConstruction::updateFunctionContents(Function& fn, FunctionNamer& namer) {
+void KnowledgeConstructor::updateFunctionContents(Function& fn, FunctionNamer& namer) {
 	for(llvm::Function::iterator i = fn.begin() , e = fn.end(); i != e; ++i) {
 		llvm::BasicBlock* bb = i;
 		if(!bb->hasName()) {
@@ -500,7 +500,7 @@ void KnowledgeConstruction::updateFunctionContents(Function& fn, FunctionNamer& 
 		route(a, namer, fnName);
 	}
 }
-void KnowledgeConstruction::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
+void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
 	char* funcName;
 	//get the function namer object
 	FunctionNamer namer;

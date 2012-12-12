@@ -1,4 +1,4 @@
-#include "EnvironmentCreationPass.h"
+#include "ExpertSystem/EnvironmentWrapper.h"
 
 using namespace llvm;
 bool EnvironmentConstruction::environmentCreated() { return (environment != 0); }
