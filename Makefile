@@ -18,6 +18,7 @@ LEVEL := $(DURANDAL_LEVEL)/../..
 include $(LEVEL)/Makefile.common
 
 CFLAGS += -I$(PROJ_SRC_DIR)/$(DURANDAL_LEVEL)/include -I$(PROJ_OBJ_DIR)/$(DURANDAL_LEVEL)/include
+CPPFLAGS += -I$(PROJ_SRC_DIR)/$(DURANDAL_LEVEL)/include -I$(PROJ_OBJ_DIR)/$(DURANDAL_LEVEL)/include
 ifeq ($(IS_TOP_LEVEL),1)
 
 ifneq ($(PROJ_SRC_ROOT),$(PROJ_OBJ_ROOT))
