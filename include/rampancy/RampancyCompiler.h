@@ -42,10 +42,10 @@ namespace rampancy {
          Driver* theDriver;
          TextDiagnosticPrinter* diagClient;
          IntrusiveRefCntPtr<DiagnosticIDs>* diagID;
-         DiagnosticEngine* diags;
+         DiagnosticsEngine* diags;
          llvm::sys::Path path;
       public:
-         Compiler(CLIPSEnvironment& e, char* const *ep);
+         Compiler(CLIPSEnvironment& e, char* arg0, char* const *ep);
          ~Compiler();
          std::string getCompleteKnowledgeString();
          void resetKnowledgeBuilder();

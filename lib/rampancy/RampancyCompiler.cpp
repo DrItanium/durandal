@@ -43,7 +43,7 @@ namespace rampancy {
       path = getExecutablePath(argv0);
       diagClient = new TextDiagnosticPrinter(llvm::errs(), DiagnosticOptions());
       diagID = new IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs());
-      diags = new DiagnosticEngine(diagID, diagClient);
+      diags = new DiagnosticsEngine(*diagID, diagClient);
       theDriver = new Driver(path.str(), llvm::sys::getDefaultTargetTriple(),
             "a.out", false, *diags);
       theDriver->setTitle("rampancy knowledge compiler");
@@ -61,7 +61,11 @@ namespace rampancy {
       builder->resetInstanceStream();
    }
    int Compiler::execute(llvm::Module* mod, std::vector<std::string>& args, char* functionName) {
+         llvm::InitializeNativeTarget();
+
          std::string error;
+         std::vector<std::string>::iterator it;
+         it = args.begin();
          OwningPtr<llvm::ExecutionEngine> ee(
                llvm::ExecutionEngine::createJIT(mod, &error));
          if(!ee) {
@@ -73,15 +77,14 @@ namespace rampancy {
             llvm::errs() << functionName << " function not found in module.\n";
             return 255;
          }
-         args.push_front(Mod->getModuleIdentifier());
+         args.insert(it, mod->getModuleIdentifier());
          return ee->runFunctionAsMain(entryFunction, args, envp);
    }
    int Compiler::executeMain(llvm::Module* mod, std::vector<std::string>& args) {
-      return executeMain(mod, args, "main"); 
+      return execute(mod, args, "main"); 
    }
 
    llvm::Module* Compiler::compile(int argc, const char **argv) {
-      llvm::Module* result;
       resetKnowledgeBuilder();   
       llvm::SmallVector<const char*, 16> args(argv, argv + argc);
       args.push_back("-fsyntax-only");
@@ -93,13 +96,13 @@ namespace rampancy {
          SmallString<256> msg;
          llvm::raw_svector_ostream os(msg);
          c->PrintJob(os, c->getJobs(), "; ", true);
-         Diags->Report(diag::err_fe_expected_compiler_job) << os.str();
+         diags->Report(diag::err_fe_expected_compiler_job) << os.str();
          return 0;
       }
 
       const driver::Command *cmd = cast<driver::Command>(*jobs.begin());
       if(llvm::StringRef(cmd->getCreator().getName()) != "clang") {
-         diags->report(diags::err_fe_expected_clang_command);
+         diags->Report(diag::err_fe_expected_clang_command);
          return 0;
       }
 
@@ -120,7 +123,7 @@ namespace rampancy {
       CompilerInstance clang;
       clang.setInvocation(ci.take());
       clang.createDiagnostics(int(ccArgs.size()), 
-            const_cast<char**>(ccAargs.data()));
+            const_cast<char**>(ccArgs.data()));
       if(!clang.hasDiagnostics())
          return 0;
       if(clang.getHeaderSearchOpts().UseBuiltinIncludes &&
@@ -131,13 +134,12 @@ namespace rampancy {
 
       OwningPtr<CodeGenAction> act(new EmitLLVMOnlyAction());
       if(!clang.ExecuteAction(*act))
-         return 1;
+         return 0;
       return act->takeModule();
    }
-   void Compiler::compileToKnowledge(int argc, const char **argv, 
+   int Compiler::compileToKnowledge(int argc, const char **argv, 
          bool getRegions, bool getLoops) {
-      llvm::Module mod;
-      mod = compile(argc, argv);
+      llvm::Module* mod = compile(argc, argv);
       if(mod) {
          builder->route(mod, getRegions, getLoops);
          return 1;

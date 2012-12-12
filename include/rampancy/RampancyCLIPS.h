@@ -3,5 +3,5 @@
 // Contains the header interface between the Rampancy library and 
 // clips. 
 
-extern "C" SetupRampancyExpertSystemInterfaces(void* ptr);
+extern "C" void SetupRampancyExpertSystemInterfaces(void* ptr);
 #endif
