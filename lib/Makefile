@@ -3,11 +3,11 @@
 #
 # Relative path to the top of the source tree.
 #
-LEVEL=..
+DURANDAL_LEVEL=..
 
 #
 # List all of the subdirectories that we will compile.
 #
 DIRS=clips ExpertSystem
 
-include $(LEVEL)/Makefile.common
+include $(DURANDAL_LEVEL)/Makefile

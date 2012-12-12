@@ -1,5 +1,5 @@
 # Path to top level of LLVM hierarchy
-LEVEL = ../..
+DURANDAL_LEVEL = ../..
 
 # Name of the library to build
 LIBRARYNAME = DurandalPasses 
@@ -9,5 +9,5 @@ LIBRARYNAME = DurandalPasses
 LOADABLE_MODULE = 1
 
 # Include the makefile implementation stuff
-include $(LEVEL)/Makefile.common
+include $(DURANDAL_LEVEL)/Makefile
 
