@@ -5,7 +5,7 @@
 class CLIPSLoopBuilder : public CLIPSObjectBuilder {
    public:
       CLIPSLoopBuilder(std::string nm, FunctionNamer& namer);
-      void addFields(Loop* loop, KnowlegeConstructor *kc, char* parent);
-		void build(Loop* loop, KnowlegeConstructor *kc, char* parent);
+      void addFields(Loop* loop, KnowledgeConstructor *kc, char* parent);
+		void build(Loop* loop, KnowledgeConstructor *kc, char* parent);
 };
 #endif

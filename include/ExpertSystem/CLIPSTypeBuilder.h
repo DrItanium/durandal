@@ -6,8 +6,8 @@ using namespace llvm;
 class CLIPSTypeBuilder : public CLIPSObjectBuilder {
 	public:
 		CLIPSTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "LLVMType");
-		void addFields(Type* type, KnowlegeConstructor* kc);
-		void build(Type* st, KnowlegeConstructor* kc);
+		void addFields(Type* type, KnowledgeConstructor* kc);
+		void build(Type* st, KnowledgeConstructor* kc);
 };
 class CLIPSFunctionTypeBuilder : public CLIPSTypeBuilder {
 	public:
@@ -38,8 +38,8 @@ class CLIPSVectorTypeBuilder : public CLIPSSequentialTypeBuilder {
 class CLIPSStructTypeBuilder : public CLIPSCompositeTypeBuilder {
 	public:
 		CLIPSStructTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "StructType");
-		void addFields(StructType* st, KnowlegeConstructor* kc, char* parent);
-		void build(StructType* st, KnowlegeConstructor* kc, char* parent);
+		void addFields(StructType* st, KnowledgeConstructor* kc, char* parent);
+		void build(StructType* st, KnowledgeConstructor* kc, char* parent);
 };
 
 class CLIPSIntegerTypeBuilder : public CLIPSTypeBuilder {

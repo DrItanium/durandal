@@ -1,6 +1,6 @@
 #include "ExpertSystem/CLIPSRegionBuilder.h"
 CLIPSRegionBuilder::CLIPSRegionBuilder(std::string nm, FunctionNamer& namer) : CLIPSObjectBuilder(nm, "Region", namer) { }
-void CLIPSRegionBuilder::addFields(Region* region, KnowlegeConstructor* kc, char* parent) {
+void CLIPSRegionBuilder::addFields(Region* region, KnowledgeConstructor* kc, char* parent) {
    //we should edit the parent to be a loop if it turns out that we
    //are part of a loop
    CLIPSObjectBuilder::addFields((PointerAddress)region, kc, parent);
@@ -27,7 +27,7 @@ void CLIPSRegionBuilder::addFields(Region* region, KnowlegeConstructor* kc, char
    }
    closeField();
 }
-void CLIPSRegionBuilder::build(Region* r, KnowlegeConstructor* kc, char* parent) {
+void CLIPSRegionBuilder::build(Region* r, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(r, kc, parent);
    close();

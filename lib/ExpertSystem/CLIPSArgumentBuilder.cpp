@@ -1,6 +1,6 @@
 #include "ExpertSystem/CLIPSArgumentBuilder.h"
 CLIPSArgumentBuilder::CLIPSArgumentBuilder(std::string nm, FunctionNamer& namer) : CLIPSValueBuilder(nm, "Argument", namer) { }
-void CLIPSArgumentBuilder::addFields(Argument* arg, KnowlegeConstructor *kc, char* parent) {
+void CLIPSArgumentBuilder::addFields(Argument* arg, KnowledgeConstructor *kc, char* parent) {
    CLIPSValueBuilder::addFields((Value*)arg, kc, parent);
    addField("Index", arg->getArgNo());
    if(arg->hasNestAttr()) addTrueField("HasNestAttribute");
@@ -8,7 +8,7 @@ void CLIPSArgumentBuilder::addFields(Argument* arg, KnowlegeConstructor *kc, cha
    if(arg->hasNoCaptureAttr()) addTrueField("HasNoCaptureAttribute");
    if(arg->hasStructRetAttr()) addTrueField("HasStructRetAttribute");
 }
-void CLIPSArgumentBuilder::build(Argument* arg, KnowlegeConstructor *kc, char* parent) {
+void CLIPSArgumentBuilder::build(Argument* arg, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(arg, kc, parent);
    close();

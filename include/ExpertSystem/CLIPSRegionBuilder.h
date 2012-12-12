@@ -8,8 +8,8 @@ using namespace llvm;
 class CLIPSRegionBuilder : public CLIPSObjectBuilder {
 	public:
 		CLIPSRegionBuilder(std::string nm, FunctionNamer& namer);
-		void addFields(Region* region, KnowledgeConstruction* kc, char* parent);
-		void build(Region* r, KnowledgeConstruction* kc, char* parent);
+		void addFields(Region* region, KnowledgeConstructor* kc, char* parent);
+		void build(Region* r, KnowledgeConstructor* kc, char* parent);
 };
 
 #endif

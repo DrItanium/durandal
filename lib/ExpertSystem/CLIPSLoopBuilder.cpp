@@ -1,6 +1,6 @@
 #include "ExpertSystem/CLIPSLoopBuilder.h"
 CLIPSLoopBuilder::CLIPSLoopBuilder(std::string nm, FunctionNamer& namer) : CLIPSObjectBuilder(nm, "Loop", namer) { }
-void CLIPSLoopBuilder::addFields(Loop* loop, KnowlegeConstructor *kc, char* parent) {
+void CLIPSLoopBuilder::addFields(Loop* loop, KnowledgeConstructor *kc, char* parent) {
    char* t = (char*)getName().c_str();
    FunctionNamer& n = getNamer();
    CLIPSObjectBuilder::addFields((PointerAddress)loop, kc, parent);
@@ -41,7 +41,7 @@ void CLIPSLoopBuilder::addFields(Loop* loop, KnowlegeConstructor *kc, char* pare
    }
    closeField();
 }
-void CLIPSLoopBuilder::build(Loop* loop, KnowlegeConstructor *kc, char* parent) {
+void CLIPSLoopBuilder::build(Loop* loop, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(loop, kc, parent);
    close();

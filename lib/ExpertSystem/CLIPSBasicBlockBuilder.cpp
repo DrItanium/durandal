@@ -1,6 +1,6 @@
 #include "ExpertSystem/CLIPSBasicBlockBuilder.h"
 CLIPSBasicBlockBuilder::CLIPSBasicBlockBuilder(std::string nm, FunctionNamer& namer) : CLIPSValueBuilder(nm, "BasicBlock", namer) { }
-void CLIPSBasicBlockBuilder::addFields(BasicBlock* bb, KnowlegeConstructor *kc, char* parent, bool constructInstructions = true) {
+void CLIPSBasicBlockBuilder::addFields(BasicBlock* bb, KnowledgeConstructor *kc, char* parent, bool constructInstructions) {
    CLIPSValueBuilder::addFields((Value*)bb, kc, parent);
    char* name = (char*)bb->getName().data();
    FunctionNamer& namer = getNamer();
@@ -39,8 +39,8 @@ void CLIPSBasicBlockBuilder::addFields(BasicBlock* bb, KnowlegeConstructor *kc, 
       addField("Produces", data.str()); 
    }
 }
-void CLIPSBasicBlockBuilder::build(BasicBlock* bb, KnowlegeConstructor *kc, 
-      char* parent, bool constructInstructions = true) {
+void CLIPSBasicBlockBuilder::build(BasicBlock* bb, KnowledgeConstructor *kc, 
+      char* parent, bool constructInstructions) {
    open();
    addFields(bb, kc, parent, constructInstructions);
    close();

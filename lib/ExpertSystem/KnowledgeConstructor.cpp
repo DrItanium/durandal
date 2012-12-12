@@ -21,7 +21,7 @@ free(n)
 #define nested_dyn_cast(Type, name, in) Type * name = dyn_cast<Type>(in)
 #define simple_dyn_cast(Type, in) nested_dyn_cast(Type, op, in)
 
-KnowledgeConstructor::KnowlegeConstructor() {
+KnowledgeConstructor::KnowledgeConstructor() {
    tmp = new std::string();
    instances = new llvm::DenseMap<PointerAddress, std::string>();
    instanceStream = new llvm::raw_string_ostream(*tmp);

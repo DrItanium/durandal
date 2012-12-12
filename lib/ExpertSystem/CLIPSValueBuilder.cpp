@@ -1,7 +1,7 @@
 #include "ExpertSystem/CLIPSValueBuilder.h"
 using namespace llvm;
 CLIPSValueBuilder::CLIPSValueBuilder(std::string nm, std::string ty, FunctionNamer& namer) : CLIPSObjectBuilder(nm, ty, namer) { }
-void CLIPSValueBuilder::setType(Type* t, KnowlegeConstructor* kc) {
+void CLIPSValueBuilder::setType(Type* t, KnowledgeConstructor* kc) {
 	PointerAddress ptr = (PointerAddress)t;
    FunctionNamer& namer = getNamer();
    if(namer.pointerRegistered(ptr)) {
@@ -11,7 +11,7 @@ void CLIPSValueBuilder::setType(Type* t, KnowlegeConstructor* kc) {
    }
 }
 
-void CLIPSValueBuilder::addFields(Value* val, KnowlegeConstructor *kc, char* parent) {
+void CLIPSValueBuilder::addFields(Value* val, KnowledgeConstructor *kc, char* parent) {
 	CLIPSObjectBuilder::addFields((PointerAddress)val, kc, parent);
 	setType(val->getType(), kc);
 	addField("Name", val->getName());
@@ -25,7 +25,7 @@ void CLIPSValueBuilder::addFields(Value* val, KnowlegeConstructor *kc, char* par
    }
 }
 
-void CLIPSValueBuilder::build(Value* val, KnowlegeConstructor *kc, char* parent) {
+void CLIPSValueBuilder::build(Value* val, KnowledgeConstructor *kc, char* parent) {
 	open();
 	addFields(val, kc, parent);
 	close();

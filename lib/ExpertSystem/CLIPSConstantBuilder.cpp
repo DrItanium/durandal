@@ -3,7 +3,7 @@
 using namespace llvm;
 
 CLIPSConstantBuilder::CLIPSConstantBuilder(std::string nm, std::string ty, FunctionNamer& namer) : CLIPSUserBuilder(nm, ty, namer) { }
-void CLIPSConstantBuilder::addFields(Constant* cnst, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantBuilder::addFields(Constant* cnst, KnowledgeConstructor* kc, char* parent) {
    CLIPSUserBuilder::addFields((User*)cnst, kc, parent);
    if(cnst->isNullValue()) addTrueField("IsNullValue"); 
    if(cnst->isAllOnesValue()) addTrueField("IsAllOnesValue"); 
@@ -11,7 +11,7 @@ void CLIPSConstantBuilder::addFields(Constant* cnst, KnowlegeConstructor* kc, ch
    if(cnst->canTrap()) addTrueField("CanTrap"); 
    if(cnst->isConstantUsed()) addTrueField("IsConstantUsed"); 
 }
-void CLIPSConstantBuilder::build(Constant* cnst, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantBuilder::build(Constant* cnst, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -19,12 +19,12 @@ void CLIPSConstantBuilder::build(Constant* cnst, KnowlegeConstructor* kc, char* 
    kc->addToKnowledgeBase((PointerAddress)cnst, str);
 }
 CLIPSBlockAddressBuilder::CLIPSBlockAddressBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "BlockAddress", namer) { }
-void CLIPSBlockAddressBuilder::addFields(BlockAddress* addr, KnowlegeConstructor* kc, char* parent) {
+void CLIPSBlockAddressBuilder::addFields(BlockAddress* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
    addField("Target", addr->getBasicBlock()->getName());
    addField("Function", addr->getFunction()->getName());
 }
-void CLIPSBlockAddressBuilder::build(BlockAddress* cnst, KnowlegeConstructor* kc, char* parent) {
+void CLIPSBlockAddressBuilder::build(BlockAddress* cnst, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -33,10 +33,10 @@ void CLIPSBlockAddressBuilder::build(BlockAddress* cnst, KnowlegeConstructor* kc
 }
 
 CLIPSConstantAggregateZeroBuilder::CLIPSConstantAggregateZeroBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantAggregateZero", namer) { }
-void CLIPSConstantAggregateZeroBuilder::addFields(ConstantAggregateZero* addr, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantAggregateZeroBuilder::addFields(ConstantAggregateZero* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
 }
-void CLIPSConstantAggregateZeroBuilder::build(ConstantAggregateZero* cnst, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantAggregateZeroBuilder::build(ConstantAggregateZero* cnst, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -44,10 +44,10 @@ void CLIPSConstantAggregateZeroBuilder::build(ConstantAggregateZero* cnst, Knowl
    kc->addToKnowledgeBase((PointerAddress)cnst, str);
 }
 CLIPSConstantArrayBuilder::CLIPSConstantArrayBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantArray", namer) { }
-void CLIPSConstantArrayBuilder::addFields(ConstantArray* addr, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantArrayBuilder::addFields(ConstantArray* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
 }
-void CLIPSConstantArrayBuilder::build(ConstantArray* cnst, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantArrayBuilder::build(ConstantArray* cnst, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -56,7 +56,7 @@ void CLIPSConstantArrayBuilder::build(ConstantArray* cnst, KnowlegeConstructor* 
 }
 
 CLIPSConstantExpressionBuilder::CLIPSConstantExpressionBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantExpression", namer) { }
-void CLIPSConstantExpressionBuilder::addFields(ConstantExpr* addr, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantExpressionBuilder::addFields(ConstantExpr* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
    if(addr->isCast()) addTrueField("IsCast");
    if(addr->isCompare()) addTrueField("IsCompare");
@@ -65,7 +65,7 @@ void CLIPSConstantExpressionBuilder::addFields(ConstantExpr* addr, KnowlegeConst
    addField("Predicate", addr->getPredicate());
    addField("Operation", addr->getOpcodeName());
 }
-void CLIPSConstantExpressionBuilder::build(ConstantExpr* cnst, KnowlegeConstructor *kc, char* parent) {
+void CLIPSConstantExpressionBuilder::build(ConstantExpr* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -75,7 +75,7 @@ void CLIPSConstantExpressionBuilder::build(ConstantExpr* cnst, KnowlegeConstruct
 
 
 CLIPSConstantFloatingPointBuilder::CLIPSConstantFloatingPointBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantFloatingPoint", namer) { }
-void CLIPSConstantFloatingPointBuilder::addFields(ConstantFP* addr, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantFloatingPointBuilder::addFields(ConstantFP* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
    if(addr->isZero()) {
       addTrueField("IsZero");
@@ -88,7 +88,7 @@ void CLIPSConstantFloatingPointBuilder::addFields(ConstantFP* addr, KnowlegeCons
    //While the APF is arbitrary precision it's not that big of a deal to 
    //lose precision for my purposes
 }
-void CLIPSConstantFloatingPointBuilder::build(ConstantFP* cnst, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantFloatingPointBuilder::build(ConstantFP* cnst, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -97,7 +97,7 @@ void CLIPSConstantFloatingPointBuilder::build(ConstantFP* cnst, KnowlegeConstruc
 }
 
 CLIPSConstantIntegerBuilder::CLIPSConstantIntegerBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantInteger", namer) { }
-void CLIPSConstantIntegerBuilder::addFields(ConstantInt* addr, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantIntegerBuilder::addFields(ConstantInt* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
    addField("Width", addr->getBitWidth());
    if(addr->isZero()) {
@@ -114,7 +114,7 @@ void CLIPSConstantIntegerBuilder::addFields(ConstantInt* addr, KnowlegeConstruct
       }
    }
 }
-void CLIPSConstantIntegerBuilder::build(ConstantInt* cnst, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantIntegerBuilder::build(ConstantInt* cnst, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -123,10 +123,10 @@ void CLIPSConstantIntegerBuilder::build(ConstantInt* cnst, KnowlegeConstructor* 
 }
 
 CLIPSConstantPointerNullBuilder::CLIPSConstantPointerNullBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantPointerNull", namer) { }
-void CLIPSConstantPointerNullBuilder::addFields(ConstantPointerNull* addr, KnowlegeConstructor *kc, char* parent) {
+void CLIPSConstantPointerNullBuilder::addFields(ConstantPointerNull* addr, KnowledgeConstructor *kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
 }
-void CLIPSConstantPointerNullBuilder::build(ConstantPointerNull* cnst, KnowlegeConstructor *kc, char* parent) {
+void CLIPSConstantPointerNullBuilder::build(ConstantPointerNull* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -135,10 +135,10 @@ void CLIPSConstantPointerNullBuilder::build(ConstantPointerNull* cnst, KnowlegeC
 }
 
 CLIPSConstantStructBuilder::CLIPSConstantStructBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantStruct", namer) { }
-void CLIPSConstantStructBuilder::addFields(ConstantStruct* addr, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantStructBuilder::addFields(ConstantStruct* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
 }
-void CLIPSConstantStructBuilder::build(ConstantStruct* cnst, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantStructBuilder::build(ConstantStruct* cnst, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -147,11 +147,11 @@ void CLIPSConstantStructBuilder::build(ConstantStruct* cnst, KnowlegeConstructor
 }
 
 CLIPSConstantVectorBuilder::CLIPSConstantVectorBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantVector", namer) { }
-void CLIPSConstantVectorBuilder::addFields(ConstantVector* addr, KnowlegeConstructor* kc, char* parent) {
+void CLIPSConstantVectorBuilder::addFields(ConstantVector* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
    addField("SplatValue", kc->route(addr->getSplatValue(), getNamer()));
 }
-void CLIPSConstantVectorBuilder::build(ConstantVector* cnst, KnowlegeConstructor *kc, char* parent) {
+void CLIPSConstantVectorBuilder::build(ConstantVector* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -160,7 +160,7 @@ void CLIPSConstantVectorBuilder::build(ConstantVector* cnst, KnowlegeConstructor
 }
 
 CLIPSGlobalValueBuilder::CLIPSGlobalValueBuilder(std::string nm, std::string ty, FunctionNamer& namer) : CLIPSConstantBuilder(nm, ty, namer) { }
-void CLIPSGlobalValueBuilder::addFields(GlobalValue* addr, KnowlegeConstructor *kc, char* parent) {
+void CLIPSGlobalValueBuilder::addFields(GlobalValue* addr, KnowledgeConstructor *kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
    addField("Alignment", addr->getAlignment());
    if(addr->hasUnnamedAddr()) addTrueField("HasUnnamedAddr"); 
@@ -189,7 +189,7 @@ void CLIPSGlobalValueBuilder::addFields(GlobalValue* addr, KnowlegeConstructor *
    if(addr->mayBeOverridden()) addTrueField("MayBeOverridden");
    if(addr->isWeakForLinker()) addTrueField("IsWeakForLinker");
 }
-void CLIPSGlobalValueBuilder::build(GlobalValue* cnst, KnowlegeConstructor *kc, char* parent) {
+void CLIPSGlobalValueBuilder::build(GlobalValue* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -199,11 +199,11 @@ void CLIPSGlobalValueBuilder::build(GlobalValue* cnst, KnowlegeConstructor *kc, 
 
 
 CLIPSGlobalAliasBuilder::CLIPSGlobalAliasBuilder(std::string nm, FunctionNamer& namer) : CLIPSGlobalValueBuilder(nm, "GlobalAlias", namer) { }
-void CLIPSGlobalAliasBuilder::addFields(GlobalAlias* addr, KnowlegeConstructor *kc, char* parent) {
+void CLIPSGlobalAliasBuilder::addFields(GlobalAlias* addr, KnowledgeConstructor *kc, char* parent) {
    CLIPSGlobalValueBuilder::addFields((GlobalValue*)addr, kc, parent); 
    addField("Aliasee", kc->route(addr->getAliasee(), getNamer()));
 }
-void CLIPSGlobalAliasBuilder::build(GlobalAlias* cnst, KnowlegeConstructor *kc, char* parent) {
+void CLIPSGlobalAliasBuilder::build(GlobalAlias* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -211,9 +211,10 @@ void CLIPSGlobalAliasBuilder::build(GlobalAlias* cnst, KnowlegeConstructor *kc, 
    kc->addToKnowledgeBase((PointerAddress)cnst, str);
 }
 
-CLIPSGlobalVariableBuilder(std::string nm, FunctionNamer& namer) : CLIPSGlobalValueBuilder(nm, "GlobalVariable", namer) { }
+CLIPSGlobalVariableBuilder::CLIPSGlobalVariableBuilder(std::string nm, FunctionNamer& namer) : CLIPSGlobalValueBuilder(nm, "GlobalVariable", namer) { }
 
-void CLIPSGlobalVariableBuilder::addFields(GlobalVariable* addr, KnowlegeConstructor *kc, char* parent) {
+
+void CLIPSGlobalVariableBuilder::addFields(GlobalVariable* addr, KnowledgeConstructor *kc, char* parent) {
    CLIPSGlobalValueBuilder::addFields((GlobalValue*)addr, kc, parent); 
    if(addr->hasInitializer()) {
       addTrueField("HasInitializer");
@@ -224,7 +225,7 @@ void CLIPSGlobalVariableBuilder::addFields(GlobalVariable* addr, KnowlegeConstru
    if(addr->isConstant()) addTrueField("IsConstant"); 
    //if(addr->isThreadLocal()) addTrueField("IsThreadLocal");
 }
-void CLIPSGlobalValueBuilder::build(GlobalVariable* cnst, KnowlegeConstructor *kc, char* parent) {
+void CLIPSGlobalVariableBuilder::build(GlobalVariable* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();
@@ -234,10 +235,10 @@ void CLIPSGlobalValueBuilder::build(GlobalVariable* cnst, KnowlegeConstructor *k
 
 CLIPSUndefValueBuilder::CLIPSUndefValueBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "UndefValue", namer) { }
 
-void CLIPSUndefValueBuilder::addFields(UndefValue* addr, KnowlegeConstructor *kc, char* parent) {
+void CLIPSUndefValueBuilder::addFields(UndefValue* addr, KnowledgeConstructor *kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
 }
-void CLIPSUndefValueBuilder::build(UndefValue* cnst, KnowlegeConstructor *kc, char* parent) {
+void CLIPSUndefValueBuilder::build(UndefValue* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
    addFields(cnst, kc, parent);
    close();

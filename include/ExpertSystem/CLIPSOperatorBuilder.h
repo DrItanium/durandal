@@ -7,20 +7,20 @@ using namespace llvm;
 class CLIPSOperatorBuilder : public CLIPSUserBuilder {
    public:
       CLIPSOperatorBuilder(std::string nm, std::string ty, FunctionNamer& namer); 
-      void addFields(Operator* v, KnowlegeConstructor* kc, char* parent);
-		void build(Operator* v, KnowlegeConstructor* kc, char* parent);
+      void addFields(Operator* v, KnowledgeConstructor* kc, char* parent);
+		void build(Operator* v, KnowledgeConstructor* kc, char* parent);
 };
 class CLIPSOverflowingBinaryOperatorBuilder : public CLIPSOperatorBuilder {
    public:
       CLIPSOverflowingBinaryOperatorBuilder(std::string nm, FunctionNamer& namer);
-      void addFields(OverflowingBinaryOperator* v, KnowlegeConstructor* kc, char* parent);
-		void build(OverflowingBinaryOperator* v, KnowlegeConstructor* kc, char* parent);
+      void addFields(OverflowingBinaryOperator* v, KnowledgeConstructor* kc, char* parent);
+		void build(OverflowingBinaryOperator* v, KnowledgeConstructor* kc, char* parent);
 };
 class CLIPSPossiblyExactOperatorBuilder : public CLIPSOperatorBuilder {
    public:
       CLIPSPossiblyExactOperatorBuilder(std::string nm, FunctionNamer& namer);
-      void addFields(PossiblyExactOperator* v, KnowlegeConstructor* kc, char* parent);
-		void build(PossiblyExactOperator* v, KnowlegeConstructor* kc, char* parent);
+      void addFields(PossiblyExactOperator* v, KnowledgeConstructor* kc, char* parent);
+		void build(PossiblyExactOperator* v, KnowledgeConstructor* kc, char* parent);
 };
 
 /* for some reason this doesn't exist and as such I have commented it out

@@ -1,5 +1,6 @@
 #include "ExpertSystem/Types.h"
-#include "ExpertSystem/CLIPSFunctions.h"
+#include "ExpertSystem/KnowledgeConstructionEngine.h"
+#include "ExpertSystem/LLVMFunctions.h"
 extern "C" {
 #include "clips.h"
 }

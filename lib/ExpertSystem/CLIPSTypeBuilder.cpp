@@ -1,6 +1,6 @@
 #include "ExpertSystem/CLIPSTypeBuilder.h"
-CLIPSTypeBuilder::CLIPSTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "LLVMType") : CLIPSObjectBuilder(nm, ty, namer) { }
-void CLIPSTypeBuilder::addFields(Type* type, KnowlegeConstructor* kc) {
+CLIPSTypeBuilder::CLIPSTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSObjectBuilder(nm, ty, namer) { }
+void CLIPSTypeBuilder::addFields(Type* type, KnowledgeConstructor* kc) {
    FunctionNamer& namer = getNamer();
    PointerAddress pointer = (PointerAddress)type;
    if(!namer.pointerRegistered(pointer)) {
@@ -54,7 +54,7 @@ void CLIPSTypeBuilder::addFields(Type* type, KnowlegeConstructor* kc) {
       closeField();
    }
 }
-void CLIPSTypeBuilder::build(Type* st, KnowlegeConstructor* kc) {
+void CLIPSTypeBuilder::build(Type* st, KnowledgeConstructor* kc) {
    open();
    addFields(st, kc);
    close();
@@ -62,19 +62,19 @@ void CLIPSTypeBuilder::build(Type* st, KnowlegeConstructor* kc) {
    kc->addToKnowledgeBase((PointerAddress)st, str);
 }
 
-CLIPSFunctionTyperBuilder::CLIPSFunctionTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "FunctionType") : CLIPSTypeBuilder(nm, namer, ty) { }
-CLIPSCompositeTypeBuilder::CLIPSCompositeTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "CompositeType") : CLIPSTypeBuilder(nm, namer, ty) { }
-CLIPSSequentialTypeBuilder::CLIPSSequentialTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "SequentialType") : CLIPSCompositeTypeBuilder(nm, namer, ty) { }
-CLIPSArrayTypeBuilder::CLIPSArrayTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "ArrayType") : CLIPSSequentialTypeBuilder(nm, namer, ty) { }
-CLIPSPointerTypeBuilder::CLIPSPointerTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "PointerType") : CLIPSSequentialTypeBuilder(nm, namer, ty) { }
-CLIPSVectorTypeBuilder::CLIPSVectorTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "VectorType") : CLIPSSequentialTypeBuilder(nm, namer, ty) { } 
-CLIPSStructTypeBuilder::CLIPSStructTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "StructType") : CLIPSCompositeTypeBuilder(nm, namer, ty) { }
-void CLIPSStructTypeBuilder::addFields(StructType* st, KnowlegeConstructor* kc, char* parent) {
+CLIPSFunctionTypeBuilder::CLIPSFunctionTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSTypeBuilder(nm, namer, ty) { }
+CLIPSCompositeTypeBuilder::CLIPSCompositeTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSTypeBuilder(nm, namer, ty) { }
+CLIPSSequentialTypeBuilder::CLIPSSequentialTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSCompositeTypeBuilder(nm, namer, ty) { }
+CLIPSArrayTypeBuilder::CLIPSArrayTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSSequentialTypeBuilder(nm, namer, ty) { }
+CLIPSPointerTypeBuilder::CLIPSPointerTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSSequentialTypeBuilder(nm, namer, ty) { }
+CLIPSVectorTypeBuilder::CLIPSVectorTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSSequentialTypeBuilder(nm, namer, ty) { } 
+CLIPSStructTypeBuilder::CLIPSStructTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSCompositeTypeBuilder(nm, namer, ty) { }
+void CLIPSStructTypeBuilder::addFields(StructType* st, KnowledgeConstructor* kc, char* parent) {
    CLIPSTypeBuilder::addFields(st, kc);
    setParent(parent);
    addField("Name", st->getName());
 }
-void CLIPSStructTypeBuilder::build(StructType* st, KnowlegeConstructor* kc, char* parent) {
+void CLIPSStructTypeBuilder::build(StructType* st, KnowledgeConstructor* kc, char* parent) {
    open();
    addFields(st, kc, parent);
    close();
@@ -82,4 +82,4 @@ void CLIPSStructTypeBuilder::build(StructType* st, KnowlegeConstructor* kc, char
    kc->addToKnowledgeBase((PointerAddress)st, str);
 }
 
-CLIPSIntegerTypeBuilder::CLIPSIntegerTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty = "IntegerType") : CLIPSTypeBuilder(nm, namer, ty) { }
+CLIPSIntegerTypeBuilder::CLIPSIntegerTypeBuilder(std::string nm, FunctionNamer& namer, std::string ty) : CLIPSTypeBuilder(nm, namer, ty) { }

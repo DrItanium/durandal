@@ -98,7 +98,7 @@ void CLIPSObjectBuilder::convertToKnowledge(void* theEnv) {
       converted = true;
    }
 }
-void CLIPSObjectBuilder::addFields(PointerAddress pointer, KnowlegeConstructor *kc, char* parent) {
+void CLIPSObjectBuilder::addFields(PointerAddress pointer, KnowledgeConstructor *kc, char* parent) {
    setParent(parent);
    setPointer(pointer);
    std::string& name = getName();

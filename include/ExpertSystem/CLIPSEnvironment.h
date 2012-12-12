@@ -1,5 +1,6 @@
 #ifndef _clips_environment_h
 #define _clips_environment_h
+#include "ExpertSystem/Types.h"
 class CLIPSEnvironment {
    private:
       void* environment;
