@@ -1,14 +1,10 @@
-#ifndef _llvm_wrapper_h
-#define _llvm_wrapper_h
+#ifndef _llvm_functions_h
+#define _llvm_functions_h
 /*
  * Contains all of the CLIPS=>LLVM and LLVM=>CLIPS wrapper functions.
  * These functions show up in CLIPS as various different things 
  */
-#include "KnowledgeConstructionEngine.h"
-extern "C" {
-  #include "clips.h"
-}
-void InitializeRuntimeAnalyzer();
+#include "ExpertSystem/Types.h"
 extern "C" void RegisterExpertSystemFunctions(void *theEnv);
 extern "C" void LLVMPrint(void *theEnv);
 extern "C" void BatchLoad(void *theEnv);

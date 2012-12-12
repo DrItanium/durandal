@@ -1,19 +1,28 @@
-
 #ifndef _operator_construction_h
 #define _operator_construction_h
-#include "ConstructionTools.h"
+#include "llvm/Operator.h"
+#include "ExpertSystem/CLIPSUserBuilder.h"
+
+using namespace llvm;
 class CLIPSOperatorBuilder : public CLIPSUserBuilder {
    public:
-      CLIPSOperatorBuilder(std::string nm, std::string ty, FunctionNamer& namer) : CLIPSUserBuilder(nm, ty, namer) { }
-      void addFields(Operator* v, KnowledgeConstruction* kc, char* parent);
-		void build(Operator* v, KnowledgeConstruction* kc, char* parent);
+      CLIPSOperatorBuilder(std::string nm, std::string ty, FunctionNamer& namer); 
+      void addFields(Operator* v, KnowlegeConstructor* kc, char* parent);
+		void build(Operator* v, KnowlegeConstructor* kc, char* parent);
 };
 class CLIPSOverflowingBinaryOperatorBuilder : public CLIPSOperatorBuilder {
    public:
-      CLIPSOverflowingBinaryOperatorBuilder(std::string nm, FunctionNamer& namer) : CLIPSOperatorBuilder(nm, "OverflowingBinaryOperator", namer) { }
-      void addFields(OverflowingBinaryOperator* v, KnowledgeConstruction* kc, char* parent);
-		void build(OverflowingBinaryOperator* v, KnowledgeConstruction* kc, char* parent);
+      CLIPSOverflowingBinaryOperatorBuilder(std::string nm, FunctionNamer& namer);
+      void addFields(OverflowingBinaryOperator* v, KnowlegeConstructor* kc, char* parent);
+		void build(OverflowingBinaryOperator* v, KnowlegeConstructor* kc, char* parent);
 };
+class CLIPSPossiblyExactOperatorBuilder : public CLIPSOperatorBuilder {
+   public:
+      CLIPSPossiblyExactOperatorBuilder(std::string nm, FunctionNamer& namer);
+      void addFields(PossiblyExactOperator* v, KnowlegeConstructor* kc, char* parent);
+		void build(PossiblyExactOperator* v, KnowlegeConstructor* kc, char* parent);
+};
+
 /* for some reason this doesn't exist and as such I have commented it out
  * - Joshua Scoggins 5/20/2012 @ 1909
  *
@@ -28,11 +37,4 @@ class CLIPSFPMathOperatorBuilder : public CLIPSOperatorBuilder
       }
 };
 */
-class CLIPSPossiblyExactOperatorBuilder : public CLIPSOperatorBuilder {
-   public:
-      CLIPSPossiblyExactOperatorBuilder(std::string nm, FunctionNamer& namer) : CLIPSOperatorBuilder(nm, "PossiblyExactOperator", namer) { }
-      void addFields(PossiblyExactOperator* v, KnowledgeConstruction* kc, char* parent);
-		void build(PossiblyExactOperator* v, KnowledgeConstruction* kc, char* parent);
-};
-
 #endif
