@@ -25,11 +25,11 @@ class CLIPSObjectBuilder {
       std::string getCompletedString();
       std::string& getName();
       std::string& getType();
-      FunctionNamer& getNamer() 
-      raw_string_ostream& getStream() 
-      bool isOpen() 
-      bool isClosed() 
-      bool isKnowledge() 
+      FunctionNamer& getNamer();
+      raw_string_ostream& getStream();
+      bool isOpen();
+      bool isClosed(); 
+      bool isKnowledge();
       void setParent(char* p); 
       void setParent(const char* p); 
       void setPointer(PointerAddress v); 

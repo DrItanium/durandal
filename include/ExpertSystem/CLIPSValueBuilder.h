@@ -8,8 +8,8 @@ using namespace llvm;
 class CLIPSValueBuilder : public CLIPSObjectBuilder {
    public:
       CLIPSValueBuilder(std::string nm, std::string ty, FunctionNamer& namer);
-      void setType(Type* t, KnowledgeConstruction* kc);
-      void addFields(Value* val, KnowledgeConstruction* kc, char* parent);
-		void build(Value* val, KnowledgeConstruction* kc, char* parent);
+      void setType(Type* t, KnowledgeConstructor* kc);
+      void addFields(Value* val, KnowledgeConstructor* kc, char* parent);
+		void build(Value* val, KnowledgeConstructor* kc, char* parent);
 };
 #endif

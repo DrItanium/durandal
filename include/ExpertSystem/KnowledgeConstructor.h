@@ -35,13 +35,13 @@
 #include <string>
 
 using namespace llvm;
-class KnowlegeConstructor {
+class KnowledgeConstructor {
    llvm::DenseMap<PointerAddress, std::string>* instances;
    llvm::raw_string_ostream* instanceStream; 
    std::string* tmp;
    public:
-   KnowlegeConstructor();
-   ~KnowlegeConstructor();
+   KnowledgeConstructor();
+   ~KnowledgeConstructor();
    void resetInstanceStream();
 
    llvm::DenseMap<PointerAddress, std::string>* getInstances();

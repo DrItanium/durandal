@@ -1,6 +1,7 @@
 #ifndef _argument_builder_h
 #define _argument_builder_h
 #include "ExpertSystem/CLIPSValueBuilder.h"
+#include "ExpertSystem/KnowledgeConstructor.h"
 #include "llvm/Argument.h"
 
 using namespace llvm;
