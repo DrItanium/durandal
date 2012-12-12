@@ -8,6 +8,6 @@ DURANDAL_LEVEL=..
 #
 # List all of the subdirectories that we will compile.
 #
-DIRS=clips
+DIRS=clips kc
 
 include $(DURANDAL_LEVEL)/Makefile
