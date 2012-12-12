@@ -14,8 +14,17 @@ TOOLNAME=kc
 # List libraries that we'll need
 # We use LIBS because sample is a dynamic library.
 #
-USEDLIBS = ExpertSystem.a clips.a rampancy.a
-LINK_COMPONENTS = all
+
+LINK_COMPONENTS=all
+
+USEDLIBS = rampancy.a ExpertSystem.a clips.a clangFrontend.a \
+			  clangSerialization.a clangDriver.a clangCodeGen.a \
+           clangParse.a clangSema.a clangStaticAnalyzerFrontend.a \
+           clangStaticAnalyzerCheckers.a clangStaticAnalyzerCore.a \
+           clangAnalysis.a clangRewrite.a \
+           clangEdit.a clangAST.a clangLex.a clangBasic.a clang.a 
+
+
 #
 # Include Makefile.common so we know what to do.
 #
