@@ -15,7 +15,7 @@ int main(int argc, char** argv, char* const *envp) {
    env.reset();
    env.eval("(set-current-module MAIN)");
    rampancy::Compiler compiler(env, argv[0], envp);
-   if(compiler.compileToKnowledge(argc, argv)) {
+   if(compiler.compileToKnowledge(argc, (const char**) argv)) {
       env.eval("(save-instances \"instances\")");
    } else {
       env.eval("(printout t \"ERROR: Something went wrong\" crlf)");
