@@ -41,3 +41,12 @@ bool CLIPSEnvironment::makeInstance(char* str) {
 void CLIPSEnvironment::batchStar(char* str) {
    EnvBatchStar(environment, str);
 }
+
+void CLIPSEnvironment::eval(char* stmt) {
+   DATA_OBJECT tmp;
+   EnvEval(environment, stmt, &tmp);
+}
+
+void CLIPSEnvironment::build(char* stmt) {
+   EnvBuild(environment, stmt);
+}
