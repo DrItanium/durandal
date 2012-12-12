@@ -1,15 +1,12 @@
+#include "ExpertSystem/Types.h"
 #include "ExpertSystem/CLIPSFunctions.h"
-#include <string>
-#include <cstdio>
 extern "C" {
-  #include "clips.h"
+#include "clips.h"
 }
 
-typedef long long PointerAddress;
 char* createPhiNodeTitle= (char*)"llvm-make-phi-node";
 char* llvmPrintTitle = (char*)"llvm-print";
 extern "C" void RegisterExpertSystemFunctions(void* theEnv) {
-
    EnvDefineFunction(theEnv, "llvm-print",'v', PTIEF LLVMPrint, "LLVMPrint");
    EnvDefineFunction(theEnv, "batch-load",'v', PTIEF BatchLoad, "BatchLoad");
    EnvDefineFunction(theEnv, "llvm-instruction-is-identical-to", 'w', PTIEF IsIdenticalTo, "IsIdenticalTo");
@@ -29,35 +26,35 @@ extern "C" void RegisterExpertSystemFunctions(void* theEnv) {
    EnvDefineFunction(theEnv, "llvm-schedule-block", 'w', PTIEF ScheduleInstructions, "ScheduleInstructions");
 }
 extern "C" void LLVMPrint(void* theEnv) {
-	DATA_OBJECT argument;
-	char *tempPtr;
-	if((EnvArgCountCheck(theEnv, llvmPrintTitle,EXACTLY,1) == -1)) { return; }
-	if(EnvArgTypeCheck(theEnv, llvmPrintTitle,1,STRING,&argument) == 0) { return; }
-	tempPtr = DOToString(argument);
-	llvm::errs() << tempPtr << '\n';
+   DATA_OBJECT argument;
+   char *tempPtr;
+   if((EnvArgCountCheck(theEnv, llvmPrintTitle,EXACTLY,1) == -1)) { return; }
+   if(EnvArgTypeCheck(theEnv, llvmPrintTitle,1,STRING,&argument) == 0) { return; }
+   tempPtr = DOToString(argument);
+   llvm::errs() << tempPtr << '\n';
 }
 extern "C" void BatchLoad(void* theEnv) {
-	DATA_OBJECT argument;
-	void* multifieldPtr;
-	int end, i;
-	char* tmpPtr;
-	if((EnvArgCountCheck(theEnv, "batch-load", EXACTLY, 1) == -1)) { return ; }
-	if((EnvArgTypeCheck(theEnv,  "batch-load", 1, MULTIFIELD, &argument) == 0)) { return; }
-	end = GetDOEnd(argument);
-	multifieldPtr = GetValue(argument);
-	for(i = GetDOBegin(argument); i <= end; i++) {
-		if((GetMFType(multifieldPtr, i) == STRING)) {
-			tmpPtr = ValueToString(GetMFValue(multifieldPtr, i));
-			BatchStar(tmpPtr);
-		}
-	}
+   DATA_OBJECT argument;
+   void* multifieldPtr;
+   int end, i;
+   char* tmpPtr;
+   if((EnvArgCountCheck(theEnv, "batch-load", EXACTLY, 1) == -1)) { return ; }
+   if((EnvArgTypeCheck(theEnv,  "batch-load", 1, MULTIFIELD, &argument) == 0)) { return; }
+   end = GetDOEnd(argument);
+   multifieldPtr = GetValue(argument);
+   for(i = GetDOBegin(argument); i <= end; i++) {
+      if((GetMFType(multifieldPtr, i) == STRING)) {
+         tmpPtr = ValueToString(GetMFValue(multifieldPtr, i));
+         BatchStar(tmpPtr);
+      }
+   }
 }
 extern "C" void* IsIdenticalTo(void *theEnv) {
-	DATA_OBJECT arg0;
+   DATA_OBJECT arg0;
    DATA_OBJECT arg1;
-	if((EnvArgCountCheck(theEnv, "llvm-instruction-is-identical-to", EXACTLY, 2) == -1)) { return (FalseSymbol()); }
-	if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-identical-to", 1, INTEGER, &arg0) == 0)) { return (FalseSymbol()); }
-	if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-identical-to", 2, INTEGER, &arg1) == 0)) { return (FalseSymbol()); }
+   if((EnvArgCountCheck(theEnv, "llvm-instruction-is-identical-to", EXACTLY, 2) == -1)) { return (FalseSymbol()); }
+   if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-identical-to", 1, INTEGER, &arg0) == 0)) { return (FalseSymbol()); }
+   if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-identical-to", 2, INTEGER, &arg1) == 0)) { return (FalseSymbol()); }
    llvm::Instruction* inst0 = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* inst1 = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    if(inst0->isIdenticalTo(inst1)) {
@@ -68,11 +65,11 @@ extern "C" void* IsIdenticalTo(void *theEnv) {
 }
 extern "C" void* IsIdenticalToWhenDefined(void *theEnv)
 {
-	DATA_OBJECT arg0;
+   DATA_OBJECT arg0;
    DATA_OBJECT arg1;
-	if((EnvArgCountCheck(theEnv, "llvm-instruction-is-identical-to-when-defined", EXACTLY, 2) == -1)) { return (FalseSymbol()); }
-	if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-identical-to-when-defined", 1, INTEGER, &arg0) == 0)) { return (FalseSymbol()); }
-	if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-identical-to-when-defined", 2, INTEGER, &arg1) == 0)) { return (FalseSymbol()); }
+   if((EnvArgCountCheck(theEnv, "llvm-instruction-is-identical-to-when-defined", EXACTLY, 2) == -1)) { return (FalseSymbol()); }
+   if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-identical-to-when-defined", 1, INTEGER, &arg0) == 0)) { return (FalseSymbol()); }
+   if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-identical-to-when-defined", 2, INTEGER, &arg1) == 0)) { return (FalseSymbol()); }
    llvm::Instruction* inst0 = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* inst1 = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    if(inst0->isIdenticalToWhenDefined(inst1)) {
@@ -83,11 +80,11 @@ extern "C" void* IsIdenticalToWhenDefined(void *theEnv)
 }
 extern "C" void* IsSameOperationAs(void *theEnv)
 {
-	DATA_OBJECT arg0;
+   DATA_OBJECT arg0;
    DATA_OBJECT arg1;
-	if((EnvArgCountCheck(theEnv, "llvm-instruction-is-same-operation-as", EXACTLY, 2) == -1)) { return (FalseSymbol()); }
-	if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-same-operation-as", 1, INTEGER, &arg0) == 0)) { return (FalseSymbol()); }
-	if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-same-operation-as", 2, INTEGER, &arg1) == 0)) { return (FalseSymbol()); }
+   if((EnvArgCountCheck(theEnv, "llvm-instruction-is-same-operation-as", EXACTLY, 2) == -1)) { return (FalseSymbol()); }
+   if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-same-operation-as", 1, INTEGER, &arg0) == 0)) { return (FalseSymbol()); }
+   if((EnvArgTypeCheck(theEnv, "llvm-instruction-is-same-operation-as", 2, INTEGER, &arg1) == 0)) { return (FalseSymbol()); }
    llvm::Instruction* inst0 = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* inst1 = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    if(inst0->isSameOperationAs(inst1)) {
@@ -187,34 +184,34 @@ extern "C" void* ScheduleInstructions(void *theEnv) {
     *  A boolean value signifying success or failure
     */
    DATA_OBJECT arg0, arg1;
-	void* multifieldPtr;
-	int end, i;
+   void* multifieldPtr;
+   int end, i;
    if((EnvArgCountCheck(theEnv, "llvm-schedule-block", EXACTLY, 2) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-schedule-block", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-schedule-block", 2, MULTIFIELD, &arg1) == -1)) { return FalseSymbol(); }
    llvm::Instruction* last = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
-	end = GetDOEnd(arg1);
-	multifieldPtr = GetValue(arg1);
-	for(i = GetDOBegin(arg1); i <= end; i++) {
-		if(GetMFType(multifieldPtr, i) == INTEGER) {
+   end = GetDOEnd(arg1);
+   multifieldPtr = GetValue(arg1);
+   for(i = GetDOBegin(arg1); i <= end; i++) {
+      if(GetMFType(multifieldPtr, i) == INTEGER) {
          llvm::Instruction* tmpInst = (llvm::Instruction*)(PointerAddress)ValueToLong(GetMFValue(multifieldPtr, i));
          tmpInst->removeFromParent();
          tmpInst->insertBefore(last);
-		} else {
+      } else {
          return FalseSymbol();
       }
-	}
+   }
    return TrueSymbol();
 }
 extern "C" void* ReplaceAllUsesOf(void* theEnv) {
-	DATA_OBJECT arg0, arg1;
+   DATA_OBJECT arg0, arg1;
    if((EnvArgCountCheck(theEnv, "llvm-replace-all-uses", EXACTLY, 2) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-replace-all-uses", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-replace-all-uses", 2, INTEGER, &arg1) == -1)) { return FalseSymbol(); }
    llvm::Instruction* from = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* to = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
-	from->replaceAllUsesWith(to);
-	return TrueSymbol();
+   from->replaceAllUsesWith(to);
+   return TrueSymbol();
 }
 extern "C" void* ReplaceUsesOf(void *theEnv) {
    /* CLIPS Name: llvm-replace-uses
@@ -226,24 +223,24 @@ extern "C" void* ReplaceUsesOf(void *theEnv) {
     *  A boolean value signifying success or failure
     */
    DATA_OBJECT arg0, arg1, arg2;
-	void* multifieldPtr;
-	int end, i;
+   void* multifieldPtr;
+   int end, i;
    if((EnvArgCountCheck(theEnv, "llvm-replace-uses", EXACTLY, 3) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 2, INTEGER, &arg1) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 3, MULTIFIELD, &arg2) == -1)) { return FalseSymbol(); }
    llvm::Instruction* from = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* to = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
-	end = GetDOEnd(arg2);
-	multifieldPtr = GetValue(arg2);
-	for(i = GetDOBegin(arg2); i <= end; i++) {
-		if(GetMFType(multifieldPtr, i) == INTEGER) {
+   end = GetDOEnd(arg2);
+   multifieldPtr = GetValue(arg2);
+   for(i = GetDOBegin(arg2); i <= end; i++) {
+      if(GetMFType(multifieldPtr, i) == INTEGER) {
          llvm::Instruction* tmpInst = (llvm::Instruction*)(PointerAddress)ValueToLong(GetMFValue(multifieldPtr, i));
          tmpInst->replaceUsesOfWith(from, to);
-		} else {
+      } else {
          return FalseSymbol();
       }
-	}
+   }
    return TrueSymbol();
 }
 extern "C" PointerAddress CreatePhiNode(void *theEnv) {
@@ -258,10 +255,10 @@ extern "C" PointerAddress CreatePhiNode(void *theEnv) {
     * Returns:
     *  The pointer address to the phi node
     */
-    //(Pointer (llvm-make-phi-node ?name ?bPtr ?count $?pointers))
+   //(Pointer (llvm-make-phi-node ?name ?bPtr ?count $?pointers))
    DATA_OBJECT arg0, arg1, arg2, arg3, arg4;
-	void* multifieldPtr;
-	int end, i;
+   void* multifieldPtr;
+   int end, i;
    if((EnvArgCountCheck(theEnv, createPhiNodeTitle, EXACTLY, 5) == -1)) { return 0L; }
    if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 1, SYMBOL, &arg0) == 0)) { return 0L; }
    if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 2, INTEGER, &arg1) == -1)) { return 0L; }
@@ -274,15 +271,15 @@ extern "C" PointerAddress CreatePhiNode(void *theEnv) {
    llvm::Instruction* bPtr = (llvm::Instruction*)(PointerAddress)DOToLong(arg3);
    llvm::PHINode* phi = llvm::PHINode::Create(dataType, count, Twine(DOToString(arg0)), bPtr);
    PointerAddress phiPtr = (PointerAddress)phi;
-	end = GetDOEnd(arg4);
-	multifieldPtr = GetValue(arg4);
-	for(i = GetDOBegin(arg4); i <= end; i+=2, index++) {
-			PointerAddress aliasPtr = (PointerAddress)ValueToLong(GetMFValue(multifieldPtr, i));
-			PointerAddress blockPtr = (PointerAddress)ValueToLong(GetMFValue(multifieldPtr, i + 1));
-         llvm::Instruction* alias = (llvm::Instruction*)aliasPtr;
-			llvm::BasicBlock* block = (llvm::BasicBlock*)blockPtr;
-			phi->addIncoming(alias, block);
-	}
+   end = GetDOEnd(arg4);
+   multifieldPtr = GetValue(arg4);
+   for(i = GetDOBegin(arg4); i <= end; i+=2, index++) {
+      PointerAddress aliasPtr = (PointerAddress)ValueToLong(GetMFValue(multifieldPtr, i));
+      PointerAddress blockPtr = (PointerAddress)ValueToLong(GetMFValue(multifieldPtr, i + 1));
+      llvm::Instruction* alias = (llvm::Instruction*)aliasPtr;
+      llvm::BasicBlock* block = (llvm::BasicBlock*)blockPtr;
+      phi->addIncoming(alias, block);
+   }
    return phiPtr;
 }
 
@@ -291,8 +288,8 @@ extern "C" void* UnlinkInstruction(void *theEnv) {
    if((EnvArgCountCheck(theEnv, "llvm-unlink-instruction", EXACTLY, 1) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-unlink-instruction", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
    llvm::Instruction* inst = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
-	inst->removeFromParent();
-	return TrueSymbol();
+   inst->removeFromParent();
+   return TrueSymbol();
 }
 
 extern "C" void* DeleteInstruction(void *theEnv) {
@@ -300,13 +297,6 @@ extern "C" void* DeleteInstruction(void *theEnv) {
    if((EnvArgCountCheck(theEnv, "llvm-delete-instruction", EXACTLY, 1) == -1)) { return FalseSymbol(); }
    if((EnvArgTypeCheck(theEnv, "llvm-delete-instruction", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
    llvm::Instruction* inst = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
-	delete inst;
-	return TrueSymbol();
+   delete inst;
+   return TrueSymbol();
 }
-                        
-void InitializeRuntimeAnalyzer() {
-	InitializeEnvironment();
-	SetConserveMemory(1);
-	BatchStar("Init.clp");
-}
-

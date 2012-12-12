@@ -1,4 +1,7 @@
 #include "ExpertSystem/CLIPSObjectBuilder.h"
+extern "C" {
+   #include "clips.h"
+}
 using namespace llvm;
 char openParen[2] = "(";
 char closeParen[2] = ")";
@@ -95,7 +98,7 @@ void CLIPSObjectBuilder::convertToKnowledge(void* theEnv) {
       converted = true;
    }
 }
-void CLIPSObjectBuilder::addFields(PointerAddress pointer, KnowledgeConstruction *kc, char* parent) {
+void CLIPSObjectBuilder::addFields(PointerAddress pointer, KnowlegeConstructor *kc, char* parent) {
    setParent(parent);
    setPointer(pointer);
    std::string& name = getName();
