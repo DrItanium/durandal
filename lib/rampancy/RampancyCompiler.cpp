@@ -142,6 +142,7 @@ namespace rampancy {
       llvm::Module* mod = compile(argc, argv);
       if(mod) {
          builder->route(mod, getRegions, getLoops);
+         env->makeInstances((char*)builder->getInstancesAsString().c_str());
          return 1;
       }  else {
          return 0;
