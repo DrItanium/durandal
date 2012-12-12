@@ -1,8 +1,16 @@
-#include "ExpertSystem/ConstructionTools.h"
+#include "ExpertSystem/CLIPSObjectBuilder.h"
 using namespace llvm;
 char openParen[2] = "(";
 char closeParen[2] = ")";
 char space[2] = " ";
+std::string CLIPSObjectBuilder::getCompletedString() { return stream->str(); }
+std::string& CLIPSObjectBuilder::getName() { return name; }
+std::string& CLIPSObjectBuilder::getType() { return type; }
+FunctionNamer& CLIPSObjectBuilder::getNamer() { return *namer; }
+raw_string_ostream& CLIPSObjectBuilder::getStream() { return *stream; }
+bool CLIPSObjectBuilder::isOpen() { return opened; }
+bool CLIPSObjectBuilder::isClosed() { return closed; }
+bool CLIPSObjectBuilder::isKnowledge() { return converted; }
 CLIPSObjectBuilder::CLIPSObjectBuilder(std::string n, std::string t, FunctionNamer& uidCreator) {
    converted = false;
    opened = false;

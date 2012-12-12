@@ -1,9 +1,23 @@
 #include "ExpertSystem/FunctionNamer.h"
 #include <string>
 
+FunctionNamer::FunctionNamer() {
+   gensymID = 0L;
+   registerID = 0L;
+   basicBlockID = 0L;
+   regionID = 0L;
+   loopID = 0L;
+   names = new llvm::DenseMap<PointerAddress, std::string>();
+   instructionIndices = new std::map<std::string, PointerAddress>();
+}
+
 FunctionNamer::~FunctionNamer() { 
    delete instructionIndices; 
-	delete names;
+   delete names;
+}
+
+llvm::DenseMap<PointerAddress, std::string>& FunctionNamer::getTranslationTable() { 
+   return *names; 
 }
 PointerAddress FunctionNamer::nextGensymID() { 
    return gensymID++; 
@@ -36,43 +50,43 @@ PointerAddress FunctionNamer::getLoopIDCount() {
    return loopID; 
 }
 void FunctionNamer::reset() {
-	registerID = 0L;
-	basicBlockID = 0L;
-	regionID = 0L;
-	gensymID = 0L;
+   registerID = 0L;
+   basicBlockID = 0L;
+   regionID = 0L;
+   gensymID = 0L;
    loopID = 0L;
-	names->clear();
+   names->clear();
    instructionIndices->clear();
 }
 void FunctionNamer::makeBasicBlockID(llvm::raw_string_ostream& container) {
-	container << "b" << nextBasicBlockID();
+   container << "b" << nextBasicBlockID();
 }
 void FunctionNamer::makeRegisterID(llvm::raw_string_ostream& container) {
-	container << "i" << nextRegisterID();
+   container << "i" << nextRegisterID();
 }
 void FunctionNamer::makeRegionID(llvm::raw_string_ostream& container) {
-	container << "r" << nextRegionID();
+   container << "r" << nextRegionID();
 }
 void FunctionNamer::makeGensymID(llvm::raw_string_ostream& container) {
-	container << "g" << nextGensymID();
+   container << "g" << nextGensymID();
 }
 void FunctionNamer::makeLoopID(llvm::raw_string_ostream& container) {
    container << "l" << nextLoopID();
 }
 void FunctionNamer::makeBasicBlockID(char* container) {
-	sprintf(container, "b%lld", nextBasicBlockID());
+   sprintf(container, "b%lld", nextBasicBlockID());
 }
 void FunctionNamer::makeRegisterID(char* container) {
-	sprintf(container, "i%lld", nextRegisterID());
+   sprintf(container, "i%lld", nextRegisterID());
 }
 void FunctionNamer::makeRegionID(char* container) {
-	sprintf(container, "r%lld", nextRegionID());
+   sprintf(container, "r%lld", nextRegionID());
 }
 void FunctionNamer::makeGensymID(char* container) {
-	sprintf(container, "g%lld", nextGensymID());
+   sprintf(container, "g%lld", nextGensymID());
 }
 void FunctionNamer::makeLoopID(char* container) {
-	sprintf(container, "l%lld", nextLoopID());
+   sprintf(container, "l%lld", nextLoopID());
 }
 bool FunctionNamer::pointerRegistered(PointerAddress ptr) {
    return names->count(ptr);

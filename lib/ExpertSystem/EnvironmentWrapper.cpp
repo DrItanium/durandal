@@ -1,53 +1,43 @@
-#include "ExpertSystem/EnvironmentWrapper.h"
+#include "ExpertSystem/CLIPSEnvironment.h"
 
-using namespace llvm;
-bool EnvironmentConstruction::environmentCreated() { return (environment != 0); }
-void* EnvironmentConstruction::getEnvironment() { return environment; }
-void EnvironmentConstruction::reset() { 
-	if(environment) {
-		EnvReset(environment); 
-	}
+extern "C" {
+#include "clips.h"
 }
-void EnvironmentConstruction::clear() {
-	if(environment) {
-		EnvClear(environment);
-	}
+
+CLIPSEnvironment::CLIPSEnvironment() {
+   environment = CreateEnvironment();
 }
-void EnvironmentConstruction::run(ExecutionDuration count) {
-	if(environment) {
-		if(count <= 0L) {
-			EnvRun(environment, -1L);
-		} else {
-			EnvRun(environment, count);
-		}
-	}
+CLIPSEnvironment::~CLIPSEnvironment() {
+   DestroyEnvironment(environment);
 }
-void EnvironmentConstruction::saveInstances(char* fileName) {
-	if(environment) {
-		EnvSaveInstances(environment, fileName, VISIBLE_SAVE, NULL, TRUE);
-	}
+
+bool CLIPSEnvironment::environmentCreated() { return (environment != 0); }
+void* CLIPSEnvironment::getEnvironment() { return environment; }
+void CLIPSEnvironment::reset() { 
+   EnvReset(environment); 
 }
-void EnvironmentConstruction::assertFact(char* str) {
-	if(environment) {
-		EnvAssertString(environment, str);
-	}
+void CLIPSEnvironment::clear() {
+   EnvClear(environment);
 }
-bool EnvironmentConstruction::makeInstances(char* str) {
-	if(environment) {
-		return EnvLoadInstancesFromString(environment, str, -1) != -1;
-	} else {
-		return false;
-	}
+void CLIPSEnvironment::run(ExecutionDuration count) {
+   if(count <= 0L) {
+      EnvRun(environment, -1L);
+   } else {
+      EnvRun(environment, count);
+   }
 }
-bool EnvironmentConstruction::makeInstance(char* str) {
-	if(environment) {
-		return (EnvMakeInstance(environment, str) != NULL);
-	} else {
-		return false;
-	}
+void CLIPSEnvironment::saveInstances(char* fileName) {
+   EnvSaveInstances(environment, fileName, VISIBLE_SAVE, NULL, TRUE);
 }
-void EnvironmentConstruction::batchStar(char* str) {
-	if(environment) {
-		EnvBatchStar(environment, str);
-	}
+void CLIPSEnvironment::assertFact(char* str) {
+   EnvAssertString(environment, str);
+}
+bool CLIPSEnvironment::makeInstances(char* str) {
+   return EnvLoadInstancesFromString(environment, str, -1) != -1;
+}
+bool CLIPSEnvironment::makeInstance(char* str) {
+   return (EnvMakeInstance(environment, str) != NULL);
+}
+void CLIPSEnvironment::batchStar(char* str) {
+   EnvBatchStar(environment, str);
 }
