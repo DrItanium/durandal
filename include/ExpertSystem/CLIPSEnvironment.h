@@ -17,5 +17,7 @@ class CLIPSEnvironment {
       bool makeInstances(char* str);
       bool makeInstance(char* str);
       void batchStar(char* str);
+      void eval(char* str);
+      void build(char* str);
 };
 #endif
