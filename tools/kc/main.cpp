@@ -20,5 +20,4 @@ int main(int argc, char** argv, char* const *envp) {
    } else {
       env.eval("(printout t \"ERROR: Something went wrong\" crlf)");
    }
-   llvm::llvm_shutdown();
 }

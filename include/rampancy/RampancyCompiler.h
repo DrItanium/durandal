@@ -33,17 +33,10 @@ using namespace clang::driver;
 namespace rampancy {
    class Compiler {
       private:
-         void* mainAddr;
          char* const *envp;
          char* argv0;
          CLIPSEnvironment* env;
          KnowledgeConstructor* builder;
-         FunctionNamer* namer;
-         Driver* theDriver;
-         TextDiagnosticPrinter* diagClient;
-         IntrusiveRefCntPtr<DiagnosticIDs>* diagID;
-         DiagnosticsEngine* diags;
-         llvm::sys::Path path;
       public:
          Compiler(CLIPSEnvironment& e, char* arg0, char* const *ep);
          ~Compiler();
