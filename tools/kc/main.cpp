@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "llvm/LLVMContext.h"
+#include "llvm/Module.h"
 #include "ExpertSystem/CLIPSEnvironment.h"
 #include "ExpertSystem/KnowledgeConstructor.h"
 #include "ExpertSystem/KnowledgeConstructionEngine.h"
@@ -11,13 +13,14 @@ extern "C" {
 
 int main(int argc, char** argv, char* const *envp) {
    CLIPSEnvironment env;
-   env.batchStar("Init.clp");
-   env.eval("(set-current-module MAIN)");
+   env.batchStar((char*)"Init.clp");
+   env.eval((char*)"(set-current-module MAIN)");
    rampancy::Compiler compiler(env, envp);
-   if(compiler.compileToKnowledge(argc, (const char**) argv)) {
-      env.eval("(save-instances \"instances\" visible)");
+   llvm::Module* mod = compiler.compile(argc, (const char**) argv);
+   if(mod) {
+      env.eval((char*)"(save-instances \"instances\" visible)");
    } else {
-      env.eval("(printout t \"ERROR: Something went wrong\" crlf)");
+      env.eval((char*)"(printout t \"ERROR: Something went wrong\" crlf)");
    }
    llvm::llvm_shutdown();
 }

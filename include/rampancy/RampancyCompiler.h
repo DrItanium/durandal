@@ -44,8 +44,8 @@ namespace rampancy {
          int execute(llvm::Module* mod, std::vector<std::string>& args, 
                char* functionName);
          int executeMain(llvm::Module* mod, std::vector<std::string>& args);
-         llvm::Module* compile(int argc, const char **argv);
-         int compileToKnowledge(int argc, const char **argv);
+         llvm::Module* compile(int argc, const char **argv, 
+               bool constructKnowledge = true);
    };
 }
 

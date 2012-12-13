@@ -45,7 +45,7 @@ namespace rampancy {
       return execute(mod, args, "main"); 
    }
 
-   llvm::Module* Compiler::compile(int argc, const char **argv) {
+   llvm::Module* Compiler::compile(int argc, const char **argv, bool constructKnowledge) {
       resetKnowledgeBuilder();   
 
       void* mainAddr = (void*) (intptr_t) getExecutablePath;
@@ -94,6 +94,7 @@ namespace rampancy {
 
       CompilerInstance clang;
       clang.setInvocation(ci.take());
+
       clang.createDiagnostics(int(ccArgs.size()), 
             const_cast<char**>(ccArgs.data()));
       if(!clang.hasDiagnostics())
@@ -108,17 +109,12 @@ namespace rampancy {
       if(!clang.ExecuteAction(*act))
          return 0;
       llvm::Module* module = act->takeModule();
+      if(module && constructKnowledge) {
+         builder->route(module);
+         std::string result = getCompleteKnowledgeString();
+         env->makeInstances((char*)result.c_str());
+      } 
       return module;
-   }
-   int Compiler::compileToKnowledge(int argc, const char **argv) {
-      llvm::Module* mod = compile(argc, argv);
-      if(mod != NULL) {
-         builder->route(mod);
-         env->makeInstances((char*)builder->getInstancesAsString().c_str());
-         return 1;
-      }  else {
-         return 0;
-      }
    }
    std::string Compiler::getCompleteKnowledgeString() {
       return builder->getInstancesAsString();
