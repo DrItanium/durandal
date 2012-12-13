@@ -25,7 +25,7 @@
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
 ; LLVMOperator.clp - contains the CLIPS' representation of the LLVM operator
-: types 
+; types 
 ;------------------------------------------------------------------------------
 (defclass llvm::LLVMOperator 
  (is-a LLVMUser)

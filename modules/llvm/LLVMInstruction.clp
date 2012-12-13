@@ -29,7 +29,7 @@
 ;                       Instruction type is not in this file
 ;------------------------------------------------------------------------------
 (defclass llvm::PointerOperandObject 
-  (is-a Object ParentedObject InteropObject)
+  (is-a ParentedObject)
   (slot PointerOperand (type SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::MemoryModifyingObject 
@@ -209,7 +209,7 @@
   (multislot Cases))
 ;------------------------------------------------------------------------------
 (defclass llvm::UnreachableInstruction 
-  (is-a llvm::TerminatorInstruction))
+  (is-a TerminatorInstruction))
 ;------------------------------------------------------------------------------
 (defclass llvm::GetElementPointerInstruction 
   (is-a Instruction PointerOperandObject)
