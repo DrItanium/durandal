@@ -9,8 +9,7 @@ namespace rampancy {
       void *MainAddr = (void*) (intptr_t) getExecutablePath;
       return llvm::sys::Path::GetMainExecutable(argv0, MainAddr);
    }
-   Compiler::Compiler(CLIPSEnvironment& e, char* arg0, char* const *ep) {
-      argv0 = arg0;
+   Compiler::Compiler(CLIPSEnvironment& e, char* const *ep) {
       envp = ep;
       env = &e;
       builder = new KnowledgeConstructor;
@@ -57,8 +56,10 @@ namespace rampancy {
       Driver theDriver(path.str(), llvm::sys::getDefaultTargetTriple(),
             "a.out", false, diags);
       theDriver.setTitle("rampancy knowledge compiler");
+
       llvm::SmallVector<const char*, 16> args(argv, argv + argc);
       args.push_back("-fsyntax-only");
+      //args.push_back("-S");
       OwningPtr<Compilation> c(theDriver.BuildCompilation(args));
       if(!c) return 0;
 
@@ -106,11 +107,12 @@ namespace rampancy {
       OwningPtr<CodeGenAction> act(new EmitLLVMOnlyAction());
       if(!clang.ExecuteAction(*act))
          return 0;
-      return act->takeModule();
+      llvm::Module* module = act->takeModule();
+      return module;
    }
    int Compiler::compileToKnowledge(int argc, const char **argv) {
       llvm::Module* mod = compile(argc, argv);
-      if(mod) {
+      if(mod != NULL) {
          builder->route(mod);
          env->makeInstances((char*)builder->getInstancesAsString().c_str());
          return 1;

@@ -34,11 +34,10 @@ namespace rampancy {
    class Compiler {
       private:
          char* const *envp;
-         char* argv0;
          CLIPSEnvironment* env;
          KnowledgeConstructor* builder;
       public:
-         Compiler(CLIPSEnvironment& e, char* arg0, char* const *ep);
+         Compiler(CLIPSEnvironment& e, char* const *ep);
          ~Compiler();
          std::string getCompleteKnowledgeString();
          void resetKnowledgeBuilder();
