@@ -533,6 +533,22 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
    route(ri, namer, funcName);
 }
 
+std::string KnowledgeConstructor::route(Module* mod) {
+   char* buf;
+   buf = CharBuffer(128);
+   sprintf(buf, "mod%lld", moduleCount);
+   moduleCount++;
+   std::string name(buf);
+   free(buf);
+   CLIPSModuleBuilder mb(name);
+   mb.build(mod, this);
+   return name;
+}
+
+PointerAddress KnowledgeConstructor::getModuleCount() {
+   return moduleCount;
+}
+
 #undef nested_dyn_cast
 #undef simple_dyn_cast
 #undef BuildUpFullExpression

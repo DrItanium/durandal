@@ -21,6 +21,7 @@ class CLIPSObjectBuilder {
       FunctionNamer* namer;
    public:
       CLIPSObjectBuilder(std::string n, std::string t, FunctionNamer& uidCreator);
+      CLIPSObjectBuilder(std::string n, std::string t);
       ~CLIPSObjectBuilder();
       std::string getCompletedString();
       std::string& getName();

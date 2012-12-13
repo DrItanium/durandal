@@ -1,5 +1,6 @@
 #ifndef _knowledge_construction_pass_h
 #define _knowledge_construction_pass_h
+#include "llvm/Module.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Instruction.h"
@@ -32,6 +33,7 @@
 #include "llvm/Value.h"
 #include "ExpertSystem/Types.h"
 #include "ExpertSystem/FunctionNamer.h"
+#include "ExpertSystem/CLIPSEnvironment.h"
 #include <string>
 
 using namespace llvm;
@@ -39,6 +41,7 @@ class KnowledgeConstructor {
    llvm::DenseMap<PointerAddress, std::string>* instances;
    llvm::raw_string_ostream* instanceStream; 
    std::string* tmp;
+   PointerAddress moduleCount;
    public:
    KnowledgeConstructor();
    ~KnowledgeConstructor();
@@ -46,7 +49,7 @@ class KnowledgeConstructor {
 
    llvm::DenseMap<PointerAddress, std::string>* getInstances();
    std::string getInstancesAsString();
-
+   PointerAddress getModuleCount();
    void addToInstanceStream(std::string &instance);
    void registerInstance(PointerAddress ptrAddress, std::string &instance);
    void addToKnowledgeBase(PointerAddress ptrAddress, std::string &instance);
@@ -70,6 +73,6 @@ class KnowledgeConstructor {
    void route(LoopInfo& li, FunctionNamer& namer, char* parent);
    void updateFunctionContents(Function& fn, FunctionNamer& namer);
    void route(Function& fn, LoopInfo& li, RegionInfo& ri);
-   void route(Module* module, bool getRegions, bool getLoops);
+   std::string route(Module* module);
 };
 #endif

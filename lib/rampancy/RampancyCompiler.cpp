@@ -111,11 +111,10 @@ namespace rampancy {
          return 0;
       return act->takeModule();
    }
-   int Compiler::compileToKnowledge(int argc, const char **argv, 
-         bool getRegions, bool getLoops) {
+   int Compiler::compileToKnowledge(int argc, const char **argv) {
       llvm::Module* mod = compile(argc, argv);
       if(mod) {
-         builder->route(mod, getRegions, getLoops);
+         builder->route(mod);
          env->makeInstances((char*)builder->getInstancesAsString().c_str());
          return 1;
       }  else {

@@ -12,4 +12,5 @@
 #include "ExpertSystem/CLIPSOperatorBuilder.h"
 #include "ExpertSystem/CLIPSRegionBuilder.h"
 #include "ExpertSystem/CLIPSTypeBuilder.h"
+#include "ExpertSystem/CLIPSModuleBuilder.h"
 #endif

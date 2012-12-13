@@ -23,6 +23,14 @@ CLIPSObjectBuilder::CLIPSObjectBuilder(std::string n, std::string t, FunctionNam
    stream = new raw_string_ostream(tmp);
    namer = &uidCreator;
 }
+CLIPSObjectBuilder::CLIPSObjectBuilder(std::string n, std::string t) {
+   converted = false;
+   opened = false;
+   closed = false;
+   name = n;
+   type = t;
+   stream = new raw_string_ostream(tmp);
+}
 CLIPSObjectBuilder::~CLIPSObjectBuilder() {
    delete stream;
 }

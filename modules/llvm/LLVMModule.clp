@@ -28,6 +28,7 @@
 ;------------------------------------------------------------------------------
 (defclass llvm::LLVMModule
   (is-a Object InteropObject ParentedObject)
+  (slot inline-asm (type STRING))
   (slot triple (type STRING))
   (slot data-layout (type STRING))
   (slot module-identifier (type STRING))
