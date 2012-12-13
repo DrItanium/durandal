@@ -12,12 +12,12 @@ extern "C" {
 int main(int argc, char** argv, char* const *envp) {
    CLIPSEnvironment env;
    env.batchStar("Init.clp");
-   env.reset();
    env.eval("(set-current-module MAIN)");
-   rampancy::Compiler compiler(env, argv[0], envp);
+   rampancy::Compiler compiler(env, envp);
    if(compiler.compileToKnowledge(argc, (const char**) argv)) {
-      env.eval("(save-instances \"instances\")");
+      env.eval("(save-instances \"instances\" visible)");
    } else {
       env.eval("(printout t \"ERROR: Something went wrong\" crlf)");
    }
+   llvm::llvm_shutdown();
 }
