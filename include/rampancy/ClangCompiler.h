@@ -1,5 +1,5 @@
-#ifndef _rampancy_compiler_h
-#define _rampancy_compiler_h
+#ifndef _rampancy_clang_compiler_h
+#define _rampancy_clang_compiler_h
 
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Driver/Compilation.h"
@@ -31,20 +31,20 @@ using namespace clang;
 using namespace clang::driver;
 
 namespace rampancy {
-   class Compiler {
+   class ClangCompiler : public Compiler {
       private:
          char* const *envp;
          CLIPSEnvironment* env;
          KnowledgeConstructor* builder;
       public:
-         Compiler(CLIPSEnvironment& e, char* const *ep);
+         ClangCompiler(CLIPSEnvironment& e, char* const *ep);
          ~Compiler();
          std::string getCompleteKnowledgeString();
          void resetKnowledgeBuilder();
          int execute(llvm::Module* mod, std::vector<std::string>& args, 
                char* functionName);
          int executeMain(llvm::Module* mod, std::vector<std::string>& args);
-         llvm::Module* compile(int argc, const char **argv, 
+         virtual llvm::Module* compile(int argc, const char **argv, 
                bool constructKnowledge = true);
    };
 }
