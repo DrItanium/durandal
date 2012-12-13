@@ -76,9 +76,10 @@ void EnvUserFunctions(
 {
    extern void SetupLLVMIORouter(void* theEnv);
    extern void RegisterExpertSystemFunctions(void* theEnv);
+   extern void SetupRampancyExpertSystemInterfaces(void* theEnv);
    RegisterExpertSystemFunctions(theEnv);
 	SetupLLVMIORouter(theEnv);
-
+   SetupRampancyExpertSystemInterfaces(theEnv);
 
 #if MAC_MCW || WIN_MCW || MAC_XCD
 #pragma unused(theEnv)

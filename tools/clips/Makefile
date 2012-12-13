@@ -14,7 +14,7 @@ TOOLNAME=clips
 # List libraries that we'll need
 # We use LIBS because sample is a dynamic library.
 #
-USEDLIBS = ExpertSystem.a clips.a
+USEDLIBS = rampancy.a ExpertSystem.a clips.a
 LINK_COMPONENTS = all
 #
 # Include Makefile.common so we know what to do.
