@@ -11,10 +11,14 @@
 #include "llvm/Pass.h"
 #include "llvm/Module.h"
 #include "ExpertSystem/CLIPSEnvironment.h"
+#include "rampancy/AnalysisUsage.h"
 
 namespace rampancy {
-   class Compiler {
+   class Compiler : public ModulePass  {
+      //we need to add a way to add a code callback
       public:
+         Compiler(char ID);
+         virtual ~Compiler();
          virtual llvm::Module* compile(void* theEnv, int argc, char** argv) = 0;
          virtual llvm::Module* compile(void* theEnv, std::vector<std::string> args) = 0;
          virtual llvm::Module* interpret(void* theEnv, char* input) = 0;
@@ -23,6 +27,9 @@ namespace rampancy {
          virtual llvm::Module* compile(CLIPSEnvironment* theEnv, std::vector<std::string> args);
          virtual llvm::Module* interpret(CLIPSEnvironment* theEnv, char* input);
          virtual llvm::Module* interpret(CLIPSEnvironment* theEnv, std::string input);
+         virtual bool runOnModule(llvm::Module* module);
+         virtual bool runOnModule(void* theEnv, llvm::Module* module) = 0;
+         //print is optional so I'm not going to mention it
    };
 }
 #endif
