@@ -10,36 +10,24 @@ extern "C" {
 namespace rampancy {
    Compiler::Compiler(char ID) : llvm::ModulePass(ID) { }
    Compiler::~Compiler() { }
-   llvm::Module* Compiler::compile(CLIPSEnvironment* env, int argc, char** argv) {
-      return compile(env->getEnvironment(), argc, argv);
-   }
-   llvm::Module* Compiler::compile(CLIPSEnvironment* env, std::vector<std::string> args) {
-      return compile(env->getEnvironment(), args);
-   }
-   llvm::Module* Compiler::interpret(CLIPSEnvironment* env, char* input) {
-      return interpret(env->getEnvironment(), input);
-   }
-   llvm::Module* Compiler::interpret(CLIPSEnvironemnt* env, std::string input) {
-      return interpret(env->getEnvironment(), input);
-   }
 
    void Compiler::getAnalysisUsage(llvm::AnalysisUsage& info) {
-      info.getAnalysis<RegionInfo>();
-      info.getAnalysis<LoopInfo>();
+      info.addRequired<RegionInfo>();
+      info.addRequired<LoopInfo>();
    }
 
    bool Compiler::runOnModule(llvm::Module* module) {
       //a cheap hack to do what we need to do
       CLIPSEnvironment* env = getManagingEnvironment();
-      beforeKnowledgeConstruction(env);
+      beforeKnowledgeConstruction(module, env);
       bool result = runOnModule(module, env);
-      afterKnowledgeConstruction(env);
+      afterKnowledgeConstruction(module, env);
       return result;
 
    }
 
    bool Compiler::runOnModule(llvm::Module* module, CLIPSEnvironment* theEnv) {
-      if(env) {
+      if(theEnv) {
          KnowledgeConstructor tmp;
          tmp.route(module);
          for(Module::iterator i = module->begin(), e = module->end(); i != e; ++i) {
@@ -47,7 +35,7 @@ namespace rampancy {
             LoopInfo &li = getAnalysis<LoopInfo>(*i);
             tmp.route(*i, li, ri);
          }
-         env->makeInstances((char*)tmp.getInstancesAsString().c_str());
+         theEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
       } else {
          llvm::errs() << "ERROR: no environment specified\n"; 
       }
@@ -56,7 +44,7 @@ namespace rampancy {
 
    CLIPSEnvironment* Compiler::getManagingEnvironment() {
       //for now return nil
-      return (void*)0;
+      return (CLIPSEnvironment*)0;
    }
    void Compiler::beforeKnowledgeConstruction(llvm::Module* module, CLIPSEnvironment* theEnv) {
       //we need to setup this module within CLIPS
