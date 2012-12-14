@@ -14,7 +14,8 @@
 
 namespace rampancy {
    class Compiler : public llvm::ModulePass  {
-      //we need to add a way to add a code callback
+      private:
+         CLIPSEnvironment* env;
       public:
          Compiler(char ID);
          virtual ~Compiler();
@@ -29,7 +30,8 @@ namespace rampancy {
          using llvm::ModulePass::runOnModule;
          virtual bool runOnModule(llvm::Module* module);
          virtual bool runOnModule(llvm::Module* module, CLIPSEnvironment* theEnv);
-         virtual CLIPSEnvironment* getManagingEnvironment();
+         CLIPSEnvironment* getManagingEnvironment();
+         void setManagingEnvironment(CLIPSEnvironment* env);
          //print is optional so I'm not going to mention it
    };
 }
