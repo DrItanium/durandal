@@ -14,7 +14,7 @@
 #include "rampancy/AnalysisUsage.h"
 
 namespace rampancy {
-   class Compiler : public ModulePass  {
+   class Compiler : public llvm::ModulePass  {
       //we need to add a way to add a code callback
       public:
          Compiler(char ID);
@@ -27,8 +27,12 @@ namespace rampancy {
          virtual llvm::Module* compile(CLIPSEnvironment* theEnv, std::vector<std::string> args);
          virtual llvm::Module* interpret(CLIPSEnvironment* theEnv, char* input);
          virtual llvm::Module* interpret(CLIPSEnvironment* theEnv, std::string input);
+         virtual void getAnalysisUsage(llvm::AnalysisUsage& info);
+         virtual void beforeKnowledgeConstruction(llvm::Module* module, CLIPSEnvironment* theEnv);
+         virtual void afterKnowledgeConstruction(llvm::Module* module, CLIPSEnvironment* theEnv);
          virtual bool runOnModule(llvm::Module* module);
-         virtual bool runOnModule(void* theEnv, llvm::Module* module) = 0;
+         virtual bool runOnModule(llvm::Module* module, CLIPSEnvironment* theEnv);
+         virtual CLIPSEnvironment* getManagingEnvironment();
          //print is optional so I'm not going to mention it
    };
 }
