@@ -8,14 +8,14 @@
 
 namespace {
    struct CompilerRegistryImpl {
-      typedef llvm::StringMap<Compiler*> StringMapType;    
+      typedef llvm::StringMap<const rampancy::Compiler*> StringMapType;    
       StringMapType compilerInfoStringMap;
-   }
+   };
 }
 namespace rampancy {
    //a quick define to make life far easier for me
 #define backingRegistry static_cast < CompilerRegistryImpl* > ( implementation )
-   static ManagedStatic<CompilerRegistry> compilerRegistryObject;
+   static llvm::ManagedStatic<CompilerRegistry> compilerRegistryObject;
    void* CompilerRegistry::getImpl() const {
       if(!implementation) {
          implementation = new CompilerRegistryImpl();
@@ -62,7 +62,7 @@ namespace rampancy {
       unregisterCompiler(name);
    }
    void CompilerRegistry::unregisterCompiler(llvm::StringRef logicalName) {
-      CompilerRegisterImpl* impl = backingRegistry;
+      CompilerRegistryImpl* impl = backingRegistry;
       assert((impl->compilerInfoStringMap.find(logicalName) !=
               impl->compilerInfoStringMap.end()) &&
             "Logical name is not mapped to a registered compiler!");
