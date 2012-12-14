@@ -1,4 +1,4 @@
-#include "rampancy/RampancyCompiler.h"
+#include "rampancy/ClangCompiler.h"
 
 extern "C" {
 #include "clips.h"
@@ -9,19 +9,19 @@ namespace rampancy {
       void *MainAddr = (void*) (intptr_t) getExecutablePath;
       return llvm::sys::Path::GetMainExecutable(argv0, MainAddr);
    }
-   Compiler::Compiler(CLIPSEnvironment& e, char* const *ep) {
+   ClangCompiler::ClangCompiler(CLIPSEnvironment& e, char* const *ep) {
       envp = ep;
       env = &e;
       builder = new KnowledgeConstructor;
    }
-   Compiler::~Compiler() {
+   ClangCompiler::~ClangCompiler() {
       if(builder) delete builder;
    }
 
-   void Compiler::resetKnowledgeBuilder() {
+   void ClangCompiler::resetKnowledgeBuilder() {
       builder->resetInstanceStream();
    }
-   int Compiler::execute(llvm::Module* mod, std::vector<std::string>& args, char* functionName) {
+   int ClangCompiler::execute(llvm::Module* mod, std::vector<std::string>& args, char* functionName) {
       llvm::InitializeNativeTarget();
 
       std::string error;
@@ -41,11 +41,11 @@ namespace rampancy {
       args.insert(it, mod->getModuleIdentifier());
       return ee->runFunctionAsMain(entryFunction, args, envp);
    }
-   int Compiler::executeMain(llvm::Module* mod, std::vector<std::string>& args) {
+   int ClangCompiler::executeMain(llvm::Module* mod, std::vector<std::string>& args) {
       return execute(mod, args, "main"); 
    }
 
-   llvm::Module* Compiler::compile(int argc, const char **argv, bool constructKnowledge) {
+   llvm::Module* ClangCompiler::compile(int argc, const char **argv, bool constructKnowledge) {
       resetKnowledgeBuilder();   
 
       void* mainAddr = (void*) (intptr_t) getExecutablePath;
@@ -116,7 +116,7 @@ namespace rampancy {
       } 
       return module;
    }
-   std::string Compiler::getCompleteKnowledgeString() {
+   std::string ClangCompiler::getCompleteKnowledgeString() {
       return builder->getInstancesAsString();
    }
 }
