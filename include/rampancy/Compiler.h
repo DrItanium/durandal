@@ -22,9 +22,11 @@ namespace rampancy {
          virtual llvm::Module* compile(CLIPSEnvironment* theEnv, std::vector<std::string> args) = 0;
          virtual llvm::Module* interpret(CLIPSEnvironment* theEnv, char* input) = 0;
          virtual llvm::Module* interpret(CLIPSEnvironment* theEnv, std::string input) = 0;
+         using llvm::ModulePass::getAnalysisUsage;
          virtual void getAnalysisUsage(llvm::AnalysisUsage& info);
          virtual void beforeKnowledgeConstruction(llvm::Module* module, CLIPSEnvironment* theEnv);
          virtual void afterKnowledgeConstruction(llvm::Module* module, CLIPSEnvironment* theEnv);
+         using llvm::ModulePass::runOnModule;
          virtual bool runOnModule(llvm::Module* module);
          virtual bool runOnModule(llvm::Module* module, CLIPSEnvironment* theEnv);
          virtual CLIPSEnvironment* getManagingEnvironment();
