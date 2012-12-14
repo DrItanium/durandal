@@ -12,8 +12,8 @@ namespace rampancy {
    Compiler::~Compiler() { }
 
    void Compiler::getAnalysisUsage(llvm::AnalysisUsage& info) {
-      info.addRequired<RegionInfo>();
-      info.addRequired<LoopInfo>();
+      info.addRequired<llvm::RegionInfo>();
+      info.addRequired<llvm::LoopInfo>();
    }
 
    bool Compiler::runOnModule(llvm::Module* module) {
@@ -31,8 +31,8 @@ namespace rampancy {
          KnowledgeConstructor tmp;
          tmp.route(module);
          for(Module::iterator i = module->begin(), e = module->end(); i != e; ++i) {
-            RegionInfo &ri = getAnalysis<RegionInfo>(*i);
-            LoopInfo &li = getAnalysis<LoopInfo>(*i);
+            llvm::RegionInfo &ri = getAnalysis<llvm::RegionInfo>(*i);
+            llvm::LoopInfo &li = getAnalysis<llvm::LoopInfo>(*i);
             tmp.route(*i, li, ri);
          }
          theEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
