@@ -18,36 +18,30 @@ namespace rampancy {
 
    bool Compiler::runOnModule(llvm::Module* module) {
       //a cheap hack to do what we need to do
-      CLIPSEnvironment* env = getManagingEnvironment();
-      beforeKnowledgeConstruction(module, env);
-      bool result = runOnModule(module, env);
-      afterKnowledgeConstruction(module, env);
-      return result;
-
-   }
-
-   bool Compiler::runOnModule(llvm::Module* module, CLIPSEnvironment* theEnv) {
-      if(theEnv) {
-         KnowledgeConstructor tmp;
-         tmp.route(module);
-         for(Module::iterator i = module->begin(), e = module->end(); i != e; ++i) {
-            llvm::RegionInfo &ri = getAnalysis<llvm::RegionInfo>(*i);
-            llvm::LoopInfo &li = getAnalysis<llvm::LoopInfo>(*i);
-            tmp.route(*i, li, ri);
-         }
-         theEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
-      } else {
-         llvm::errs() << "ERROR: no environment specified\n"; 
+      CLIPSEnvironment* theEnv = getEnvironment();
+      beforeKnowledgeConstruction(module);
+      KnowledgeConstructor tmp;
+      tmp.route(module);
+      for(Module::iterator i = module->begin(), e = module->end(); 
+            i != e; ++i) {
+           llvm::RegionInfo &ri = getAnalysis<llvm::RegionInfo>(*i);
+           llvm::LoopInfo &li = getAnalysis<llvm::LoopInfo>(*i);
+           tmp.route(*i, li, ri);
       }
+      theEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
+      afterKnowledgeConstruction(module);
       return false;
    }
 
-   CLIPSEnvironment* Compiler::getManagingEnvironment() {
-      //for now return nil
-      return (CLIPSEnvironment*)0;
+   CLIPSEnvironment* Compiler::getEnvironment() {
+      return env;
    }
-   void Compiler::beforeKnowledgeConstruction(llvm::Module* module, CLIPSEnvironment* theEnv) {
+   void Compiler::setEnvironment(CLIPSEnvironment* theEnv) {
+      env = theEnv; 
+   }
+   void Compiler::beforeKnowledgeConstruction(llvm::Module* module) {
       //we need to setup this module within CLIPS
+      CLIPSEnvironment* theEnv = getEnvironment();
       DATA_OBJECT rtn;
       char* gensym;
       char* cmd = CharBuffer(512);
@@ -61,8 +55,9 @@ namespace rampancy {
       free(cmd);
       free(cmd2);
    }
-   void Compiler::afterKnowledgeConstruction(llvm::Module* module, CLIPSEnvironment* theEnv) {
+   void Compiler::afterKnowledgeConstruction(llvm::Module* module) {
       //switch back to the MAIN environment
+      CLIPSEnvironment* theEnv = getEnvironment();
       theEnv->eval("(printout t \"Created a new module named \" (set-current-module MAIN) crlf)");
    }
 
