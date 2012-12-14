@@ -26,19 +26,21 @@
 #include "ExpertSystem/FunctionNamer.h"
 #include "ExpertSystem/KnowledgeConstructionEngine.h"
 #include "ExpertSystem/CLIPSEnvironment.h"
+#include "rampancy/Compiler.h"
 
 using namespace clang;
 using namespace clang::driver;
 
 namespace rampancy {
-   class ClangCompiler : public Compiler {
+   //TODO: Add compiler support
+   class ClangCompiler {
       private:
          char* const *envp;
          CLIPSEnvironment* env;
          KnowledgeConstructor* builder;
       public:
          ClangCompiler(CLIPSEnvironment& e, char* const *ep);
-         ~Compiler();
+         ~ClangCompiler();
          std::string getCompleteKnowledgeString();
          void resetKnowledgeBuilder();
          int execute(llvm::Module* mod, std::vector<std::string>& args, 
