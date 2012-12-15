@@ -3,18 +3,14 @@ system to do code analysis with LLVM and, eventually, other programming
 languages. This tool requires that it is compiled in the projects folder of an
 llvm source tree. 
 
-The expert system used is the CLIPS programming language. 
+It also requires that the user have access to clang libraries as well. 
 
-There are several base modules stored in the modules folder
-core - CLIPS base classes and functions
-llvm - allows llvm data to be treated as knowledge in an expert system
-llvm/passes - contains many different rule sets each of them being their own
-module
-scheduler - code that handles the ordering of modules
+There are only two tools at this point in time:
 
-The lib folder contains source code for LibExpertSystem, the interface between
-LLVM and CLIPS
+durandal - clips with the rampancy library and other llvm features added
+kclang - compiles a C/C++/ObjC file into a knowledge representation
 
 
 The name durandal is a homage to the AI Durandal from the video game Marathon
 by Bungie. 
+
