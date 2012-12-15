@@ -16,20 +16,20 @@ namespace rampancy {
       info.addRequired<llvm::LoopInfo>();
    }
 
-   bool Compiler::runOnModule(llvm::Module* module) {
+   bool Compiler::runOnModule(llvm::Module& module) {
       //a cheap hack to do what we need to do
       CLIPSEnvironment* theEnv = getEnvironment();
-      beforeKnowledgeConstruction(module);
+      beforeKnowledgeConstruction(&module);
       KnowledgeConstructor tmp;
-      tmp.route(module);
-      for(Module::iterator i = module->begin(), e = module->end(); 
+      tmp.route(&module);
+      for(Module::iterator i = module.begin(), e = module.end(); 
             i != e; ++i) {
            llvm::RegionInfo &ri = getAnalysis<llvm::RegionInfo>(*i);
            llvm::LoopInfo &li = getAnalysis<llvm::LoopInfo>(*i);
            tmp.route(*i, li, ri);
       }
       theEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
-      afterKnowledgeConstruction(module);
+      afterKnowledgeConstruction(&module);
       return false;
    }
 

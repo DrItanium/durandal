@@ -30,7 +30,7 @@ namespace rampancy {
          virtual void beforeKnowledgeConstruction(llvm::Module* module);
          virtual void afterKnowledgeConstruction(llvm::Module* module);
          using llvm::ModulePass::runOnModule;
-         virtual bool runOnModule(llvm::Module* module);
+         virtual bool runOnModule(llvm::Module& module);
          CLIPSEnvironment* getEnvironment();
          void setEnvironment(CLIPSEnvironment* env);
          llvm::LLVMContext* getContext();
