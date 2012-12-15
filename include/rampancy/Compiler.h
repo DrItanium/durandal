@@ -33,8 +33,8 @@ namespace rampancy {
          virtual bool runOnModule(llvm::Module* module);
          CLIPSEnvironment* getEnvironment();
          void setEnvironment(CLIPSEnvironment* env);
-         llvm::LLVMContext* getLLVMContext();
-         void setLLVMContext(llvm::LLVMContext* context);
+         llvm::LLVMContext* getContext();
+         void setContext(llvm::LLVMContext* context);
    };
 }
 #endif

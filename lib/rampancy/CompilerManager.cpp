@@ -38,10 +38,10 @@ namespace rampancy {
       CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry();
       assert( context && "LLVM Context not set in CompilerManager!");
       assert( env && "No CLIPS Provided to CompilerManager!");
-      const Compiler* compiler = compilers->getCompiler(logicalName);
+      Compiler* compiler = compilers->getCompiler(logicalName);
       assert( compiler && "No compiler bound target logical name!");
       //otherwise we are good to go man :D
-      compiler->setLLVMContext(context);
+      compiler->setContext(context);
       compiler->setEnvironment(env);
       return compiler->compile(argc, argv);
    }
@@ -49,13 +49,14 @@ namespace rampancy {
          void* theEnv) {
       CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry();
       assert( context && "LLVM context not set in CompilerManager!");
-      const Compiler* compiler = compilers->getCompiler(logicalName);
+      Compiler* compiler = compilers->getCompiler(logicalName);
       if(!compiler) {
+         DATA_OBJECT result;
          char* buf = CharBuffer(512);
          sprintf(buf, 
                "(printout t \"ERROR: Provided Compiler %s does not exist!\" crlf)",
                logicalName.data());
-         EnvEval(theEnv, buf);
+         EnvEval(theEnv, buf, &result);
          free(buf);
          return 0;
       } else {
@@ -75,9 +76,9 @@ namespace rampancy {
       CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry();
       assert( context && "LLVM Context not set in CompilerManager!");
       assert( env && "No CLIPS Provided to CompilerManager!");
-      const Compiler* compiler = compilers->getCompiler(logicalName);
+      Compiler* compiler = compilers->getCompiler(logicalName);
       assert( compiler && "No compiler bound target logical name!");
-      compiler->setLLVMContext(context);
+      compiler->setContext(context);
       compiler->setEnvironment(env);
       return compiler->interpret(input);
    }
@@ -87,16 +88,18 @@ namespace rampancy {
       return interpret(lName, input);
    }
    
-   llvm::Module* CompilerManager::interpret(llvm::StringRef, void* theEnv) {
+   llvm::Module* CompilerManager::interpret(llvm::StringRef logicalName,
+         void* theEnv) {
       CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry();
       assert( context && "LLVM Context not set in CompilerManager!");
-      const Compiler* compiler = compilers->getCompiler(logicalName);
+      Compiler* compiler = compilers->getCompiler(logicalName);
       if(!compiler) {
+         DATA_OBJECT result;
          char* buf = CharBuffer(512);
          sprintf(buf, 
                "(printout t \"ERROR: Provided Compiler %s does not exist!\" crlf)",
                logicalName.data());
-         EnvEval(theEnv, buf);
+         EnvEval(theEnv, buf, &result);
          free(buf);
          return 0;
       } else {

@@ -14,10 +14,10 @@ namespace rampancy {
       CompilerRegistry() : implementation(0) { }
       ~CompilerRegistry();
       static CompilerRegistry* getCompilerRegistry();
-      const Compiler* getCompiler(char* logicalName) const;
-      const Compiler* getCompiler(llvm::StringRef logicalName) const;
-      void registerCompiler(char* logicalName, const Compiler* compiler);
-      void registerCompiler(llvm::StringRef logicalName, const Compiler* compiler);
+      Compiler* getCompiler(char* logicalName) const;
+      Compiler* getCompiler(llvm::StringRef logicalName) const;
+      void registerCompiler(char* logicalName, Compiler* compiler);
+      void registerCompiler(llvm::StringRef logicalName, Compiler* compiler);
       void unregisterCompiler(char* logicalName);
       void unregisterCompiler(llvm::StringRef logicalName);
    };

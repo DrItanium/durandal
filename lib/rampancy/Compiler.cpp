@@ -39,6 +39,12 @@ namespace rampancy {
    void Compiler::setEnvironment(CLIPSEnvironment* theEnv) {
       env = theEnv; 
    }
+   llvm::LLVMContext* Compiler::getContext() {
+      return context;
+   }
+   void Compiler::setContext(llvm::LLVMContext* llvmContext) {
+      context = llvmContext; 
+   }
    void Compiler::beforeKnowledgeConstruction(llvm::Module* module) {
       //we need to setup this module within CLIPS
       CLIPSEnvironment* theEnv = getEnvironment();
