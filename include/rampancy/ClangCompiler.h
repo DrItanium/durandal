@@ -32,11 +32,17 @@ using namespace clang;
 using namespace clang::driver;
 
 namespace rampancy {
-   //TODO: Add compiler support
-   class ClangCompiler : public Compiler{
+   class ClangCompiler : public Compiler {
+      private:
+         //HACK HACK!
+         //Used to get around the fact that we may not have immediate access to
+         //arg0. Thus we need to register this at program startup
+         static const char* argv0;
       public:
          static char ID;
-         ClangCompiler() : Compiler(ID);
+         static const char* getArgv0();
+         static void setArgv0(const char* arg0);
+         ClangCompiler(); 
          using Compiler::compile;
          using Compiler::interpret;
          virtual llvm::Module* compile(); 
