@@ -44,3 +44,4 @@ namespace rampancy {
                llvm::Module* module, void* theEnv);
    };
 }
+#endif

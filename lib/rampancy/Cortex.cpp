@@ -1,4 +1,37 @@
 #include "rampancy/Cortex.h"
+#include "llvm/LLVMContext.h"
+#include "llvm/Module.h"
+#include "llvm/PassManager.h"
+#include "llvm/CallGraphSCCPass.h"
+#include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/Assembly/PrintModulePass.h"
+#include "llvm/Analysis/DebugInfo.h"
+#include "llvm/Analysis/Verifier.h"
+#include "llvm/Analysis/LoopPass.h"
+#include "llvm/Analysis/RegionPass.h"
+#include "llvm/Analysis/CallGraph.h"
+#include "llvm/Target/TargetData.h"
+#include "llvm/Target/TargetLibraryInfo.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/ADT/StringSet.h"
+#include "llvm/ADT/Triple.h"
+#include "llvm/Support/PassNameParser.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/IRReader.h"
+#include "llvm/Support/ManagedStatic.h"
+#include "llvm/Support/PluginLoader.h"
+#include "llvm/Support/PrettyStackTrace.h"
+#include "llvm/Support/SystemUtils.h"
+#include "llvm/Support/ToolOutputFile.h"
+#include "llvm/LinkAllPasses.h"
+#include "llvm/LinkAllVMCore.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include <memory>
+#include <algorithm>
+#include "rampancy/Compiler.h"
+#include "rampancy/CompilerManager.h"
+#include "rampancy/CompilerRegistry.h"
 
 extern "C" {
 #include "clips.h"
@@ -15,7 +48,7 @@ namespace rampancy {
       } else {
          env = new CLIPSEnvironment();
       }
-      context = new LLVMContext();
+      context = new llvm::LLVMContext();
       manager = new CompilerManager();
       manager->setContext(context);
       manager->setEnvironment(env);
@@ -54,7 +87,7 @@ namespace rampancy {
          return;
       }
 
-      if((EnvArgTypeCheck(theEnv, "compile", 1, SYMBOL, arg0) == 0)) {
+      if((EnvArgTypeCheck(theEnv, "compile", 1, SYMBOL, &arg0) == 0)) {
          EnvPrintRouter(theEnv, "werror", "\ncompiler name must be a symbol!\n");
          return;
       }
@@ -82,7 +115,7 @@ namespace rampancy {
          return;
       }
 
-      if((EnvArgTypeCheck(theEnv, "interpret", 1, SYMBOL, arg0) == 0)) {
+      if((EnvArgTypeCheck(theEnv, "interpret", 1, SYMBOL, &arg0) == 0)) {
          EnvPrintRouter(theEnv, "werror", "\nCompiler name must be a symbol!\n");
          return;
       }
@@ -133,18 +166,18 @@ namespace rampancy {
          CLIPSEnvironment* tEnv = new CLIPSEnvironment(theEnv);
          //taken from opt
          llvm::TargetLibraryInfo *tli = 
-            new llvm::TargetLibraryInfo(Triple(module->getTargetTriple()));
+            new llvm::TargetLibraryInfo(llvm::Triple(module->getTargetTriple()));
          tmpPassManager.add(tli);
-         TargetData *td = 0;
+         llvm::TargetData *td = 0;
          const std::string &moduleDataLayout = module->getDataLayout();
          if(!moduleDataLayout.empty())
-            td = new TargetData(ModuleDataLayout);
+            td = new llvm::TargetData(moduleDataLayout);
          if(td)
             tmpPassManager.add(td);
          target->setEnvironment(tEnv);
          target->setContext(context);
          tmpPassManager.add(target);
-         tmpPassManager.run(module);
+         tmpPassManager.run(*module);
       }
    }
    void Cortex::convertToKnowledge(llvm::StringRef logicalName, 
@@ -159,18 +192,18 @@ namespace rampancy {
          llvm::PassManager tmpPassManager;
          //taken from opt
          llvm::TargetLibraryInfo *tli = 
-            new llvm::TargetLibraryInfo(Triple(module->getTargetTriple()));
+            new llvm::TargetLibraryInfo(llvm::Triple(module->getTargetTriple()));
          tmpPassManager.add(tli);
-         TargetData *td = 0;
+         llvm::TargetData *td = 0;
          const std::string &moduleDataLayout = module->getDataLayout();
          if(!moduleDataLayout.empty())
-            td = new TargetData(ModuleDataLayout);
+            td = new llvm::TargetData(moduleDataLayout);
          if(td)
             tmpPassManager.add(td);
          target->setEnvironment(env);
          target->setContext(context);
          tmpPassManager.add(target);
-         tmpPassManager.run(module);
+         tmpPassManager.run(*module);
       }
    }
 
