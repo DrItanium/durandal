@@ -125,7 +125,8 @@ namespace rampancy {
       CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry(); 
       Compiler* target = compilers->getCompiler(logicalName);
       if(!target) {
-         EnvPrintRouter(theEnv, "werror", "\nProvided logical name does not exist\n");
+         EnvPrintRouter(theEnv, 
+               "werror", "\nProvided logical name does not exist\n");
          return;
       } else {
          llvm::PassManager tmpPassManager;
@@ -151,7 +152,8 @@ namespace rampancy {
       CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry(); 
       Compiler* target = compilers->getCompiler(logicalName);
       if(!target) {
-         EnvPrintRouter(env->getEnvironment(), "werror", "\nProvided logical name does not exist\n");
+         EnvPrintRouter(env->getEnvironment(), 
+               "werror", "\nProvided logical name does not exist\n");
          return;
       } else {
          llvm::PassManager tmpPassManager;
