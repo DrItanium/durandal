@@ -18,8 +18,8 @@ namespace rampancy {
          CLIPSEnvironment* env;
          llvm::LLVMContext* context;
       public:
-         Compiler(char ID);
-         virtual ~Compiler();
+         Compiler(char ID) : llvm::ModulePass(ID) { }
+         ~Compiler();
          //this one gets arguments straight from CLIPS
          virtual llvm::Module* compile() = 0;
          virtual llvm::Module* compile(int argc, char** argv) = 0;
