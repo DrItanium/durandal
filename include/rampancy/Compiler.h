@@ -12,6 +12,7 @@
 #include "llvm/Module.h"
 #include "ExpertSystem/CLIPSEnvironment.h"
 #include "llvm/LLVMContext.h"
+#include "llvm/ADT/StringRef.h"
 
 namespace rampancy {
    class Compiler : public llvm::ModulePass  {
@@ -21,10 +22,11 @@ namespace rampancy {
       public:
          Compiler(char ID);
          virtual ~Compiler();
+         //this one gets arguments straight from CLIPS
+         virtual llvm::Module* compile() = 0;
          virtual llvm::Module* compile(int argc, char** argv) = 0;
-         virtual llvm::Module* compile(std::vector<std::string> args) = 0;
-         virtual llvm::Module* interpret(char* input) = 0;
-         virtual llvm::Module* interpret(std::string input) = 0;
+         virtual llvm::Module* interpret() = 0;
+         virtual llvm::Module* interpret(llvm::StringRef input) = 0;
          using llvm::ModulePass::getAnalysisUsage;
          virtual void getAnalysisUsage(llvm::AnalysisUsage& info);
          virtual void beforeKnowledgeConstruction(llvm::Module* module);
@@ -35,7 +37,6 @@ namespace rampancy {
          void setEnvironment(CLIPSEnvironment* env);
          llvm::LLVMContext* getLLVMContext();
          void setLLVMContext(llvm::LLVMContext* context);
-         //print is optional so I'm not going to mention it
    };
 }
 #endif
