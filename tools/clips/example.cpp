@@ -33,6 +33,14 @@
 #include "rampancy/CompilerRegistry.h"
 #include "rampancy/Cortex.h"
 using namespace llvm;
+extern "C" {
+#include <stdio.h>
+#include "setup.h"
+#include "clips.h"
+}
+
+extern "C" void UserFunctions(void);
+extern "C" void EnvUserFunctions(void *);
 int main(int argc, char** argv) {
    
   rampancy::Cortex* rampantCortex = rampancy::Cortex::getRampantCortex();
@@ -49,4 +57,11 @@ int main(int argc, char** argv) {
   initializeInstCombine(registry);
   initializeInstrumentation(registry);
   initializeTarget(registry);
+
+   void *theEnv;
+   
+   theEnv = CreateEnvironment();
+   RerouteStdin(theEnv,argc,argv);
+   CommandLoop(theEnv);
+
 }

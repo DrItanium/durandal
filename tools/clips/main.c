@@ -45,7 +45,7 @@
 #include "setup.h"
 #include "clips.h"
 
-int main(int,char *[]);
+int clipsmain(int,char *[]);
 void UserFunctions(void);
 void EnvUserFunctions(void *);
 
@@ -53,7 +53,7 @@ void EnvUserFunctions(void *);
 /* main: Starts execution of the expert */
 /*   system development environment.    */
 /****************************************/
-int main(
+int clipsmain(
   int argc,
   char *argv[])
   {
