@@ -33,21 +33,16 @@ using namespace clang::driver;
 
 namespace rampancy {
    //TODO: Add compiler support
-   class ClangCompiler {
-      private:
-         char* const *envp;
-         CLIPSEnvironment* env;
-         KnowledgeConstructor* builder;
+   class ClangCompiler : public Compiler{
       public:
-         ClangCompiler(CLIPSEnvironment& e, char* const *ep);
-         ~ClangCompiler();
-         std::string getCompleteKnowledgeString();
-         void resetKnowledgeBuilder();
-         int execute(llvm::Module* mod, std::vector<std::string>& args, 
-               char* functionName);
-         int executeMain(llvm::Module* mod, std::vector<std::string>& args);
-         virtual llvm::Module* compile(int argc, const char **argv, 
-               bool constructKnowledge = true);
+         static char ID;
+         ClangCompiler() : Compiler(ID);
+         using Compiler::compile;
+         using Compiler::interpret;
+         virtual llvm::Module* compile(); 
+         virtual llvm::Module* compile(int argc, char** argv);
+         virtual llvm::Module* interpret();
+         virtual llvm::Module* interpret(llvm::StringRef input);
    };
 }
 
