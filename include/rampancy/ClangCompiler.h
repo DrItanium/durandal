@@ -50,6 +50,8 @@ namespace rampancy {
          virtual llvm::Module* interpret();
          virtual llvm::Module* interpret(llvm::StringRef input);
    };
+   static void* initializeClangCompilerPassOnce(llvm::PassRegistry& registry);
+   static void initializeClangCompilerPass(llvm::PassRegistry& registry);
 }
 
 #endif

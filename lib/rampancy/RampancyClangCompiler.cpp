@@ -4,6 +4,7 @@ extern "C" {
 #include "clips.h"
 }
 
+using namespace llvm;
 namespace rampancy {
 #define msg(a) (char*) a   
    llvm::sys::Path getExecutablePath(const char* argv0) {
@@ -202,5 +203,42 @@ namespace rampancy {
       return 0;
    }
 #undef msg
-}
 
+   char ClangCompiler::ID = 0;
+
+   static RegisterPass<ClangCompiler> clangKnowledgeConstructor(
+         "clang-dynamic-compiler", 
+         "dynamic clang for use with CLIPS", 
+         false,
+         false);
+   void* initializeClangCompilerPassOnce(llvm::PassRegistry& registry) {
+      llvm::PassInfo *pi = new PassInfo("dynamic clang for use with CLIPS",
+            "clang-dynamic-compiler", &ClangCompiler::ID,
+            PassInfo::NormalCtor_t(callDefaultCtor<ClangCompiler>), false, 
+            false);
+      registry.registerPass(*pi, true);
+      return pi;
+   }
+   void initializeClangCompilerPass(llvm::PassRegistry& registry) {
+      //initializeClangCompilerPassOnce is the input
+      static volatile llvm::sys::cas_flag initialized = 0;
+      llvm::sys::cas_flag old_val = sys::CompareAndSwap(&initialized, 1, 0);
+      if(old_val == 0) {
+         initializeClangCompilerPassOnce(registry);
+         llvm::sys::MemoryFence();
+         TsanIgnoreWritesBegin();
+         TsanHappensBefore(&initialized);
+         initialized = 2;
+         TsanIgnoreWritesEnd();
+      } else {
+         llvm::sys::cas_flag tmp = initialized;
+         llvm::sys::MemoryFence();
+         while(tmp != 2) {
+            tmp = initialized;
+            llvm::sys::MemoryFence();
+         }
+      }
+      TsanHappensAfter(&initialized);
+   }
+
+}
