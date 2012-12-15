@@ -1,5 +1,5 @@
-#ifndef _rampancy_compiler_h
-#define _rampancy_compiler_h
+#ifndef _rampancy_clang_compiler_h
+#define _rampancy_clang_compiler_h
 
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Driver/Compilation.h"
@@ -26,27 +26,32 @@
 #include "ExpertSystem/FunctionNamer.h"
 #include "ExpertSystem/KnowledgeConstructionEngine.h"
 #include "ExpertSystem/CLIPSEnvironment.h"
+#include "rampancy/Compiler.h"
 
 using namespace clang;
 using namespace clang::driver;
 
 namespace rampancy {
-   class Compiler {
+   class ClangCompiler : public Compiler {
       private:
-         char* const *envp;
-         CLIPSEnvironment* env;
-         KnowledgeConstructor* builder;
+         //HACK HACK!
+         //Used to get around the fact that we may not have immediate access to
+         //arg0. Thus we need to register this at program startup
+         static const char* argv0;
       public:
-         Compiler(CLIPSEnvironment& e, char* const *ep);
-         ~Compiler();
-         std::string getCompleteKnowledgeString();
-         void resetKnowledgeBuilder();
-         int execute(llvm::Module* mod, std::vector<std::string>& args, 
-               char* functionName);
-         int executeMain(llvm::Module* mod, std::vector<std::string>& args);
-         llvm::Module* compile(int argc, const char **argv, 
-               bool constructKnowledge = true);
+         static char ID;
+         static const char* getArgv0();
+         static void setArgv0(const char* arg0);
+         ClangCompiler(); 
+         using Compiler::compile;
+         using Compiler::interpret;
+         virtual llvm::Module* compile(); 
+         virtual llvm::Module* compile(int argc, char** argv);
+         virtual llvm::Module* interpret();
+         virtual llvm::Module* interpret(llvm::StringRef input);
    };
+   static void* initializeClangCompilerPassOnce(llvm::PassRegistry& registry);
+   static void initializeClangCompilerPass(llvm::PassRegistry& registry);
 }
 
 #endif

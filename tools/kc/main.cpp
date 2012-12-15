@@ -5,7 +5,8 @@
 #include "ExpertSystem/CLIPSEnvironment.h"
 #include "ExpertSystem/KnowledgeConstructor.h"
 #include "ExpertSystem/KnowledgeConstructionEngine.h"
-#include "rampancy/RampancyCompiler.h"
+#include "rampancy/Compiler.h"
+#include "rampancy/ClangCompiler.h"
 
 extern "C" {
    #include "clips.h"
@@ -15,7 +16,7 @@ int main(int argc, char** argv, char* const *envp) {
    CLIPSEnvironment env;
    env.batchStar((char*)"Init.clp");
    env.eval((char*)"(set-current-module MAIN)");
-   rampancy::Compiler compiler(env, envp);
+   rampancy::ClangCompiler compiler(env, envp);
    llvm::Module* mod = compiler.compile(argc, (const char**) argv);
    if(mod) {
       env.eval((char*)"(save-instances \"instances\" visible)");

@@ -4,11 +4,19 @@ extern "C" {
 #include "clips.h"
 }
 
-CLIPSEnvironment::CLIPSEnvironment() {
-   environment = CreateEnvironment();
+CLIPSEnvironment::CLIPSEnvironment(void* theEnv) {
+   if(!theEnv) {
+      environment = CreateEnvironment();
+      fullyOwned = true;
+   } else {
+      environment = theEnv;
+      fullyOwned = false;
+   }
 }
 CLIPSEnvironment::~CLIPSEnvironment() {
-   DestroyEnvironment(environment);
+   if(fullyOwned) {
+      DestroyEnvironment(environment);
+   }
 }
 
 bool CLIPSEnvironment::environmentCreated() { return (environment != 0); }

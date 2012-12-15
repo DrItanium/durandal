@@ -1,4 +1,4 @@
-#include "rampancy/RampancyCLIPS.h"
+#include "rampancy/CLIPSFunctions.h"
 extern "C" {
    #include "clips.h"
 }

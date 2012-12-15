@@ -39,11 +39,4 @@ void CLIPSModuleBuilder::addFields(Module* mod, KnowledgeConstructor* kc) {
          addField("pointer-size", "any");
    }
    addField("inline-asm", mod->getModuleInlineAsm());
-   for(Module::iterator i = mod->begin(), e = mod->end(); i != e; ++i) {
-      RegionInfo ri;
-      LoopInfo li;
-      ri.runOnFunction(*i);
-      li.runOnFunction(*i);
-      kc->route(*i, li, ri);
-   }
 }

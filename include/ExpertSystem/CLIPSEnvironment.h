@@ -4,8 +4,9 @@
 class CLIPSEnvironment {
    private:
       void* environment;
+      bool fullyOwned;
    public:
-      CLIPSEnvironment();
+      CLIPSEnvironment(void* theEnv=0);
       ~CLIPSEnvironment();
       bool environmentCreated(); 
       void* getEnvironment();
