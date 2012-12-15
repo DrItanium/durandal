@@ -82,13 +82,15 @@ namespace rampancy {
       DATA_OBJECT arg0;
       char* copy;
       copy = CharBuffer(512);
-      if((EnvArgCountCheck(theEnv, "compile", AT_LEAST, 1) == -1)) {
-         EnvPrintRouter(theEnv, "werror", "\nNo compiler provided to use!\n");
+      if((EnvArgCountCheck(theEnv, (char*)"compile", AT_LEAST, 1) == -1)) {
+         EnvPrintRouter(theEnv, (char*)"werror", 
+               (char*)"\nNo compiler provided to use!\n");
          return;
       }
 
-      if((EnvArgTypeCheck(theEnv, "compile", 1, SYMBOL, &arg0) == 0)) {
-         EnvPrintRouter(theEnv, "werror", "\ncompiler name must be a symbol!\n");
+      if((EnvArgTypeCheck(theEnv, (char*)"compile", 1, SYMBOL, &arg0) == 0)) {
+         EnvPrintRouter(theEnv, (char*)"werror", 
+               (char*)"\ncompiler name must be a symbol!\n");
          return;
       }
       std::string tmp (DOToString(arg0));
@@ -98,8 +100,8 @@ namespace rampancy {
       llvm::StringRef logicalName(tmp);
       llvm::Module* module = compile(logicalName, theEnv);
       if(!module) {
-         EnvPrintRouter(theEnv, "werror", 
-               "\nThe compiler failed to compile the target file\n");
+         EnvPrintRouter(theEnv, (char*)"werror", 
+               (char*)"\nThe compiler failed to compile the target file\n");
          return;
       } 
       convertToKnowledge(logicalName, module, theEnv);
@@ -110,13 +112,15 @@ namespace rampancy {
       DATA_OBJECT arg0;
       char* copy;
       copy = CharBuffer(512);
-      if((EnvArgCountCheck(theEnv, "interpret", AT_LEAST, 1) == -1)) {
-         EnvPrintRouter(theEnv, "werror", "\nNo compiler provided to use!\n");
+      if((EnvArgCountCheck(theEnv, (char*)"interpret", AT_LEAST, 1) == -1)) {
+         EnvPrintRouter(theEnv, (char*)"werror", 
+              (char*) "\nNo compiler provided to use!\n");
          return;
       }
 
-      if((EnvArgTypeCheck(theEnv, "interpret", 1, SYMBOL, &arg0) == 0)) {
-         EnvPrintRouter(theEnv, "werror", "\nCompiler name must be a symbol!\n");
+      if((EnvArgTypeCheck(theEnv, (char*)"interpret", 1, SYMBOL, &arg0) == 0)) {
+         EnvPrintRouter(theEnv, (char*)"werror", 
+               (char*)"\nCompiler name must be a symbol!\n");
          return;
       }
       std::string tmp (DOToString(arg0));
@@ -126,8 +130,8 @@ namespace rampancy {
       llvm::StringRef logicalName(tmp);
       llvm::Module* module = interpret(logicalName, theEnv);
       if(!module) {
-         EnvPrintRouter(theEnv, "werror", 
-               "\nThe compiler failed to interpret the target file\n");
+         EnvPrintRouter(theEnv, (char*)"werror", 
+               (char*)"\nThe compiler failed to interpret the target file\n");
          return;
       } 
       convertToKnowledge(logicalName, module, theEnv);
@@ -158,8 +162,8 @@ namespace rampancy {
       CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry(); 
       Compiler* target = compilers->getCompiler(logicalName);
       if(!target) {
-         EnvPrintRouter(theEnv, 
-               "werror", "\nProvided logical name does not exist\n");
+         EnvPrintRouter(theEnv, (char*)"werror", 
+               (char*)"\nProvided logical name does not exist\n");
          return;
       } else {
          llvm::PassManager tmpPassManager;
@@ -185,8 +189,8 @@ namespace rampancy {
       CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry(); 
       Compiler* target = compilers->getCompiler(logicalName);
       if(!target) {
-         EnvPrintRouter(env->getEnvironment(), 
-               "werror", "\nProvided logical name does not exist\n");
+         EnvPrintRouter(env->getEnvironment(), (char*)"werror", 
+               (char*)"\nProvided logical name does not exist\n");
          return;
       } else {
          llvm::PassManager tmpPassManager;
