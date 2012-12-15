@@ -82,9 +82,11 @@ namespace rampancy {
       DATA_OBJECT arg0;
       char* copy;
       copy = CharBuffer(512);
-      if((EnvArgCountCheck(theEnv, (char*)"compile", AT_LEAST, 1) == -1)) {
+      if((EnvArgCountCheck(theEnv, (char*)"compile", EXACTLY, 2) == -1)) {
          EnvPrintRouter(theEnv, (char*)"werror", 
-               (char*)"\nNo compiler provided to use!\n");
+               (char*)"\nCompile arguments are <compiler> <multifield>\n"
+                      "It may be necessary to wrap your input arguments in"
+                      "a create$ call.\n");
          return;
       }
 
@@ -112,9 +114,11 @@ namespace rampancy {
       DATA_OBJECT arg0;
       char* copy;
       copy = CharBuffer(512);
-      if((EnvArgCountCheck(theEnv, (char*)"interpret", AT_LEAST, 1) == -1)) {
+      if((EnvArgCountCheck(theEnv, (char*)"interpret", EXACTLY, 2) == -1)) {
          EnvPrintRouter(theEnv, (char*)"werror", 
-              (char*) "\nNo compiler provided to use!\n");
+               (char*)"\nInterpret arguments are <compiler> <multifield>\n"
+                      "It may be necessary to wrap your input arguments in"
+                      "a create$ call.\n");
          return;
       }
 
