@@ -11,8 +11,6 @@
 #ifndef _rampancy_compiler_manager_h
 #define _rampancy_compiler_manager_h
 
-#include <vector.h>
-#include <string.h>
 #include "llvm/Pass.h"
 #include "llvm/Module.h"
 #include "llvm/PassManager.h"

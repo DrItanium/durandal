@@ -6,8 +6,6 @@
  *
  * This class is abstract
  */
-#include <vector>
-#include <string.h>
 #include "llvm/Pass.h"
 #include "llvm/Module.h"
 #include "ExpertSystem/CLIPSEnvironment.h"
