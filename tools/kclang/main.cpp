@@ -16,8 +16,9 @@ int main(int argc, char** argv, char* const *envp) {
    CLIPSEnvironment env;
    env.batchStar((char*)"Init.clp");
    env.eval((char*)"(set-current-module MAIN)");
-   rampancy::ClangCompiler compiler(env, envp);
-   llvm::Module* mod = compiler.compile(argc, (const char**) argv);
+   rampancy::ClangCompiler compiler;
+   llvm::Module* mod = compiler.compile(argc, argv);
+	//we need to setup 
    if(mod) {
       env.eval((char*)"(save-instances \"instances\" visible)");
    } else {
