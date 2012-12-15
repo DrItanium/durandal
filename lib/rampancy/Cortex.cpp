@@ -120,13 +120,56 @@ namespace rampancy {
       return manager->interpret(logicalName, input);
    }
 
-   void convertToKnowledge(llvm::StringRef logicalName, llvm::Module* module, 
-         void* theEnv) {
-      llvm::PassManager tmpPassManager;
-      CLIPSEnvironment* env = new CLIPSEnvironment(theEnv);
-
+   void Cortex::convertToKnowledge(llvm::StringRef logicalName, 
+         llvm::Module* module, void* theEnv) {
+      CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry(); 
+      Compiler* target = compilers->getCompiler(logicalName);
+      if(!target) {
+         EnvPrintRouter(theEnv, "werror", "\nProvided logical name does not exist\n");
+         return;
+      } else {
+         llvm::PassManager tmpPassManager;
+         CLIPSEnvironment* tEnv = new CLIPSEnvironment(theEnv);
+         //taken from opt
+         llvm::TargetLibraryInfo *tli = 
+            new llvm::TargetLibraryInfo(Triple(module->getTargetTriple()));
+         tmpPassManager.add(tli);
+         TargetData *td = 0;
+         const std::string &moduleDataLayout = module->getDataLayout();
+         if(!moduleDataLayout.empty())
+            td = new TargetData(ModuleDataLayout);
+         if(td)
+            tmpPassManager.add(td);
+         target->setEnvironment(tEnv);
+         target->setContext(context);
+         tmpPassManager.add(target);
+         tmpPassManager.run(module);
+      }
    }
-   void convertToKnowledge(llvm::StringRef logicalName, llvm::Module* module) {
+   void Cortex::convertToKnowledge(llvm::StringRef logicalName, 
+         llvm::Module* module) {
+      CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry(); 
+      Compiler* target = compilers->getCompiler(logicalName);
+      if(!target) {
+         EnvPrintRouter(env->getEnvironment(), "werror", "\nProvided logical name does not exist\n");
+         return;
+      } else {
+         llvm::PassManager tmpPassManager;
+         //taken from opt
+         llvm::TargetLibraryInfo *tli = 
+            new llvm::TargetLibraryInfo(Triple(module->getTargetTriple()));
+         tmpPassManager.add(tli);
+         TargetData *td = 0;
+         const std::string &moduleDataLayout = module->getDataLayout();
+         if(!moduleDataLayout.empty())
+            td = new TargetData(ModuleDataLayout);
+         if(td)
+            tmpPassManager.add(td);
+         target->setEnvironment(env);
+         target->setContext(context);
+         tmpPassManager.add(target);
+         tmpPassManager.run(module);
+      }
    }
 
 }
