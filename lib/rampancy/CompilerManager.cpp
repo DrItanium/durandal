@@ -51,12 +51,10 @@ namespace rampancy {
       assert( context && "LLVM context not set in CompilerManager!");
       Compiler* compiler = compilers->getCompiler(logicalName);
       if(!compiler) {
-         DATA_OBJECT result;
          char* buf = CharBuffer(512);
-         sprintf(buf, 
-               "(printout t \"ERROR: Provided Compiler %s does not exist!\" crlf)",
+         sprintf(buf, "\nERROR: Provided Compiler %s does not exist!\n",
                logicalName.data());
-         EnvEval(theEnv, buf, &result);
+         EnvPrintRouter(buf, (char*)"werror", buf);
          free(buf);
          return 0;
       } else {
@@ -94,12 +92,10 @@ namespace rampancy {
       assert( context && "LLVM Context not set in CompilerManager!");
       Compiler* compiler = compilers->getCompiler(logicalName);
       if(!compiler) {
-         DATA_OBJECT result;
          char* buf = CharBuffer(512);
-         sprintf(buf, 
-               "(printout t \"ERROR: Provided Compiler %s does not exist!\" crlf)",
+         sprintf(buf, "\"ERROR: Provided Compiler %s does not exist!\"", 
                logicalName.data());
-         EnvEval(theEnv, buf, &result);
+         EnvPrintRouter(theEnv, (char*)"werror", buf);
          free(buf);
          return 0;
       } else {
