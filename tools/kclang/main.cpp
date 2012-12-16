@@ -15,9 +15,9 @@ extern "C" {
 
 int main(int argc, char** argv, char* const *envp) {
    rampancy::ClangCompiler::argv0 = argv[0];
-   rampancy::Cortex* rampantCortex = rampancy::Cortex::getRampantCortex();
-   rampancy::CompilerRegistry* compilerRegistry = 
-      rampancy::CompilerRegistry::getCompilerRegistry();
+   rampancy::Cortex& rampantCortex = *rampancy::Cortex::getRampantCortex();
+   rampancy::CompilerRegistry& compilerRegistry = 
+      *rampancy::CompilerRegistry::getCompilerRegistry();
    PassRegistry &registry = *PassRegistry::getPassRegistry();
    initializeCore(registry);
    initializeScalarOpts(registry);
@@ -29,16 +29,18 @@ int main(int argc, char** argv, char* const *envp) {
    initializeInstCombine(registry);
    initializeInstrumentation(registry);
    initializeTarget(registry);
-   rampancy::initializeClangCompilerPass(registry);
+   llvm::StringRef ref("clang");
+   //rampancy::initializeClangCompilerPass(registry);
    rampancy::ClangCompiler cc;
+   compilerRegistry.registerCompiler(ref, &cc);
    //set the 
-   CLIPSEnvironment* theEnv = rampantCortex->getEnvironment();
+   CLIPSEnvironment* theEnv = rampantCortex.getEnvironment();
    theEnv->batchStar("Init.clp");
-   llvm::Module* mod = cc.compile(argc, argv);
+
+   llvm::Module* mod = rampantCortex.compile(ref, argc, argv);
 	//we need to setup 
    if(mod) {
-      llvm::StringRef name("clang");
-      rampantCortex->convertToKnowledge(name, mod);
+      rampantCortex.convertToKnowledge(ref, mod);
       theEnv->eval((char*)"(list-defmodules)");
       theEnv->eval((char*)"(save-instances \"instances\" visible)");
    } else {
