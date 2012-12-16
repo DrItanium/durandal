@@ -3,15 +3,16 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "rampancy/Compiler.h"
+#include "llvm/ADT/StringMap.h"
 
 namespace rampancy {
 
    class CompilerRegistry {
-      mutable void* implementation;
-      void* getImpl() const;
+      typedef llvm::StringMap<rampancy::Compiler*> StringMapType;
+      StringMapType compilerStringMap;
 
       public:
-      CompilerRegistry() : implementation(0) { }
+      CompilerRegistry() { }
       ~CompilerRegistry();
       static CompilerRegistry* getCompilerRegistry();
       Compiler* getCompiler(char* logicalName) const;
