@@ -8,7 +8,7 @@ DURANDAL_LEVEL=../..
 #
 # Give the name of the tool.
 #
-TOOLNAME=kc
+TOOLNAME=kclang
 
 #
 # List libraries that we'll need
