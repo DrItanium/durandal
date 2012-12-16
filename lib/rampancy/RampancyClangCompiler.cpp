@@ -11,12 +11,6 @@ namespace rampancy {
       void *MainAddr = (void*) (intptr_t) getExecutablePath;
       return llvm::sys::Path::GetMainExecutable(argv0, MainAddr);
    }
-   const char* ClangCompiler::getArgv0() {
-      return argv0;
-   }
-   void ClangCompiler::setArgv0(const char* arg0) {
-      argv0 = arg0;
-   }
    ClangCompiler::ClangCompiler() : Compiler(ID) { }
    llvm::Module* ClangCompiler::compile() {
       void* theEnv = getEnvironment()->getEnvironment();
@@ -36,7 +30,7 @@ namespace rampancy {
          return 0;
       }
       void* mainAddr = (void*) (intptr_t) getExecutablePath;
-      llvm::sys::Path path = getExecutablePath(getArgv0());
+      llvm::sys::Path path = getExecutablePath(argv0);
       TextDiagnosticPrinter* diagClient = 
          new TextDiagnosticPrinter(llvm::errs(), DiagnosticOptions());
       IntrusiveRefCntPtr<DiagnosticIDs> diagID(new DiagnosticIDs());
@@ -118,7 +112,7 @@ namespace rampancy {
       if(clang.getHeaderSearchOpts().UseBuiltinIncludes &&
             clang.getHeaderSearchOpts().ResourceDir.empty()) {
          clang.getHeaderSearchOpts().ResourceDir = 
-            CompilerInvocation::GetResourcesPath(getArgv0(), mainAddr);
+            CompilerInvocation::GetResourcesPath(argv0, mainAddr);
       }
 
       OwningPtr<CodeGenAction> act(new EmitLLVMOnlyAction(getContext()));
@@ -205,12 +199,15 @@ namespace rampancy {
 #undef msg
 
    char ClangCompiler::ID = 0;
+   //set it to blank for now
+   const char* ClangCompiler::argv0 = "";
 
    static RegisterPass<ClangCompiler> clangKnowledgeConstructor(
          "clang-dynamic-compiler", 
          "dynamic clang for use with CLIPS", 
          false,
          false);
+
    void* initializeClangCompilerPassOnce(llvm::PassRegistry& registry) {
       llvm::PassInfo *pi = new PassInfo("dynamic clang for use with CLIPS",
             "clang-dynamic-compiler", &ClangCompiler::ID,

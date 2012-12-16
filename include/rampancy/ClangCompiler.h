@@ -33,15 +33,12 @@ using namespace clang::driver;
 
 namespace rampancy {
    class ClangCompiler : public Compiler {
-      private:
+      public:
+         static char ID;
          //HACK HACK!
          //Used to get around the fact that we may not have immediate access to
          //arg0. Thus we need to register this at program startup
          static const char* argv0;
-      public:
-         static char ID;
-         static const char* getArgv0();
-         static void setArgv0(const char* arg0);
          ClangCompiler(); 
          using Compiler::compile;
          using Compiler::interpret;
@@ -51,7 +48,7 @@ namespace rampancy {
          virtual llvm::Module* interpret(llvm::StringRef input);
    };
    static void* initializeClangCompilerPassOnce(llvm::PassRegistry& registry);
-   static void initializeClangCompilerPass(llvm::PassRegistry& registry);
+   void initializeClangCompilerPass(llvm::PassRegistry& registry);
 }
 
 #endif
