@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
    initializeInstCombine(registry);
    initializeInstrumentation(registry);
    initializeTarget(registry);
-   rampancy::initializeClangCompilerPass(registry);
+//   rampancy::initializeClangCompilerPass(registry);
    rampancy::ClangCompiler cc;
    //set the 
    StringRef clangName("clang");
