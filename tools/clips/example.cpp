@@ -32,6 +32,7 @@
 #include "rampancy/CompilerManager.h"
 #include "rampancy/CompilerRegistry.h"
 #include "rampancy/Cortex.h"
+#include "rampancy/ClangCompiler.h"
 using namespace llvm;
 extern "C" {
 #include <stdio.h>
@@ -42,26 +43,29 @@ extern "C" {
 extern "C" void UserFunctions(void);
 extern "C" void EnvUserFunctions(void *);
 int main(int argc, char** argv) {
-   
-  rampancy::Cortex* rampantCortex = rampancy::Cortex::getRampantCortex();
-  rampancy::CompilerRegistry* compilerRegistry = 
-     rampancy::CompilerRegistry::getCompilerRegistry();
-  PassRegistry &registry = *PassRegistry::getPassRegistry();
-  initializeCore(registry);
-  initializeScalarOpts(registry);
-  initializeVectorization(registry);
-  initializeIPO(registry);
-  initializeAnalysis(registry);
-  initializeIPA(registry);
-  initializeTransformUtils(registry);
-  initializeInstCombine(registry);
-  initializeInstrumentation(registry);
-  initializeTarget(registry);
 
-   void *theEnv;
-   
-   theEnv = CreateEnvironment();
-   RerouteStdin(theEnv,argc,argv);
-   CommandLoop(theEnv);
+   //set argv[0] for clang
+   rampancy::ClangCompiler::argv0 = argv[0];
+   rampancy::Cortex* rampantCortex = rampancy::Cortex::getRampantCortex();
+   rampancy::CompilerRegistry* compilerRegistry = 
+      rampancy::CompilerRegistry::getCompilerRegistry();
+   PassRegistry &registry = *PassRegistry::getPassRegistry();
+   initializeCore(registry);
+   initializeScalarOpts(registry);
+   initializeVectorization(registry);
+   initializeIPO(registry);
+   initializeAnalysis(registry);
+   initializeIPA(registry);
+   initializeTransformUtils(registry);
+   initializeInstCombine(registry);
+   initializeInstrumentation(registry);
+   initializeTarget(registry);
+   rampancy::initializeClangCompilerPass(registry);
+   rampancy::ClangCompiler cc;
+   //set the 
+   StringRef clangName("clang");
+   compilerRegistry->registerCompiler(clangName, &cc);
 
+   RerouteStdin(rampantCortex->getEnvironment()->getEnvironment(),argc,argv);
+   CommandLoop(rampantCortex->getEnvironment()->getEnvironment());
 }
