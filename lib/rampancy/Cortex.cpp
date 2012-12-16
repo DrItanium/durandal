@@ -182,6 +182,14 @@ namespace rampancy {
             td = new llvm::TargetData(moduleDataLayout);
          if(td)
             tmpPassManager.add(td);
+         llvm::PassRegistry& registry = *llvm::PassRegistry::getPassRegistry();
+         llvm::StringRef regionInfoPassName("regions");
+         llvm::StringRef loopInfoPassName("loops");
+         const llvm::PassInfo* regionPass = registry.getPassInfo(regionInfoPassName);
+         const llvm::PassInfo* loopPass = registry.getPassInfo(loopInfoPassName);
+
+         tmpPassManager.add(regionPass->createPass());
+         tmpPassManager.add(loopPass->createPass());
          target->setEnvironment(tEnv);
          target->setContext(context);
          tmpPassManager.add(target);
@@ -208,6 +216,13 @@ namespace rampancy {
             td = new llvm::TargetData(moduleDataLayout);
          if(td)
             tmpPassManager.add(td);
+         llvm::PassRegistry& registry = *llvm::PassRegistry::getPassRegistry();
+         llvm::StringRef regionInfoPassName("regions");
+         llvm::StringRef loopInfoPassName("loops");
+         const llvm::PassInfo* regionPass = registry.getPassInfo(regionInfoPassName);
+         const llvm::PassInfo* loopPass = registry.getPassInfo(loopInfoPassName);
+         tmpPassManager.add(regionPass->createPass());
+         tmpPassManager.add(loopPass->createPass());
          target->setEnvironment(env);
          target->setContext(context);
          tmpPassManager.add(target);
