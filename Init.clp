@@ -37,4 +37,4 @@
 			  "modules/scheduler/ModuleHeader.clp"
 			  ; Add entries to other modules here
 			  ))
-(defmodule MAIN (import core ?ALL) (import llvm ?ALL))
+;(defmodule MAIN (import core ?ALL) (import llvm ?ALL))
