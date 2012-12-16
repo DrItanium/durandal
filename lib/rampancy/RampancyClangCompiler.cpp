@@ -23,8 +23,9 @@ namespace rampancy {
                msg("\nThe second argument must be a multifield!\n"));
          return 0;
       }
+      unsigned length = (unsigned)GetDOLength(multifield);
       //if we don't have any args then just kick back
-      if(GetDOLength(multifield) == 0) {
+      if(length == 0) {
          EnvPrintRouter(theEnv, msg("werror"),
                msg("\nNo arguments provided!\n"));
          return 0;
@@ -40,6 +41,7 @@ namespace rampancy {
       theDriver.setTitle("rampancy knowledge compiler");
 
       llvm::SmallVector<const char*, 16> args;
+      args.push_back(argv0);
       void* mfptr = GetValue(multifield);
       int mfEnd = GetDOEnd(multifield);
       for(int i = GetDOBegin(multifield); i <= mfEnd; ++i) {
@@ -47,7 +49,8 @@ namespace rampancy {
          if(mfType == STRING || mfType == SYMBOL) {
             //we need to do this to prevent the CLIPS gc from crashing the
             //party. 
-            std::string argument(ValueToString(GetMFValue(mfptr, i)));
+            char* tmp = ValueToString(GetMFValue(mfptr, i));
+            std::string argument(tmp);
             args.push_back(argument.c_str());
          } else if(mfType == INTEGER) {
             char* arg = CharBuffer(256);
@@ -67,8 +70,6 @@ namespace rampancy {
             return 0;
          }
       }
-      //we need to iterate through the multifield
-      //we have our 
       args.push_back("-fsyntax-only");
       OwningPtr<Compilation> c(theDriver.BuildCompilation(args));
       if(!c) return 0;
@@ -203,39 +204,39 @@ namespace rampancy {
    const char* ClangCompiler::argv0 = "";
 
    static RegisterPass<ClangCompiler> clangKnowledgeConstructor(
-         "clang-dynamic-compiler", 
+         "clang", 
          "dynamic clang for use with CLIPS", 
          false,
          false);
 
-   void* initializeClangCompilerPassOnce(llvm::PassRegistry& registry) {
-      llvm::PassInfo *pi = new PassInfo("dynamic clang for use with CLIPS",
-            "clang-dynamic-compiler", &ClangCompiler::ID,
-            PassInfo::NormalCtor_t(callDefaultCtor<ClangCompiler>), false, 
-            false);
-      registry.registerPass(*pi, true);
-      return pi;
-   }
-   void initializeClangCompilerPass(llvm::PassRegistry& registry) {
-      //initializeClangCompilerPassOnce is the input
-      static volatile llvm::sys::cas_flag initialized = 0;
-      llvm::sys::cas_flag old_val = sys::CompareAndSwap(&initialized, 1, 0);
-      if(old_val == 0) {
-         initializeClangCompilerPassOnce(registry);
-         llvm::sys::MemoryFence();
-         TsanIgnoreWritesBegin();
-         TsanHappensBefore(&initialized);
-         initialized = 2;
-         TsanIgnoreWritesEnd();
-      } else {
-         llvm::sys::cas_flag tmp = initialized;
-         llvm::sys::MemoryFence();
-         while(tmp != 2) {
-            tmp = initialized;
-            llvm::sys::MemoryFence();
-         }
-      }
-      TsanHappensAfter(&initialized);
-   }
+   //void* initializeClangCompilerPassOnce(llvm::PassRegistry& registry) {
+   //   llvm::PassInfo *pi = new PassInfo("dynamic clang for use with CLIPS",
+   //         "clang-dynamic-compiler", &ClangCompiler::ID,
+   //         PassInfo::NormalCtor_t(callDefaultCtor<ClangCompiler>), false, 
+   //         false);
+   //   registry.registerPass(*pi, true);
+   //   return pi;
+   //}
+   //void initializeClangCompilerPass(llvm::PassRegistry& registry) {
+   //   //initializeClangCompilerPassOnce is the input
+   //   static volatile llvm::sys::cas_flag initialized = 0;
+   //   llvm::sys::cas_flag old_val = sys::CompareAndSwap(&initialized, 1, 0);
+   //   if(old_val == 0) {
+   //      initializeClangCompilerPassOnce(registry);
+   //      llvm::sys::MemoryFence();
+   //      TsanIgnoreWritesBegin();
+   //      TsanHappensBefore(&initialized);
+   //      initialized = 2;
+   //      TsanIgnoreWritesEnd();
+   //   } else {
+   //      llvm::sys::cas_flag tmp = initialized;
+   //      llvm::sys::MemoryFence();
+   //      while(tmp != 2) {
+   //         tmp = initialized;
+   //         llvm::sys::MemoryFence();
+   //      }
+   //   }
+   //   TsanHappensAfter(&initialized);
+   //}
 
 }
