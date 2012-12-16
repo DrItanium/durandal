@@ -1,28 +1,24 @@
 #include "rampancy/CLIPSFunctions.h"
+#include "rampancy/Cortex.h"
 extern "C" {
    #include "clips.h"
 }
 
 extern "C" void CompileFileIntoKnowledge(void* env);
-extern "C" void SaveBitcodeVersionOfModule(void* env);
-extern "C" void RunFunctionAsMain(void* env);
+extern "C" void InterpretCodeIntoKnowledge(void* env);
 extern "C" void SetupRampancyExpertSystemInterfaces(void* env) {
-   EnvDefineFunction(env, "rampancy-compile-file-into-knowledge", 'v',
+   EnvDefineFunction(env, "rampancy-compile", 'v',
          PTIEF CompileFileIntoKnowledge, "CompileFileIntoKnowledge");
-   EnvDefineFunction(env, "rampancy-save-module-to-bitcode", 'v',
-         PTIEF SaveBitcodeVersionOfModule, "SaveBitcodeVersionOfModule");
-   EnvDefineFunction(env, "rampancy-run-function-as-main", 'v',
-         PTIEF RunFunctionAsMain, "RunFunctionAsMain");
+   EnvDefineFunction(env, "rampancy-interpret", 'v',
+         PTIEF InterpretCodeIntoKnowledge, "InterpretCodeIntoKnowledge");
 }
 
 extern "C" void CompileFileIntoKnowledge(void* env) {
-
+   rampancy::Cortex* globalCortex = rampancy::Cortex::getRampantCortex();
+   globalCortex->compileToKnowledge(env);
 }
 
-extern "C" void SaveBitcodeVersionOfModule(void* env) {
-
-}
-
-extern "C" void RunFunctionAsMain(void* env) {
-
+extern "C" void InterpretCodeIntoKnowledge(void* env) {
+   rampancy::Cortex* globalCortex = rampancy::Cortex::getRampantCortex();
+   globalCortex->interpretToKnowledge(env);
 }
