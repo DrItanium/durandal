@@ -83,7 +83,7 @@
 #endif
 
 #ifndef BANNER_STRING
-#define BANNER_STRING "         CLIPS (6.30 3/4/11)\n"
+#define BANNER_STRING "Durandal Expert System Tool (Based off of CLIPS 6.30)\n"
 #endif
 
 /*************************/
