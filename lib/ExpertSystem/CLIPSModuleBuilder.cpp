@@ -17,7 +17,6 @@ void CLIPSModuleBuilder::addFields(Module* mod, KnowledgeConstructor* kc) {
    std::string triple(mod->getTargetTriple());
    std::string dataLayout(mod->getDataLayout());
    std::string modIdent(mod->getModuleIdentifier());
-   llvm::errs() << "Target triple is " << triple << "\n";
    addField("triple", triple); 
    addField("data-layout", dataLayout);
    addField("module-identifier", modIdent);
