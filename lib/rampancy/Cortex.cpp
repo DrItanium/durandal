@@ -82,15 +82,15 @@ namespace rampancy {
       DATA_OBJECT arg0;
       char* copy;
       copy = CharBuffer(512);
-      if((EnvArgCountCheck(theEnv, (char*)"compile", EXACTLY, 2) == -1)) {
+      if((EnvArgCountCheck(theEnv, (char*)"rampancy-compile", EXACTLY, 2) == -1)) {
          EnvPrintRouter(theEnv, (char*)"werror", 
                (char*)"\nCompile arguments are <compiler> <multifield>\n"
                       "It may be necessary to wrap your input arguments in"
-                      "a create$ call.\n");
+                      " a create$ call.\n");
          return;
       }
 
-      if((EnvArgTypeCheck(theEnv, (char*)"compile", 1, SYMBOL, &arg0) == 0)) {
+      if((EnvArgTypeCheck(theEnv, (char*)"rampancy-compile", 1, SYMBOL, &arg0) == 0)) {
          EnvPrintRouter(theEnv, (char*)"werror", 
                (char*)"\ncompiler name must be a symbol!\n");
          return;
@@ -114,7 +114,7 @@ namespace rampancy {
       DATA_OBJECT arg0;
       char* copy;
       copy = CharBuffer(512);
-      if((EnvArgCountCheck(theEnv, (char*)"interpret", EXACTLY, 2) == -1)) {
+      if((EnvArgCountCheck(theEnv, (char*)"rampancy-interpret", EXACTLY, 2) == -1)) {
          EnvPrintRouter(theEnv, (char*)"werror", 
                (char*)"\nInterpret arguments are <compiler> <multifield>\n"
                       "It may be necessary to wrap your input arguments in"
@@ -122,7 +122,7 @@ namespace rampancy {
          return;
       }
 
-      if((EnvArgTypeCheck(theEnv, (char*)"interpret", 1, SYMBOL, &arg0) == 0)) {
+      if((EnvArgTypeCheck(theEnv, (char*)"rampancy-interpret", 1, SYMBOL, &arg0) == 0)) {
          EnvPrintRouter(theEnv, (char*)"werror", 
                (char*)"\nCompiler name must be a symbol!\n");
          return;
@@ -187,7 +187,6 @@ namespace rampancy {
          llvm::StringRef loopInfoPassName("loops");
          const llvm::PassInfo* regionPass = registry.getPassInfo(regionInfoPassName);
          const llvm::PassInfo* loopPass = registry.getPassInfo(loopInfoPassName);
-
          tmpPassManager.add(regionPass->createPass());
          tmpPassManager.add(loopPass->createPass());
          target->setEnvironment(tEnv);
@@ -196,38 +195,8 @@ namespace rampancy {
          tmpPassManager.run(*module);
       }
    }
-   void Cortex::convertToKnowledge(llvm::StringRef logicalName, 
-         llvm::Module* module) {
-      CompilerRegistry* compilers = CompilerRegistry::getCompilerRegistry(); 
-      Compiler* target = compilers->getCompiler(logicalName);
-      if(!target) {
-         EnvPrintRouter(env->getEnvironment(), (char*)"werror", 
-               (char*)"\nProvided logical name does not exist\n");
-         return;
-      } else {
-         llvm::PassManager tmpPassManager;
-         //taken from opt
-         llvm::TargetLibraryInfo *tli = 
-            new llvm::TargetLibraryInfo(llvm::Triple(module->getTargetTriple()));
-         tmpPassManager.add(tli);
-         llvm::TargetData *td = 0;
-         const std::string &moduleDataLayout = module->getDataLayout();
-         if(!moduleDataLayout.empty())
-            td = new llvm::TargetData(moduleDataLayout);
-         if(td)
-            tmpPassManager.add(td);
-         llvm::PassRegistry& registry = *llvm::PassRegistry::getPassRegistry();
-         llvm::StringRef regionInfoPassName("regions");
-         llvm::StringRef loopInfoPassName("loops");
-         const llvm::PassInfo* regionPass = registry.getPassInfo(regionInfoPassName);
-         const llvm::PassInfo* loopPass = registry.getPassInfo(loopInfoPassName);
-         tmpPassManager.add(regionPass->createPass());
-         tmpPassManager.add(loopPass->createPass());
-         target->setEnvironment(env);
-         target->setContext(context);
-         tmpPassManager.add(target);
-         tmpPassManager.run(*module);
-      }
+   void Cortex::convertToKnowledge(llvm::StringRef logicalName,
+       llvm::Module* module) {
+     convertToKnowledge(logicalName, module, env->getEnvironment());
    }
-
 }
