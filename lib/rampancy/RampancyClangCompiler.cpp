@@ -11,7 +11,7 @@ namespace rampancy {
       void *MainAddr = (void*) (intptr_t) getExecutablePath;
       return llvm::sys::Path::GetMainExecutable(argv0, MainAddr);
    }
-   ClangCompiler::ClangCompiler() : Compiler(ID) { }
+   ClangCompiler::ClangCompiler() { }
    llvm::Module* ClangCompiler::compile() {
       void* theEnv = getEnvironment()->getEnvironment();
       DATA_OBJECT multifield;
@@ -32,7 +32,7 @@ namespace rampancy {
       }
       char** argv = (char**)calloc(1 + length, sizeof(char*)); 
       int argc = 1 + length;
-      argv[0] = (char*)argv0;
+      argv[0] = (char*)ClangCompilerGlobals::argv0;
       void* mfptr = GetValue(multifield);
       int mfEnd = GetDOEnd(multifield);
       for(int i = GetDOBegin(multifield); i <= mfEnd; ++i) {
@@ -143,13 +143,6 @@ namespace rampancy {
    }
 #undef msg
 
-   char ClangCompiler::ID = 0;
    //set it to blank for now
-   const char* ClangCompiler::argv0 = "";
-
-   static RegisterPass<ClangCompiler> clangKnowledgeConstructor(
-         "clang", 
-         "dynamic clang for use with CLIPS", 
-         false,
-         false);
+   const char* ClangCompilerGlobals::argv0 = "";
 }

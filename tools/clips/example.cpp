@@ -45,7 +45,7 @@ extern "C" void EnvUserFunctions(void *);
 int main(int argc, char** argv) {
 
    //set argv[0] for clang
-   rampancy::ClangCompiler::argv0 = argv[0];
+   rampancy::ClangCompilerGlobals::argv0 = argv[0];
    rampancy::Cortex* rampantCortex = rampancy::Cortex::getRampantCortex();
    rampancy::CompilerRegistry* compilerRegistry = 
       rampancy::CompilerRegistry::getCompilerRegistry();

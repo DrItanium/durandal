@@ -13,28 +13,23 @@
 #include "llvm/ADT/StringRef.h"
 
 namespace rampancy {
-   class Compiler : public llvm::ModulePass  {
+   class Compiler {
       private:
-         CLIPSEnvironment* env;
          llvm::LLVMContext* context;
+         CLIPSEnvironment* env;
       public:
-         Compiler(char ID); 
+         Compiler(); 
          ~Compiler();
+
          //this one gets arguments straight from CLIPS
          virtual llvm::Module* compile() = 0;
          virtual llvm::Module* compile(int argc, char** argv) = 0;
          virtual llvm::Module* interpret() = 0;
          virtual llvm::Module* interpret(llvm::StringRef input) = 0;
-         using llvm::ModulePass::getAnalysisUsage;
-         virtual void getAnalysisUsage(llvm::AnalysisUsage& info);
-         virtual void beforeKnowledgeConstruction(llvm::Module* module);
-         virtual void afterKnowledgeConstruction(llvm::Module* module);
-         using llvm::ModulePass::runOnModule;
-         virtual bool runOnModule(llvm::Module& module);
-         CLIPSEnvironment* getEnvironment();
-         void setEnvironment(CLIPSEnvironment* env);
          llvm::LLVMContext* getContext();
          void setContext(llvm::LLVMContext* context);
+         void setEnvironment(CLIPSEnvironment* tEnv);
+         CLIPSEnvironment* getEnvironment();
    };
 }
 #endif

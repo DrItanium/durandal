@@ -32,13 +32,16 @@ using namespace clang;
 using namespace clang::driver;
 
 namespace rampancy {
+   struct ClangCompilerGlobals {
+      //HACK HACK!
+      //Used to get around the fact that we may not have immediate access to
+      //arg0. Thus we need to register this at program startup
+     static const char* argv0;
+   };
+   
    class ClangCompiler : public Compiler {
       public:
          static char ID;
-         //HACK HACK!
-         //Used to get around the fact that we may not have immediate access to
-         //arg0. Thus we need to register this at program startup
-         static const char* argv0;
          ClangCompiler(); 
          using Compiler::compile;
          using Compiler::interpret;

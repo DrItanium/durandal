@@ -14,7 +14,7 @@ extern "C" {
 }
 
 int main(int argc, char** argv, char* const *envp) {
-   rampancy::ClangCompiler::argv0 = argv[0];
+   rampancy::ClangCompilerGlobals::argv0 = argv[0];
    rampancy::Cortex& rampantCortex = *rampancy::Cortex::getRampantCortex();
    rampancy::CompilerRegistry& compilerRegistry = 
       *rampancy::CompilerRegistry::getCompilerRegistry();
