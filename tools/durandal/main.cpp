@@ -64,8 +64,17 @@ int main(int argc, char** argv) {
    rampancy::ClangCompiler cc;
    //set the 
    StringRef clangName("clang");
+   StringRef ref1("clang++");
+   StringRef ref2("gcc");
+   StringRef ref3("g++");
+   StringRef ref4("cc");
+   StringRef ref5("c++");
    compilerRegistry->registerCompiler(clangName, &cc);
-
+   compilerRegistry->registerCompiler(ref1, &cc);
+   compilerRegistry->registerCompiler(ref2, &cc);
+   compilerRegistry->registerCompiler(ref3, &cc);
+   compilerRegistry->registerCompiler(ref4, &cc);
+   compilerRegistry->registerCompiler(ref5, &cc);
    RerouteStdin(rampantCortex->getEnvironment()->getEnvironment(),argc,argv);
    CommandLoop(rampantCortex->getEnvironment()->getEnvironment());
 }

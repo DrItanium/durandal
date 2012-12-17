@@ -30,10 +30,18 @@ int main(int argc, char** argv, char* const *envp) {
    initializeInstrumentation(registry);
    initializeTarget(registry);
    llvm::StringRef ref("clang");
-   //rampancy::initializeClangCompilerPass(registry);
+   llvm::StringRef ref1("clang++");
+   llvm::StringRef ref2("gcc");
+   llvm::StringRef ref3("g++");
+   llvm::StringRef ref4("cc");
+   llvm::StringRef ref5("c++");
    rampancy::ClangCompiler cc;
    compilerRegistry.registerCompiler(ref, &cc);
-   //set the 
+   compilerRegistry.registerCompiler(ref1, &cc);
+   compilerRegistry.registerCompiler(ref2, &cc);
+   compilerRegistry.registerCompiler(ref3, &cc);
+   compilerRegistry.registerCompiler(ref4, &cc);
+   compilerRegistry.registerCompiler(ref5, &cc);
    CLIPSEnvironment* theEnv = rampantCortex.getEnvironment();
    theEnv->batchStar("Init.clp");
 
@@ -41,7 +49,6 @@ int main(int argc, char** argv, char* const *envp) {
 	//we need to setup 
    if(mod) {
       rampantCortex.convertToKnowledge(ref, mod);
-      theEnv->eval((char*)"(list-defmodules)");
       theEnv->eval((char*)"(save-instances \"instances\" visible)");
    } else {
       theEnv->eval((char*)"(printout t \"ERROR: Something went wrong\" crlf)");
