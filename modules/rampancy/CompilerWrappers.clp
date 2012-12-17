@@ -24,18 +24,12 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; Init.clp - Default Entry Point for a expert system optimization
+(deffunction rampancy::compile (?compiler ?file $?args)
+ (rampancy-compile ?compiler (create$ $?args ?file)))
 ;------------------------------------------------------------------------------
-; Usually this only contains elements necessary to start the load process
-; With the modifications I made to CLIPS for LLVM this usually manifests 
-; itself as being a batch-load command which allows multiple loads to occur as 
-; a single command
+(deffunction rampancy::interpret (?compiler ?source)
+ (rampancy-interpret ?compiler ?source))
 ;------------------------------------------------------------------------------
-(batch-load 
-  (create$ "modules/core/ModuleHeader.clp"
-	        "modules/llvm/ModuleHeader.clp"
-			  "modules/scheduler/ModuleHeader.clp"
-        "modules/rampancy/ModuleHeader.clp"
-			  ; Add entries to other modules here
-			  ))
-;(defmodule MAIN (import core ?ALL) (import llvm ?ALL))
+(deffunction rampancy::clang (?file $?args)
+ (rampancy-compile clang (create$ $?args -x c ?file)))
+;------------------------------------------------------------------------------

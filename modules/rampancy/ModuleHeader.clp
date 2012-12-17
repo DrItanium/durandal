@@ -24,18 +24,15 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; Init.clp - Default Entry Point for a expert system optimization
+; ModuleHeader.clp - Contains the entry point into the rampancy module. 
 ;------------------------------------------------------------------------------
-; Usually this only contains elements necessary to start the load process
-; With the modifications I made to CLIPS for LLVM this usually manifests 
-; itself as being a batch-load command which allows multiple loads to occur as 
-; a single command
-;------------------------------------------------------------------------------
-(batch-load 
-  (create$ "modules/core/ModuleHeader.clp"
-	        "modules/llvm/ModuleHeader.clp"
-			  "modules/scheduler/ModuleHeader.clp"
-        "modules/rampancy/ModuleHeader.clp"
-			  ; Add entries to other modules here
-			  ))
-;(defmodule MAIN (import core ?ALL) (import llvm ?ALL))
+
+(defmodule rampancy 
+ (import core defclass ?ALL)
+ (import llvm defclass ?ALL)
+ (import core deffunction ?ALL)
+ (export defclass ?ALL)
+ (export deffunction ?ALL))
+
+
+(load* "modules/rampancy/CompilerWrappers.clp")
