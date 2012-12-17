@@ -28,7 +28,7 @@ void CLIPSBasicBlockBuilder::addFields(BasicBlock* bb, KnowledgeConstructor *kc,
    if(constructInstructions && !bb->empty()) {
       std::string tmp;
       raw_string_ostream data(tmp);
-      openField("Contents");
+      openField("contents");
       for(BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
          Instruction* inst = i;
          std::string res = kc->route(inst, namer, name);

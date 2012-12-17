@@ -34,9 +34,9 @@ CLIPSObjectBuilder::CLIPSObjectBuilder(std::string n, std::string t) {
 CLIPSObjectBuilder::~CLIPSObjectBuilder() {
    delete stream;
 }
-void CLIPSObjectBuilder::setParent(char* p) { addField("Parent", p); }
-void CLIPSObjectBuilder::setParent(const char* p) { addField("Parent", p); }
-void CLIPSObjectBuilder::setPointer(PointerAddress v) { addField("Pointer", v); }
+void CLIPSObjectBuilder::setParent(char* p) { addField("parent", p); }
+void CLIPSObjectBuilder::setParent(const char* p) { addField("parent", p); }
+void CLIPSObjectBuilder::setPointer(PointerAddress v) { addField("pointer", v); }
 void CLIPSObjectBuilder::addField(const char* n, unsigned v) { 
    if(v != 0) {
       (*stream) << openParen << n << space << v << closeParen; 

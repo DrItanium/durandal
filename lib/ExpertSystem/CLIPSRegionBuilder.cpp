@@ -14,7 +14,7 @@ void CLIPSRegionBuilder::addFields(Region* region, KnowledgeConstructor* kc, cha
    char* name = (char*)getName().c_str();
    FunctionNamer& namer = getNamer();
    //open contents 
-   openField((char*)"Contents");
+   openField((char*)"contents");
    for(Region::element_iterator i = region->element_begin(), e = region->element_end(); i != e; ++i) {
       RegionNode* rn = *i;
       if(!rn->isSubRegion()) {

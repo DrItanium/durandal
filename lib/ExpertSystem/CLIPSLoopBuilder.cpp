@@ -19,7 +19,7 @@ void CLIPSLoopBuilder::addFields(Loop* loop, KnowledgeConstructor *kc, char* par
       addField("Entrances", header->getName());
       addField("HeaderBlock", header->getName());
    }
-   openField("Contents");
+   openField("contents");
    //register loops first...that way we don't need to worry about
    //incorrect nesting of child blocks
    for(Loop::iterator q = loop->begin(), qu = loop->end(); q != qu; ++q) {
