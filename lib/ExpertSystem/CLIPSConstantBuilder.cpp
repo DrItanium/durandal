@@ -59,10 +59,12 @@ CLIPSConstantExpressionBuilder::CLIPSConstantExpressionBuilder(std::string nm, F
 void CLIPSConstantExpressionBuilder::addFields(ConstantExpr* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
    if(addr->isCast()) addTrueField("IsCast");
-   if(addr->isCompare()) addTrueField("IsCompare");
+   if(addr->isCompare()) {
+      addTrueField("IsCompare");
+      addField("Predicate", addr->getPredicate());
+   }
    if(addr->hasIndices()) addTrueField("HasIndices");
    if(addr->isGEPWithNoNotionalOverIndexing()) addTrueField("IsGEPWithNoNotionalOverIndexing");
-   addField("Predicate", addr->getPredicate());
    addField("Operation", addr->getOpcodeName());
 }
 void CLIPSConstantExpressionBuilder::build(ConstantExpr* cnst, KnowledgeConstructor *kc, char* parent) {
