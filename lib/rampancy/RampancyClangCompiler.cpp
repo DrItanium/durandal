@@ -17,7 +17,7 @@ namespace rampancy {
       DATA_OBJECT multifield;
       //if we've gotten this far then it's safe to say the routing was
       //successful
-      if(!EnvArgTypeCheck(theEnv, msg("compile"), 2, MULTIFIELD, 
+      if(!EnvArgTypeCheck(theEnv, msg("rampancy-compile"), 2, MULTIFIELD, 
                &multifield)) {
          EnvPrintRouter(theEnv, msg("werror"),
                msg("\nThe second argument must be a multifield!\n"));
