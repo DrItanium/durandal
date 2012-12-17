@@ -195,7 +195,6 @@ namespace rampancy {
       tEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
       llvm::PassManager tmpPassManager;
       llvm::PassManagerBuilder builder;
-      llvm::StringRef fnCreatorName("function-to-knowledge");
       //taken from opt
       llvm::TargetLibraryInfo *tli = 
         new llvm::TargetLibraryInfo(llvm::Triple(module->getTargetTriple()));
@@ -208,15 +207,22 @@ namespace rampancy {
         tmpPassManager.add(td);
       llvm::PassManager& PM = tmpPassManager;
       //add em all!
-      builder.OptLevel = 0;
-      builder.DisableSimplifyLibCalls = true;
+      builder.OptLevel = 2;
+      builder.DisableSimplifyLibCalls = false;
       builder.populateModulePassManager(PM);
       //let's see if this fixes the issue
       llvm::PassRegistry* registry = llvm::PassRegistry::getPassRegistry();
-      const llvm::PassInfo* ci = registry->getPassInfo(fnCreatorName);
+      const llvm::PassInfo* ci = registry->getPassInfo(
+            llvm::StringRef("function-to-knowledge"));
+      const llvm::PassInfo* ls = registry->getPassInfo(
+            llvm::StringRef("loop-simplify"));
+      const llvm::PassInfo* bce = registry->getPassInfo(
+           llvm::StringRef("break-crit-edges"));
       ExpertSystem::FunctionKnowledgeConversionPass* copy = 
         (ExpertSystem::FunctionKnowledgeConversionPass*)ci->createPass();
       copy->setEnvironment(tEnv);
+      tmpPassManager.add(ls->createPass());
+      tmpPassManager.add(bce->createPass());
       tmpPassManager.add(copy);
       tmpPassManager.add(llvm::createVerifierPass());
       tmpPassManager.run(*module);
