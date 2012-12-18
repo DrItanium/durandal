@@ -85,7 +85,15 @@ void CLIPSConstantFloatingPointBuilder::addFields(ConstantFP* addr, KnowledgeCon
    } else {
       if(addr->isNegative()) addTrueField("IsNegative");
       if(addr->isNaN()) addTrueField("IsNaN");
-      addField("Value", addr->getValueAPF().convertToDouble());
+      const APFloat& value = addr->getValueAPF();
+      const llvm::fltSemantics* valueSemantics = &(value.getSemantics());
+      if(valueSemantics == (const llvm::fltSemantics*)&APFloat::IEEEdouble) {
+         addField("Value", value.convertToDouble());
+      } else if(valueSemantics == (const llvm::fltSemantics*)&APFloat::IEEEsingle) {
+         addField("Value", value.convertToFloat());
+      } else {
+         addField("Value", "Unknown"); 
+      }
    }
    //While the APF is arbitrary precision it's not that big of a deal to 
    //lose precision for my purposes
