@@ -19,10 +19,13 @@ class FunctionNamer {
       PointerAddress regionID;
       llvm::DenseMap<PointerAddress, std::string>* names;
       std::map<std::string, PointerAddress>* instructionIndices;
+      char* fnName;
 
    public:
       FunctionNamer();
       ~FunctionNamer();
+      void setFunctionName(char* functionName);
+      char* getFunctionName(); 
       PointerAddress nextLoopID();
       PointerAddress nextRegisterID();
       PointerAddress nextBasicBlockID();
@@ -45,6 +48,8 @@ class FunctionNamer {
       void makeRegionID(char* container);
       void makeGensymID(char* container);
       void makeLoopID(char* container);
+      void concatFunctionNameToFront(char* container, char* name);
+      void concatFunctionNameToFront(raw_string_ostream& container, char* name);
       bool basicBlockRegistered(std::string name);
       void registerBasicBlock(std::string name);
       PointerAddress numberOfInstructionsForBasicBlock(std::string name);

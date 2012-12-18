@@ -121,7 +121,12 @@ std::string KnowledgeConstructor::route(Constant* val, FunctionNamer& namer, cha
       if(!val->hasName()) {
          namer.makeGensymID(tmp); 
       } else {
-         tmp << val->getName();
+         if(isa<GlobalValue>(val)) {
+            //tack the words global onto it for naming purposes
+            tmp << "global." << val->getName();
+         } else {
+            namer.concatFunctionNameToFront(tmp, (char*)val->getName().data());
+         }
       }
       std::string name = tmp.str();
       if(simple_dyn_cast(UndefValue, val)) {
@@ -489,6 +494,12 @@ void KnowledgeConstructor::updateFunctionContents(Function& fn, FunctionNamer& n
          std::string name(buf);
          bb->setName(Twine(name));
          free(buf);
+      } else {
+         char* buf = CharBuffer(128 + bb->getName().size());
+         namer.concatFunctionNameToFront(buf, (char*)bb->getName().data());
+         std::string name(buf);
+         bb->setName(Twine(name));
+         free(buf);
       }
       //aww hell let's go through and set the names of all instructions right
       //here and now :)
@@ -503,10 +514,21 @@ void KnowledgeConstructor::updateFunctionContents(Function& fn, FunctionNamer& n
             } else {
                StringRef name = inst->getName();
                if(name[0] == '.') {
+                  char* container = CharBuffer(256 + name.size());
                   char* buf = CharBuffer(2 + name.size());
                   sprintf(buf, "v%s", name.data());
-                  inst->setName(Twine(buf));
+                  namer.concatFunctionNameToFront(container, buf);
+                  inst->setName(Twine(container));
+                  free(container);
                   free(buf);
+               } else {
+                  //make sure that instructions are unique to the target
+                  //function :D
+                  char* container = CharBuffer(256 + name.size());
+                  namer.concatFunctionNameToFront(container, 
+                        (char*) name.data());
+                  inst->setName(Twine(container));
+                  free(container);
                }
             }
          }
@@ -523,6 +545,14 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
    char* funcName;
    //get the function namer object
    FunctionNamer namer;
+   if(fn.hasName()) {
+      namer.setFunctionName((char*)fn.getName().data());
+   } else {
+      char* buf = CharBuffer(128);
+      sprintf(buf, "fn.%lld", &fn);
+      std::string name (buf);
+      namer.setFunctionName((char*)name.c_str());
+   }
    funcName = (char*)fn.getName().data();
    namer.reset();
    std::string tmp("nil");

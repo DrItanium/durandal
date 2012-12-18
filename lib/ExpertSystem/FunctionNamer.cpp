@@ -10,7 +10,12 @@ FunctionNamer::FunctionNamer() {
    names = new llvm::DenseMap<PointerAddress, std::string>();
    instructionIndices = new std::map<std::string, PointerAddress>();
 }
-
+void FunctionNamer::setFunctionName(char* functionName) {
+   fnName = functionName;
+}
+char* FunctionNamer::getFunctionName() {
+   return fnName;
+}
 FunctionNamer::~FunctionNamer() { 
    delete instructionIndices; 
    delete names;
@@ -59,34 +64,41 @@ void FunctionNamer::reset() {
    instructionIndices->clear();
 }
 void FunctionNamer::makeBasicBlockID(llvm::raw_string_ostream& container) {
-   container << "b" << nextBasicBlockID();
+   container << getFunctionName() << ".b" << nextBasicBlockID();
 }
 void FunctionNamer::makeRegisterID(llvm::raw_string_ostream& container) {
-   container << "i" << nextRegisterID();
+   container << getFunctionName() << ".i" << nextRegisterID();
 }
 void FunctionNamer::makeRegionID(llvm::raw_string_ostream& container) {
-   container << "r" << nextRegionID();
+   container << getFunctionName() << ".r" << nextRegionID();
 }
 void FunctionNamer::makeGensymID(llvm::raw_string_ostream& container) {
-   container << "g" << nextGensymID();
+   container << getFunctionName() << ".g" << nextGensymID();
 }
 void FunctionNamer::makeLoopID(llvm::raw_string_ostream& container) {
-   container << "l" << nextLoopID();
+   container << getFunctionName() << ".l" << nextLoopID();
 }
 void FunctionNamer::makeBasicBlockID(char* container) {
-   sprintf(container, "b%lld", nextBasicBlockID());
+   sprintf(container, "%s.b%lld", getFunctionName(), nextBasicBlockID());
 }
 void FunctionNamer::makeRegisterID(char* container) {
-   sprintf(container, "i%lld", nextRegisterID());
+   sprintf(container, "%s.i%lld", getFunctionName(), nextRegisterID());
 }
 void FunctionNamer::makeRegionID(char* container) {
-   sprintf(container, "r%lld", nextRegionID());
+   sprintf(container, "%s.r%lld", getFunctionName(), nextRegionID());
 }
 void FunctionNamer::makeGensymID(char* container) {
-   sprintf(container, "g%lld", nextGensymID());
+   sprintf(container, "%s.g%lld", getFunctionName(), nextGensymID());
 }
 void FunctionNamer::makeLoopID(char* container) {
-   sprintf(container, "l%lld", nextLoopID());
+   sprintf(container, "%s.l%lld", getFunctionName(), nextLoopID());
+}
+void FunctionNamer::concatFunctionNameToFront(char* container, char* name) {
+   sprintf(container, "%s.%s", getFunctionName(), name);
+}
+void FunctionNamer::concatFunctionNameToFront(raw_string_ostream& stream, 
+      char* name) {
+   stream << getFunctionName() << "." << name;
 }
 bool FunctionNamer::pointerRegistered(PointerAddress ptr) {
    return names->count(ptr);
