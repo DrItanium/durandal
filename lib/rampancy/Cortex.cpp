@@ -83,11 +83,12 @@ namespace rampancy {
     DATA_OBJECT arg0;
     char* copy;
     copy = CharBuffer(512);
-    if((EnvArgCountCheck(theEnv, (char*)"rampancy-compile", EXACTLY, 2) == -1)) {
+    //change this so that only the first argument is handled by
+    //compileToKnowledge
+    if((EnvArgCountCheck(theEnv, (char*)"rampancy-compile", AT_LEAST, 1) == -1)) {
       EnvPrintRouter(theEnv, (char*)"werror", 
-          (char*)"\nCompile arguments are <compiler> <multifield>\n"
-          "It may be necessary to wrap your input arguments in"
-          " a create$ call.\n");
+          (char*)"\nCompile arguments are <compiler> ...\n"
+          "It is up to the compiler backend to handle the rest of the arguments\n");
       return;
     }
 
@@ -117,9 +118,7 @@ namespace rampancy {
     copy = CharBuffer(512);
     if((EnvArgCountCheck(theEnv, (char*)"rampancy-interpret", EXACTLY, 2) == -1)) {
       EnvPrintRouter(theEnv, (char*)"werror", 
-          (char*)"\nInterpret arguments are <compiler> <multifield>\n"
-          "It may be necessary to wrap your input arguments in"
-          "a create$ call.\n");
+          (char*)"\nInterpret arguments are <compiler> <code>\n");
       return;
     }
 
