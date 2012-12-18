@@ -33,6 +33,7 @@
 #include "rampancy/CompilerRegistry.h"
 #include "rampancy/Cortex.h"
 #include "rampancy/ClangCompiler.h"
+#include "rampancy/LLVMIRCompiler.h"
 using namespace llvm;
 extern "C" {
 #include <stdio.h>
@@ -62,6 +63,7 @@ int main(int argc, char** argv) {
    initializeTarget(registry);
 //   rampancy::initializeClangCompilerPass(registry);
    rampancy::ClangCompiler cc;
+   rampancy::LLVMIRCompiler ir;
    //set the 
    StringRef clangName("clang");
    StringRef ref1("clang++");
@@ -69,12 +71,18 @@ int main(int argc, char** argv) {
    StringRef ref3("g++");
    StringRef ref4("cc");
    StringRef ref5("c++");
+   StringRef bc0("bc");
+   StringRef bc1("bitcode");
+   StringRef bc2("llvm-ir");
    compilerRegistry->registerCompiler(clangName, &cc);
    compilerRegistry->registerCompiler(ref1, &cc);
    compilerRegistry->registerCompiler(ref2, &cc);
    compilerRegistry->registerCompiler(ref3, &cc);
    compilerRegistry->registerCompiler(ref4, &cc);
    compilerRegistry->registerCompiler(ref5, &cc);
+   compilerRegistry->registerCompiler(bc0, &ir);
+   compilerRegistry->registerCompiler(bc1, &ir);
+   compilerRegistry->registerCompiler(bc2, &ir);
    RerouteStdin(rampantCortex->getEnvironment()->getEnvironment(),argc,argv);
    CommandLoop(rampantCortex->getEnvironment()->getEnvironment());
 }
