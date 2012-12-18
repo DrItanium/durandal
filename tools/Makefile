@@ -8,6 +8,6 @@ DURANDAL_LEVEL=..
 #
 # List all of the subdirectories that we will compile.
 #
-DIRS=durandal kclang
+DIRS=durandal kclang kbc
 
 include $(DURANDAL_LEVEL)/Makefile
