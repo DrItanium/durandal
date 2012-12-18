@@ -88,7 +88,7 @@
   (slot IsZero (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsNegative (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsNaN (type SYMBOL) (allowed-values FALSE TRUE))
-  (slot Value (type FLOAT)))
+  (slot Value (type FLOAT SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::ConstantInteger 
   (is-a Constant)
