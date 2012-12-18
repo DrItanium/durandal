@@ -72,7 +72,11 @@ CLIPSStructTypeBuilder::CLIPSStructTypeBuilder(std::string nm, FunctionNamer& na
 void CLIPSStructTypeBuilder::addFields(StructType* st, KnowledgeConstructor* kc, char* parent) {
    CLIPSTypeBuilder::addFields(st, kc);
    setParent(parent);
-   addField("Name", st->getName());
+   //literal structs never have names (this is what an LLVM assertion statement
+   //told me)
+   if(!st->isLiteral())  {
+      addField("Name", st->getName());
+   }
 }
 void CLIPSStructTypeBuilder::build(StructType* st, KnowledgeConstructor* kc, char* parent) {
    open();
