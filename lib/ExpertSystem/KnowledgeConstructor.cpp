@@ -464,12 +464,12 @@ std::string KnowledgeConstructor::route(InlineAsm* iasm, FunctionNamer& namer, c
       CLIPSValueBuilder vb (name, "LLVMInlineAsm", namer);
       vb.open();
       vb.addFields(iasm, this, parent);
-      if(iasm->hasSideEffects()) vb.addTrueField("HasSideEffects");
-      if(iasm->isAlignStack()) vb.addTrueField("IsAlignStack");
+      if(iasm->hasSideEffects()) vb.addTrueField("has-side-effects");
+      if(iasm->isAlignStack()) vb.addTrueField("is-align-stack");
       const std::string& aStr = iasm->getAsmString();
       const std::string& cnStr = iasm->getConstraintString();
-      vb.addStringField("AsmString", aStr);
-      vb.addStringField("ConstraintString", cnStr);
+      vb.addStringField("asm-string", aStr);
+      vb.addStringField("constraint-string", cnStr);
       vb.close();
       std::string str = vb.getCompletedString();
       addToKnowledgeBase((PointerAddress)iasm, str);

@@ -24,42 +24,12 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; ModuleHeader.clp - Contains the entry point into the llvm module. 
+; LLVMInlineAsm.clp 
 ;------------------------------------------------------------------------------
-; In CLIPS, modules are defined BEFORE their corresponding contents are defined
-; so this file doubles as a loader as well. Absolute paths must be used because 
-; CLIPS does not understand the concept of partial paths. 
-;
-; If you want to change the layout of this module then you must update these
-; paths. Failure to do so will cause the optimization to not work correctly.
+(defclass llvm::LLVMInlineAsm
+ (is-a LLVMValue)
+ (slot has-side-effects (type SYMBOL) (allowed-symbols FALSE TRUE))
+ (slot is-align-stack (type SYMBOL) (allowed-symbols FALSE TRUE))
+ (slot asm-string (type STRING))
+ (slot constraint-string (type STRING)))
 ;------------------------------------------------------------------------------
-
-; Path is modules/llvm/
-(defmodule llvm 
- (import core defclass ?ALL)
- (import core deffunction ?ALL)  
- (export defclass ?ALL)
- (export deffunction ?ALL))
-
-; DO NOT MESS WITH THE ORDER OF THESE COMMANDS
-; BAD THINGS CAN HAPPEN
-; Class loaders
-(load* "modules/llvm/LLVMObject.clp")
-(load* "modules/llvm/LLVMType.clp")
-(load* "modules/llvm/LLVMValue.clp")
-(load* "modules/llvm/LLVMUser.clp")
-(load* "modules/llvm/LLVMConstant.clp")
-(load* "modules/llvm/LLVMOperator.clp")
-(load* "modules/llvm/LLVMMetadata.clp")
-(load* "modules/llvm/LLVMArgument.clp")
-(load* "modules/llvm/Instruction.clp")
-(load* "modules/llvm/LLVMInstruction.clp")
-(load* "modules/llvm/Diplomat.clp")
-(load* "modules/llvm/BasicBlock.clp")
-(load* "modules/llvm/MultiBlockContainer.clp")
-(load* "modules/llvm/Region.clp")
-(load* "modules/llvm/Loop.clp")
-(load* "modules/llvm/LLVMModule.clp")
-(load* "modules/llvm/LLVMInlineAsm.clp")
-
-; Function loaders
