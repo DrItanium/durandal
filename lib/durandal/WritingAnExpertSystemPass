@@ -1,0 +1,33 @@
+With durandal it's possible to define passes that will interact with the ones
+defined by LLVM. These passes are created on demand but the definition of them
+is done once within CLIPS. 
+
+This guide assumes that you already know enough about CLIPS to use it well.
+More specifically, I assume that you know
+1) How to use objects
+2) Assert facts
+3) Define rules
+4) Use control facts
+5) Of the module system
+
+
+With that in mind let's talk about defining your own ExpertSystem module
+
+Step 0: Having an idea in mind
+
+I am assuming that you've already figured out this step yourself. If you don't
+know what you're going to use the expert system pass for then this document may
+be confusing
+
+Step 1: Create a new folder and define the pass 
+
+One of the limitations of CLIPS is that it doesn't understand the concept of a
+library path. Thus it is necessary to create a new folder in
+lib/durandal/modules/llvm/passes with a the title you want the pass to be. 
+
+Inside of this folder you're going to want to create a new file where we are
+going to define the entry point into the pass. To make it really easy to find
+again it is a good idea to name this file PassHeader.clp.
+
+Inside of this file you're going to want to add the following command
+
