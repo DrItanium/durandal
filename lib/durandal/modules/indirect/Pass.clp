@@ -24,14 +24,29 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; ModuleHeader.clp - Contains the entry point into the indirect module. 
+; Pass.clp - Pass types that interact with LibIndirect 
 ;------------------------------------------------------------------------------
-
-(defmodule indirect 
- (import core ?ALL)
- (import llvm ?ALL)
- (export ?ALL))
-
-
-(load* "modules/indirect/Templates.clp")
-(load* "modules/indirect/Pass.clp")
+(defclass indirect::PassBase 
+  "The base class of all passes (native or indirect)"
+  (is-a Object) 
+  (role abstract)
+  (slot pass-name (type SYMBOL STRING))
+  (slot pass-description (type STRING)))
+;------------------------------------------------------------------------------
+(defclass indirect::NativePass 
+  "A wrapper over a native LLVM pass"
+  (is-a PassBase)
+  (role concrete)
+  (pattern-match reactive))
+;------------------------------------------------------------------------------
+(defclass indirect::Pass 
+  "Represents an indirect pass that uses LibIndirect to interact with LLVM"
+  (is-a PassBase)
+  (role concrete)
+  (pattern-match reactive)
+  (slot entry (type STRING))
+  (slot target (type SYMBOL) (allowed-symbols Any Module Function Region Loop
+                                              BasicBlock Instruction Immutable))
+  (multislot pass-uses (type SYMBOL STRING INSTANCE-NAME) 
+             (allowed-classes PassBase)))
+;------------------------------------------------------------------------------
