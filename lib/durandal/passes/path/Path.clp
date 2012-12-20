@@ -26,12 +26,12 @@
 ;------------------------------------------------------------------------------
 ; Path.clp - Contains the definition of the pass class
 ;------------------------------------------------------------------------------
-(defclass path::Path 
+(defclass types::Path 
   (is-a ParentedHint)
   (slot Exit (type SYMBOL))
   (slot Closed (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
-(defmessage-handler path::Path init after
+(defmessage-handler types::Path init after
  ()
  (bind ?self:Type Path))
 ;------------------------------------------------------------------------------
