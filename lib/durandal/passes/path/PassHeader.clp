@@ -35,16 +35,7 @@
 ; paths. Failure to do so will cause the optimization to not work correctly.
 ;------------------------------------------------------------------------------
 
-(defmodule path
- (import core defclass ?ALL)
- (import llvm defclass BasicBlock Region Diplomat Loop)
- (import llvm deffunction ?ALL)
- (import core deffunction ?ALL)
- (import MAIN deftemplate ?ALL)
- (export defclass Path)
- (export deffunction ?ALL))
-
-(load* "modules/llvm/passes/path/Path.clp")
-(load* "modules/llvm/passes/path/PathConstruction.clp")
-(load* "modules/llvm/passes/path/PathBuilding.clp")
-(load* "modules/llvm/passes/path/PathTraversal.clp")
+(load* "passes/path/Path.clp")
+(load* "passes/path/PathConstruction.clp")
+(load* "passes/path/PathBuilding.clp")
+(load* "passes/path/PathTraversal.clp")
