@@ -31,3 +31,8 @@
           (allowed-classes InteropObject))
  (multislot passes (type SYMBOL STRING)))
 ;------------------------------------------------------------------------------
+(deftemplate indirect::knowledge
+ "Used to pass extra knowledge to allow selective invocation to occur"
+ (slot about (type SYMBOL INSTANCE-NAME)) 
+ (multislot is))
+;------------------------------------------------------------------------------
