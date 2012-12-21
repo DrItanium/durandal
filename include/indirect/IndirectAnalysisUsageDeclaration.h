@@ -9,7 +9,7 @@
 namespace indirect {
    class IndirectAnalysisUsageDeclaration {
       public:
-         typedef SmallVector<char*, 32> VectorType;
+         typedef llvm::SmallVector<char*, 32> VectorType;
       private:
          bool pAll;
          bool pCFG;
