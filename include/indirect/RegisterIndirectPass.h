@@ -11,7 +11,7 @@ namespace indirect {
       public:
          RegisterIndirectPass(const char* passArg, const char* passName, 
                bool cfgOnly = false, bool isAnalysis = false) : PassInfo(passName,
-                  passArg, IndirectPassRegistry::getUniqueId(passArg), 
+                  passArg, indirect::IndirectPassRegistry::getUniqueId(passArg), 
                   /* we can't provide a default constructor because it's necessary
                    * to dynamically acquire the unique id of the indirect pass.
                    * Since LLVM was not designed to do this I have to work within
@@ -22,7 +22,7 @@ namespace indirect {
                    * There are ones for the templates though.
                    */
                   0, cfgOnly, isAnalysis) {
-                  PassRegistry::getPassRegistry()->registerPass(*this);
+                  llvm::PassRegistry::getPassRegistry()->registerPass(*this);
                }
    };
 }
