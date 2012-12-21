@@ -1,4 +1,5 @@
 #include "indirect/IndirectUniqueIdentifier.h"
+#include <cstdlib>
 
 namespace indirect {
    IndirectUniqueIdentifier::IndirectUniqueIdentifier() {
@@ -7,7 +8,7 @@ namespace indirect {
    IndirectUniqueIdentifier::~IndirectUniqueIdentifier() {
       free(id);
    }
-   char* getID() {
+   char* IndirectUniqueIdentifier::getID() {
       return id;
    }
 }
