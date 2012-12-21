@@ -4,6 +4,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Module.h"
 #include "indirect/IndirectPassWrapper.h"
+#include "indirect/IndirectPass.h"
 /* These classes are extensions of the different passes defined in LLVM
  * Unless you want to implement a backend you should never need to mess with
  * these classes directly. 
@@ -19,7 +20,7 @@
  */
 
 namespace indirect {
-   class IndirectModulePass : public llvm::ModulePass {
+   class IndirectModulePass : public llvm::ModulePass, public IndirectPass {
 
       public:
          IndirectModulePass(char& ident);
@@ -28,7 +29,7 @@ namespace indirect {
          virtual void getAnalysisUsage(llvm::AnalysisUsage& usage);
          virtual bool runOnModule(llvm::Module &m) = 0;
    };
-   class IndirectFunctionPass : public llvm::FunctionPass {
+   class IndirectFunctionPass : public llvm::FunctionPass, public IndirectPass{
       public:
          IndirectFunctionPass(char& ident);
          using llvm::FunctionPass::runOnFunction;
@@ -37,7 +38,7 @@ namespace indirect {
          virtual bool runOnFunction(llvm::Function& fn) = 0;
    };
 
-   class IndirectBasicBlockPass : public llvm::BasicBlockPass {
+   class IndirectBasicBlockPass : public llvm::BasicBlockPass, public IndirectPass {
       public:
          IndirectBasicBlockPass(char& ident);
          using llvm::BasicBlockPass:runOnBasicBlock;
@@ -46,7 +47,7 @@ namespace indirect {
          virtual bool runOnBasicBlock(llvm::BasicBlock& bb) = 0;
    };
    
-   class IndirectLoopPass : public llvm::LoopPass {
+   class IndirectLoopPass : public llvm::LoopPass, public IndirectPass {
       public:
          IndirectLoopPass(char& ident);
          using llvm::LoopPass::runOnLoop;
@@ -56,7 +57,7 @@ namespace indirect {
                llvm::LPPassManager& lpm) = 0;
    };
 
-   class IndirectMachineFunctionPass : public llvm::MachineFunctionPass {
+   class IndirectMachineFunctionPass : public llvm::MachineFunctionPass, public IndirectPass {
       public:
          IndirectMachineFunctionPass(char& ident);
          using llvm::MachineFunctionPass::runOnMachineFunction;
@@ -65,7 +66,7 @@ namespace indirect {
          virtual bool runOnMachineFunction(llvm::MachineFunction& mf) = 0;
    };
 
-   class IndirectRegionPass : public llvm::RegionPass {
+   class IndirectRegionPass : public llvm::RegionPass, public IndirectPass {
       public:
          IndirectRegionPass(char& ident);
          using llvm::RegionPass::runOnRegion;
@@ -75,7 +76,7 @@ namespace indirect {
                llvm::RGPassManager& rgm) = 0;
    };
 
-   class IndirectCallGraphSCCPass : public llvm::CallGraphSCCPass {
+   class IndirectCallGraphSCCPass : public llvm::CallGraphSCCPass, public IndirectPass {
       public:
          CallGraphSCCPass(char& ident);
          using llvm::CallGraphSCCPass::runOnSCC;
