@@ -46,9 +46,9 @@ namespace indirect {
          registeredPassGenerators[name] = 
             IndirectPassRegistry::buildPassGenerator<PassGeneratorClass>();
       }
-  void IndirectPassRegistry::registerIndirectPassHeader(
-        IndirectPassHeader* header) {
-     llvm::StringRef passName(header->getPassName());
+   void IndirectPassRegistry::registerIndirectPassHeader(
+         IndirectPassHeader* header) {
+      llvm::StringRef passName(header->getPassName());
       assert((registeredIndirectPasses.find(passName) ==
                registeredIndirectPasses.end()) && 
             "Indirect pass already registered!");
@@ -59,6 +59,58 @@ namespace indirect {
       registeredIndirectPassInfos[passName] = p;
       //then, add it to the pass registry
       llvm::PassRegistry::getPassRegistry()->registerPass(*p);
-  }
+   }
 
+   void IndirectPassRegistry::unregisterIndirectPassHeader(
+         indirect::IndirectPassHeader* header) {
+      llvm::StringRef name (header->getPassName())
+         unregisterIndirectPassHeader(name);
+   }
+   void IndirectPassRegistry::unregisterIndirectPassHeader(
+         llvm::StringRef name) {
+      assert((registeredIndirectPasses.find(name) !=
+               registeredIndirectPasses.end()) && "indirect pass does not exist!");
+      assert((registeredIndirectPassInfos.find(name) !=
+               registeredIndirectPassInfos.end()) && 
+            "indirect pass exists but was never registered! o_O no clue how this happened!");
+      registeredIndirectPasses.erase(name);
+      registeredIndirectPassInfos.erase(name);
+      llvm::PassRegistry::getPassRegistry()->unregisterPass(name);
+   }
+   void IndirectPassRegistry::unregisterIndirectPassHeader(const char* name) {
+      unregisterIndirectPassHeader(llvm::StringRef(name));
+   }
+   void IndirectPassRegistry::unregisterIndirectPassHeader(char* name) {
+      unregisterIndirectPassHeader((const char*)name);
+   }
+   IndirectPassHeader* IndirectPassRegistry::getIndirectPassHeader(
+         char* name) const {
+      return getIndirectPassHeader((const char*)name);
+   }
+   IndirectPassHeader* IndirectPassRegistry::getIndirectPassHeader(
+         const char* name) const {
+      return getIndirectPassHeader(llvm::StringRef(name));
+   }
+   IndirectPassHeader* IndirectPassRegistry::getIndirectPassHeader(
+         llvm::StringRef name) const {
+      assert((registeredIndirectPasses.find(name) !=
+               registeredIndirectPasses.end()) && 
+            "Given indirect pass does not exist!");
+      return registeredIndirectPasses[name];
+   }
+
+   llvm::PassInfo* IndirectPassRegistry::getIndirectPassInfo(
+         char* name) const {
+      return getIndirectPassInfo((const char*)name);
+   }
+   
+   llvm::PassInfo* IndirectPassRegistry::getIndirectPassInfo(
+         const char* name) const {
+      return getIndirectPassInfo(llvm::StringRef(name));
+   }
+   
+   llvm::PassInfo* IndirectPassRegistry::getIndirectPassInfo(
+         llvm::StringRef name) const {
+      return llvm::PassRegistry::getPassRegistry()->getPassInfo(name);
+   }
 }
