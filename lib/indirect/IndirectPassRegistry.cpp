@@ -35,8 +35,8 @@ namespace indirect {
       //first, register it with our indirect passinfo registrar
       RegisterIndirectPass* p = new RegisterIndirectPass(header);
       registeredIndirectPassInfos[passName] = p;
-      //then, add it to the pass registry
-      llvm::PassRegistry::getPassRegistry()->registerPass(*p);
+      //And we're done since RegisterIndirectPass already does the registration
+      //with the llvm PassRegistry
    }
 
    void IndirectPassRegistry::unregisterIndirectPassHeader(
