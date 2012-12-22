@@ -52,4 +52,14 @@ namespace indirect {
    const char* IndirectPassHeader::getTemplateSet() {
       return templateSet;
    }
+
+   void IndirectPassHeader::setPassType(
+         IndirectPassHeader::IndirectPassType type) {
+      passType = type;
+   }
+
+   IndirectPassHeader::IndirectPassType getPassType() {
+      return passType;
+   }
+
 }

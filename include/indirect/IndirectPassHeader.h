@@ -9,6 +9,16 @@
 namespace indirect {
    class IndirectPassHeader : public IndirectAnalysisUsageDeclaration, 
    public IndirectUniqueIdentifier {
+      public:
+         enum IndirectPassType {
+            Module,
+            Function,
+            BasicBlock,
+            Loop,
+            Region,
+            MachineFunction,
+            CallGraphSCC,
+         };
       private:
          const char* passDescription; //full name
          const char* passName; //registrationName
@@ -16,6 +26,7 @@ namespace indirect {
          bool isAnalysis;
          bool isAnalysisGroup;
          const char* templateSet;
+         IndirectPassType passType;
       public:
          IndirectPassHeader();
          const char* getPassDescription();
@@ -35,6 +46,8 @@ namespace indirect {
           * create a pass.
           */
          const char* getTemplateSet();
+         void setPassType(IndirectPassHeader::IndirectPassType type);
+         IndirectPassHeader::IndirectPassType getPassType();
    };
 }
 
