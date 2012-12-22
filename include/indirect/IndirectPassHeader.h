@@ -15,6 +15,7 @@ namespace indirect {
          bool isCFGOnlyPass;
          bool isAnalysis;
          bool isAnalysisGroup;
+         const char* templateSet;
       public:
          IndirectPassHeader();
          const char* getPassDescription();
@@ -27,6 +28,8 @@ namespace indirect {
          bool getIsAnalysis();
          void setIsAnalysisGroup(bool _isAnalysisGroup);
          bool getIsAnalysisGroup();
+         void setTemplateSet(const char* templateSet);
+         const char* getTemplateSet();
    };
 }
 
