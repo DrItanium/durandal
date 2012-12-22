@@ -116,7 +116,7 @@ namespace indirect {
        */
       llvm::StringRef templateName (i->getTemplateSet());
       IndirectPassRegistry::PassGeneratorMapType::const_iterator j = 
-         registeredPassGenerators.find(name);
+         registeredPassGenerators.find(templateName);
       assert(j != registeredPassGenerators.end() && 
             "Target template set does not exist!");
       IndirectPassGeneratorBase* base = j->second;
