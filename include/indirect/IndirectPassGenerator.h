@@ -18,7 +18,7 @@ namespace indirect {
                virtual llvm::Pass* createPass(IndirectPassHeader* header);
                IndirectModulePass* generateBaseModulePass(char& id);
                IndirectFunctionPass* generateBaseFunctionPass(char& id);
-               IndirectBasicBlockPass* generateBaseBasicBlockFunctionPass(char& id);
+               IndirectBasicBlockPass* generateBaseBasicBlockPass(char& id);
                IndirectLoopPass* generateBaseLoopPass(char& id);
                IndirectMachineFunctionPass* generateBaseMachineFunctionPass(char& id);
                IndirectRegionPass* generateBaseRegionPass(char& id);
