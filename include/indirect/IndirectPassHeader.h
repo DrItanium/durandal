@@ -23,11 +23,11 @@ namespace indirect {
          const char* getPassName();
          void setPassName(const char* name);
          void setIsCFGOnlyPass(bool isCFGOnly);
-         const bool getIsCFGOnlyPass();
+         bool getIsCFGOnlyPass();
          void setIsAnalysis(bool isAnalysisPass);
-         const bool getIsAnalysis();
+         bool getIsAnalysis();
          void setIsAnalysisGroup(bool _isAnalysisGroup);
-         const bool getIsAnalysisGroup();
+         bool getIsAnalysisGroup();
    };
 }
 
