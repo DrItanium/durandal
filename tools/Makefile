@@ -8,6 +8,6 @@ DURANDAL_LEVEL=..
 #
 # List all of the subdirectories that we will compile.
 #
-DIRS=durandal kclang kbc
+DIRS=durandal kclang kbc libindirecttest
 
 include $(DURANDAL_LEVEL)/Makefile
