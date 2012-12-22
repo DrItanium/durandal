@@ -141,7 +141,8 @@ int main(int argc, char** argv) {
     * Create some fake passes to see if the registration mechanism works
     */
    indirect::IndirectPassHeader fakeModulePass, fakeFunctionPass,
-      fakeBasicBlockPass, fakeRegionPass;
+      fakeBasicBlockPass, fakeRegionPass, fakeCallGraphSCCPass, 
+      fakeLoopPass, fakeModulePass2, fakeFunctionPass2;
    fakeModulePass.setPassDescription("A test fake indirect module pass");
    fakeModulePass.setPassName("test-indirect-module-pass");
    fakeModulePass.setIsCFGOnlyPass(false);
@@ -150,6 +151,14 @@ int main(int argc, char** argv) {
    fakeModulePass.setTemplateSet("test");
    fakeModulePass.setPassType(IndirectPassHeader::Module);
    indirectRegistry.registerIndirectPassHeader(&fakeModulePass);
+   fakeModulePass2.setPassDescription("A second test fake indirect module pass");
+   fakeModulePass2.setPassName("test-indirect-module-pass2");
+   fakeModulePass2.setIsCFGOnlyPass(false);
+   fakeModulePass2.setIsAnalysis(false);
+   fakeModulePass2.setIsAnalysisGroup(false);
+   fakeModulePass2.setTemplateSet("test");
+   fakeModulePass2.setPassType(IndirectPassHeader::Module);
+   indirectRegistry.registerIndirectPassHeader(&fakeModulePass2);
    fakeFunctionPass.setPassDescription("A test fake indirect function pass");
    fakeFunctionPass.setPassName("test-indirect-function-pass");
    fakeFunctionPass.setIsCFGOnlyPass(false);
@@ -158,6 +167,16 @@ int main(int argc, char** argv) {
    fakeFunctionPass.setTemplateSet("test");
    fakeFunctionPass.setPassType(IndirectPassHeader::Function);
    indirectRegistry.registerIndirectPassHeader(&fakeFunctionPass);
+   fakeFunctionPass2.setPassDescription("A second test fake indirect function pass");
+   fakeFunctionPass2.setPassName("test-indirect-function-pass2");
+   fakeFunctionPass2.setIsCFGOnlyPass(false);
+   fakeFunctionPass2.setIsAnalysis(false);
+   fakeFunctionPass2.setIsAnalysisGroup(false);
+   fakeFunctionPass2.setTemplateSet("test");
+   fakeFunctionPass2.setPassType(IndirectPassHeader::Function);
+   fakeFunctionPass2.addRequired("loops");
+   fakeFunctionPass2.addRequired("regions");
+   indirectRegistry.registerIndirectPassHeader(&fakeFunctionPass2);
    fakeBasicBlockPass.setPassDescription("A test fake indirect basic block pass");
    fakeBasicBlockPass.setPassName("test-indirect-basic-block-pass");
    fakeBasicBlockPass.setIsCFGOnlyPass(false);
@@ -174,6 +193,22 @@ int main(int argc, char** argv) {
    fakeRegionPass.setTemplateSet("test");
    fakeRegionPass.setPassType(IndirectPassHeader::Region);
    indirectRegistry.registerIndirectPassHeader(&fakeRegionPass);
+   fakeCallGraphSCCPass.setPassDescription("A test fake indirect scc pass");
+   fakeCallGraphSCCPass.setPassName("test-indirect-scc-pass");
+   fakeCallGraphSCCPass.setIsCFGOnlyPass(false);
+   fakeCallGraphSCCPass.setIsAnalysis(false);
+   fakeCallGraphSCCPass.setIsAnalysisGroup(false);
+   fakeCallGraphSCCPass.setTemplateSet("test");
+   fakeCallGraphSCCPass.setPassType(IndirectPassHeader::CallGraphSCC);
+   indirectRegistry.registerIndirectPassHeader(&fakeCallGraphSCCPass);
+   fakeLoopPass.setPassDescription("A test fake indirect loop pass");
+   fakeLoopPass.setPassName("test-indirect-loop-pass");
+   fakeLoopPass.setIsCFGOnlyPass(false);
+   fakeLoopPass.setIsAnalysis(false);
+   fakeLoopPass.setIsAnalysisGroup(false);
+   fakeLoopPass.setTemplateSet("test");
+   fakeLoopPass.setPassType(IndirectPassHeader::Loop);
+   indirectRegistry.registerIndirectPassHeader(&fakeLoopPass);
 
    llvm::Module* module = clang.compile(argc, argv);
    PassManagerBuilder builder;
@@ -189,13 +224,17 @@ int main(int argc, char** argv) {
       tmpPassManager.add(td);
    PassManager& PM = tmpPassManager;
    //add em all!
-   builder.OptLevel = 2;
+   builder.OptLevel = 0;
    builder.DisableSimplifyLibCalls = false;
    builder.populateModulePassManager(PM);
    tmpPassManager.add(indirectRegistry.createPass("test-indirect-module-pass"));
    tmpPassManager.add(indirectRegistry.createPass("test-indirect-function-pass"));
    tmpPassManager.add(indirectRegistry.createPass("test-indirect-basic-block-pass"));
    tmpPassManager.add(indirectRegistry.createPass("test-indirect-region-pass"));
+   tmpPassManager.add(indirectRegistry.createPass("test-indirect-loop-pass"));
+   tmpPassManager.add(indirectRegistry.createPass("test-indirect-scc-pass"));
+   tmpPassManager.add(indirectRegistry.createPass("test-indirect-module-pass2"));
+   tmpPassManager.add(indirectRegistry.createPass("test-indirect-function-pass2"));
    tmpPassManager.add(llvm::createVerifierPass());
    tmpPassManager.run(*module);
 }
