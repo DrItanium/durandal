@@ -4,7 +4,6 @@
  * similar to how llvm::RegisterPass works.
  */
 #include "llvm/Pass.h" 
-#include "indirect/IndirectPassRegistry.h"
 #include "indirect/IndirectPassHeader.h"
 
 namespace indirect {
