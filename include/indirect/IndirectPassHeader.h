@@ -29,6 +29,11 @@ namespace indirect {
          void setIsAnalysisGroup(bool _isAnalysisGroup);
          bool getIsAnalysisGroup();
          void setTemplateSet(const char* templateSet);
+         /*
+          * Get the template set that this pass is meant for. Failure to
+          * provide this will cause an assertion to occur when attempting to
+          * create a pass.
+          */
          const char* getTemplateSet();
    };
 }
