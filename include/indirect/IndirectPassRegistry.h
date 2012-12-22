@@ -7,6 +7,11 @@
 #include "indirect/RegisterIndirectPass.h"
 #include "indirect/IndirectPassGenerator.h"
 
+/* 
+ * In order to keep track of indirect passes it's necessary to define a new
+ * PassRegistry that keeps track of extra information while interacting with
+ * llvm::PassRegistry automatically.
+ */
 namespace indirect {
    class IndirectPassRegistry {
       public:
