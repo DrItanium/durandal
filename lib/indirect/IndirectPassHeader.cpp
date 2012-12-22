@@ -58,7 +58,7 @@ namespace indirect {
       passType = type;
    }
 
-   IndirectPassHeader::IndirectPassType getPassType() {
+   IndirectPassHeader::IndirectPassType IndirectPassHeader::getPassType() {
       return passType;
    }
 
