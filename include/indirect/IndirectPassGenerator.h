@@ -13,12 +13,13 @@ namespace indirect {
       typename MFP, typename CGSCCP> 
          class IndirectPassGeneratorTemplate : public IndirectPassGeneratorBase {
             public:
+               IndirectPassGeneratorTemplate() { }
                using indirect::IndirectPassGeneratorBase::createPass;
                virtual llvm::Pass* createPass(IndirectPassHeader* header);
                IndirectModulePass* generateBaseModulePass(char& id);
                IndirectFunctionPass* generateBaseFunctionPass(char& id);
                IndirectBasicBlockPass* generateBaseBasicBlockFunctionPass(char& id);
-               IndirectLoopPass* generateBaseLoopFunctionPass(char& id);
+               IndirectLoopPass* generateBaseLoopPass(char& id);
                IndirectMachineFunctionPass* generateBaseMachineFunctionPass(char& id);
                IndirectRegionPass* generateBaseRegionPass(char& id);
                IndirectCallGraphSCCPass* generateBaseCallGraphSCCPass(char& id);
