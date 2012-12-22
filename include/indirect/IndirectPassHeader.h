@@ -18,6 +18,12 @@ namespace indirect {
             Region,
             MachineFunction,
             CallGraphSCC,
+
+            /* Adding this field get's rid of the warning that having a comma
+             * attached to the last element of an enumerator list is a C++11
+             * specific feature. 
+             */
+            PassTypeCount
          };
       private:
          const char* passDescription; //full name
