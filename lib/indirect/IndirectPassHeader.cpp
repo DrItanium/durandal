@@ -44,4 +44,12 @@ namespace indirect {
    bool IndirectPassHeader::getIsAnalysisGroup() {
       return isAnalysisGroup;
    }
+
+   void IndirectPassHeader::setTemplateSet(const char* templateSt) {
+      templateSet = templateSt;
+   }
+
+   const char* IndirectPassHeader::getTemplateSet() {
+      return templateSet;
+   }
 }
