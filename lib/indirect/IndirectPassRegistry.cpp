@@ -7,10 +7,6 @@ namespace indirect {
    IndirectPassRegistry* IndirectPassRegistry::getIndirectPassRegistry() {
       return &*indirectPassRegistryObject;
    }
-   template<typename PassGeneratorClass> 
-      IndirectPassGeneratorBase* IndirectPassRegistry::buildPassGenerator() {
-         return new PassGeneratorClass();
-      }
    const void* IndirectPassRegistry::getUniqueId(const char* name) {
       return (getIndirectPassRegistry()->getIndirectPassInfo(name))->getTypeInfo();
    }
@@ -28,24 +24,6 @@ namespace indirect {
 
    }
 
-   template<typename PassGeneratorClass>
-      void IndirectPassRegistry::registerPassGenerator(char* name) {
-         registerPassGenerator<PassGeneratorClass>(
-               llvm::StringRef((const char*)name));
-      }
-   template<typename PassGeneratorClass>
-      void IndirectPassRegistry::registerPassGenerator(const char* name) {
-         registerPassGenerator<PassGeneratorClass>(
-               llvm::StringRef(name));
-      }
-   template<typename PassGeneratorClass>
-      void IndirectPassRegistry::registerPassGenerator(llvm::StringRef name) {
-         assert((registeredPassGenerators.find(name) == 
-                  registeredPassGenerators.end()) && 
-               "Pass generator already registered!");
-         registeredPassGenerators[name] = 
-            IndirectPassRegistry::buildPassGenerator<PassGeneratorClass>();
-      }
    void IndirectPassRegistry::registerIndirectPassHeader(
          IndirectPassHeader* header) {
       llvm::StringRef passName(header->getPassName());
