@@ -5,13 +5,16 @@
  */
 #include "llvm/Pass.h" 
 #include "indirect/IndirectPassRegistry.h"
+#include "indirect/IndirectPassHeader.h"
 
 namespace indirect {
    class RegisterIndirectPass : public llvm::PassInfo {
       public:
+         RegisterIndirectPass(IndirectPassHeader* header);
          RegisterIndirectPass(const char* passArg, const char* passName, 
-               bool cfgOnly = false, bool isAnalysis = false) : PassInfo(passName,
-                  passArg, indirect::IndirectPassRegistry::getUniqueId(passArg), 
+               bool cfgOnly = false, bool isAnalysis = false);
+         //: llvm::PassInfo(passName,
+          //        passArg, indirect::IndirectPassRegistry::getUniqueId(passArg), 
                   /* we can't provide a default constructor because it's necessary
                    * to dynamically acquire the unique id of the indirect pass.
                    * Since LLVM was not designed to do this I have to work within
@@ -21,9 +24,10 @@ namespace indirect {
                    * Thus there is no default constructor for indirect passes.
                    * There are ones for the templates though.
                    */
-                  0, cfgOnly, isAnalysis) {
-                  llvm::PassRegistry::getPassRegistry()->registerPass(*this);
-               }
+           //       0, cfgOnly, isAnalysis) {
+            //      llvm::PassRegistry::getPassRegistry()->registerPass(*this);
+             //  }
+                  
    };
 }
 

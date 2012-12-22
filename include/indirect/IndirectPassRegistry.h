@@ -32,8 +32,8 @@ namespace indirect {
          void registerPassGenerator(const char* name);
          template<typename PassGeneratorClass>
          void registerPassGenerator(llvm::StringRef name);
-         void registerIndirectPassHeader(IndirectPassHeader* header);
-         void unregisterIndirectPassHeader(IndirectPassHeader* header);
+         void registerIndirectPassHeader(indirect::IndirectPassHeader* header);
+         void unregisterIndirectPassHeader(indirect::IndirectPassHeader* header);
          void unregisterIndirectPassHeader(char* name);
          void unregisterIndirectPassHeader(const char* name);
          void unregisterIndirectPassHeader(llvm::StringRef name);
