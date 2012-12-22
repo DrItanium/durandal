@@ -26,17 +26,31 @@ namespace indirect {
          IndirectPassRegistry();
          ~IndirectPassRegistry(); 
          static IndirectPassRegistry* getIndirectPassRegistry();
-         template<typename PassGeneratorClass> 
-         static IndirectPassGeneratorBase* buildPassGenerator();
+         template<class PassGeneratorClass> 
+            static IndirectPassGeneratorBase* buildPassGenerator() {
+               return new PassGeneratorClass();
+            }
          static const void* getUniqueId(const char* name);
          static const void* getUniqueId(llvm::StringRef name);
          static const void* getUniqueId(char* name);
-         template<typename PassGeneratorClass>
-         void registerPassGenerator(char* name);
-         template<typename PassGeneratorClass>
-         void registerPassGenerator(const char* name);
-         template<typename PassGeneratorClass>
-         void registerPassGenerator(llvm::StringRef name);
+         template<class PassGeneratorClass>
+            void registerPassGenerator(char* name) {
+               registerPassGenerator<PassGeneratorClass>(
+                     llvm::StringRef((const char*)name));
+            }
+         template<class PassGeneratorClass>
+            void registerPassGenerator(const char* name) {
+               registerPassGenerator<PassGeneratorClass>(
+                     llvm::StringRef(name));
+            }
+         template<class PassGeneratorClass>
+            void registerPassGenerator(llvm::StringRef name) {
+               assert((registeredPassGenerators.find(name) == 
+                        registeredPassGenerators.end()) && 
+                     "Pass generator already registered!");
+               registeredPassGenerators[name] = 
+                  IndirectPassRegistry::buildPassGenerator<PassGeneratorClass>();
+            }
          void registerIndirectPassHeader(indirect::IndirectPassHeader* header);
          void unregisterIndirectPassHeader(indirect::IndirectPassHeader* header);
          void unregisterIndirectPassHeader(char* name);
