@@ -27,6 +27,7 @@ namespace indirect {
          void setIsAnalysis(bool isAnalysisPass);
          const bool getIsAnalysis();
          void setIsAnalysisGroup(bool _isAnalysisGroup);
+         const bool getIsAnalysisGroup();
    };
 }
 
