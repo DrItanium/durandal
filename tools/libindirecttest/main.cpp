@@ -62,15 +62,57 @@ class TestBasicBlockPassTemplate : public indirect::IndirectBasicBlockPass {
          return false;
       }
 };
+class TestRegionPassTemplate : public indirect::IndirectRegionPass {
+   public:
+      TestRegionPassTemplate(char& ident) 
+         : indirect::IndirectRegionPass(ident) { }
+      virtual bool runOnRegion(llvm::Region* region, RGPassManager& rgm) {
+         llvm::errs() << getIndirectPassHeader()->getPassName() <<
+            " is a region pass and has been run\n";
+         return false;
+      }
+};
+class TestLoopPassTemplate : public indirect::IndirectLoopPass {
+   public:
+      TestLoopPassTemplate(char& ident) 
+         : indirect::IndirectLoopPass(ident) { }
+      virtual bool runOnLoop(llvm::Loop* fn, llvm::LPPassManager& lpm) {
+         llvm::errs() << getIndirectPassHeader()->getPassName() <<
+            " is a loop pass and has been run\n";
+         return false;
+      }
+};
+
+class TestMachineFunctionPassTemplate : public indirect::IndirectMachineFunctionPass {
+   public:
+      TestMachineFunctionPassTemplate(char& ident) 
+         : indirect::IndirectMachineFunctionPass(ident) { }
+      virtual bool runOnMachineFunction(llvm::MachineFunction& fn) {
+         llvm::errs() << getIndirectPassHeader()->getPassName() <<
+            " is a MachineFunction pass and has been run\n";
+         return false;
+      }
+};
+
+class TestCallGraphSCCPassTemplate : public indirect::IndirectCallGraphSCCPass {
+   public:
+      TestCallGraphSCCPassTemplate(char& ident) 
+         : indirect::IndirectCallGraphSCCPass(ident) { }
+      virtual bool runOnSCC(llvm::CallGraphSCC& fn) {
+         llvm::errs() << getIndirectPassHeader()->getPassName() <<
+            " is a CallGraphSCC pass and has been run\n";
+         return false;
+      }
+};
 
 class TestPassGenerator : public indirect::IndirectPassGeneratorTemplate<
                           TestModulePassTemplate,
                           TestFunctionPassTemplate,
                           TestBasicBlockPassTemplate,
-                          indirect::PassTypeNotSupported,
-                          indirect::PassTypeNotSupported,
-                          indirect::PassTypeNotSupported,
-                          indirect::PassTypeNotSupported> { 
+                          TestLoopPassTemplate,
+                          TestRegionPassTemplate,
+                          TestMachineFunctionPassTemplate,
+                          TestCallGraphSCCPassTemplate> {
                           };
 int main(int argc, char** argv) {
    /*
