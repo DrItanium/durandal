@@ -96,11 +96,10 @@ namespace indirect {
    }
    IndirectPassHeader* IndirectPassRegistry::getIndirectPassHeader(
          llvm::StringRef name) const {
-      assert((registeredIndirectPasses.find(name) !=
-               registeredIndirectPasses.end()) && 
-            "Given indirect pass does not exist!");
-      IndirectPassHeader* header = &*registeredIndirectPasses[name];
-      return header;
+      IndirectPassRegistry::PassHeaderMapType::const_iterator i = 
+         registeredIndirectPasses.find(name);
+      return i != registeredIndirectPasses.end() ? 
+         i->second : 0;
    }
 
    llvm::PassInfo* IndirectPassRegistry::getIndirectPassInfo(
