@@ -116,4 +116,35 @@ namespace indirect {
          llvm::StringRef name) const {
       return (llvm::PassInfo*)llvm::PassRegistry::getPassRegistry()->getPassInfo(name);
    }
+
+   llvm::Pass* IndirectPassRegistry::createPass(char* name) {
+      return createPass((const char*)name);
+   }
+
+   llvm::Pass* IndirectPassRegistry::createPass(const char* name) {
+      return createPass(llvm::StringRef(name));
+   }
+
+   llvm::Pass* IndirectPassRegistry::createPass(llvm::StringRef name) {
+      /* 
+       * first thing to do is get the corresponding indirect pass header.
+       * We will be using this to determine which template set to use.
+       */
+      IndirectPassHeader* i = getIndirectPassHeader(name);
+      assert(i != 0 && "Indirect pass does not exist!");
+      /*
+       * now we grab the corresponding pass generator.
+       * This will be used to create the corresponding pass.
+       */
+      llvm::StringRef templateName (i->getTemplateSet());
+      IndirectPassRegistry::PassGeneratorMapType::const_iterator j = 
+         registeredPassGenerators.find(name);
+      assert(j != registeredPassGenerators.end() && 
+            "Target template set does not exist!");
+      IndirectPassGeneratorBase* base = j->second;
+      /*
+       * Use that generator to create a pass. 
+       */
+      return base->createPass(i);
+   }
 }
