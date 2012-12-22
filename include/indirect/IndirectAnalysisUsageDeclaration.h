@@ -17,10 +17,13 @@ namespace indirect {
       public:
          IndirectAnalysisUsageDeclaration();
          void addRequired(char* name);
+         void addRequired(const char* name);
          void addRequired(llvm::StringRef name);
+         void addRequiredTransitive(const char* name);
          void addRequiredTransitive(char* name);
          void addRequiredTransitive(llvm::StringRef name);
          void addPreserved(char* name);
+         void addPreserved(const char* name);
          void addPreserved(llvm::StringRef name);
          void setPreservesAll(bool preservesAll);
          void setPreservesCFG(bool preservsCFG);

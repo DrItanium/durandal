@@ -9,14 +9,21 @@ namespace indirect {
    void IndirectAnalysisUsageDeclaration::addRequired(char* name) {
       required.push_back(name);
    }
+   void IndirectAnalysisUsageDeclaration::addRequired(const char* name) {
+      required.push_back((char*)name);
+   }
    void IndirectAnalysisUsageDeclaration::addRequired(llvm::StringRef name) {
       required.push_back((char*)name.data());
    }
 
    void IndirectAnalysisUsageDeclaration::addRequiredTransitive(char* name) {
       requiredTransitive.push_back(name);
+      required.push_back(name);
    }
-
+   void IndirectAnalysisUsageDeclaration::addRequiredTransitive(const char* name) {
+      requiredTransitive.push_back((char*)name);
+      required.push_back((char*)name);
+   }
    void IndirectAnalysisUsageDeclaration::addRequiredTransitive(
          llvm::StringRef name) {
       requiredTransitive.push_back((char*)name.data());
@@ -25,6 +32,10 @@ namespace indirect {
 
    void IndirectAnalysisUsageDeclaration::addPreserved(char* name) {
       preserved.push_back(name);
+   }
+
+   void IndirectAnalysisUsageDeclaration::addPreserved(const char* name) {
+      preserved.push_back((char*)name);
    }
 
    void IndirectAnalysisUsageDeclaration::addPreserved(llvm::StringRef name) {
