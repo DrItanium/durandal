@@ -1,7 +1,8 @@
 #include "indirect/IndirectPassHeader.h"
 
 namespace indirect {
-   IndirectPassHeader::IndirectPassHeader() {
+   IndirectPassHeader::IndirectPassHeader() : isAnalysis(false), 
+   isAnalysisGroup(false), isCFGOnlyPass(false) {
 
    }
 
