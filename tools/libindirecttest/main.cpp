@@ -140,7 +140,8 @@ int main(int argc, char** argv) {
    /*
     * Create some fake passes to see if the registration mechanism works
     */
-   indirect::IndirectPassHeader fakeModulePass, fakeFunctionPass, fakeBasicBlockPass;
+   indirect::IndirectPassHeader fakeModulePass, fakeFunctionPass,
+      fakeBasicBlockPass, fakeRegionPass;
    fakeModulePass.setPassDescription("A test fake indirect module pass");
    fakeModulePass.setPassName("test-indirect-module-pass");
    fakeModulePass.setIsCFGOnlyPass(false);
@@ -165,6 +166,14 @@ int main(int argc, char** argv) {
    fakeBasicBlockPass.setTemplateSet("test");
    fakeBasicBlockPass.setPassType(IndirectPassHeader::BasicBlock);
    indirectRegistry.registerIndirectPassHeader(&fakeBasicBlockPass);
+   fakeRegionPass.setPassDescription("A test fake indirect region pass");
+   fakeRegionPass.setPassName("test-indirect-region-pass");
+   fakeRegionPass.setIsCFGOnlyPass(false);
+   fakeRegionPass.setIsAnalysis(false);
+   fakeRegionPass.setIsAnalysisGroup(false);
+   fakeRegionPass.setTemplateSet("test");
+   fakeRegionPass.setPassType(IndirectPassHeader::Region);
+   indirectRegistry.registerIndirectPassHeader(&fakeRegionPass);
 
    llvm::Module* module = clang.compile(argc, argv);
    PassManagerBuilder builder;
@@ -183,15 +192,10 @@ int main(int argc, char** argv) {
    builder.OptLevel = 2;
    builder.DisableSimplifyLibCalls = false;
    builder.populateModulePassManager(PM);
-   Pass* mP = indirectRegistry.createPass("test-indirect-module-pass");
-   Pass* fP = indirectRegistry.createPass("test-indirect-function-pass");
-   Pass* bbP = indirectRegistry.createPass("test-indirect-basic-block-pass");
-   tmpPassManager.add(mP);
-   tmpPassManager.add(fP);
-   tmpPassManager.add(bbP);
+   tmpPassManager.add(indirectRegistry.createPass("test-indirect-module-pass"));
+   tmpPassManager.add(indirectRegistry.createPass("test-indirect-function-pass"));
+   tmpPassManager.add(indirectRegistry.createPass("test-indirect-basic-block-pass"));
+   tmpPassManager.add(indirectRegistry.createPass("test-indirect-region-pass"));
    tmpPassManager.add(llvm::createVerifierPass());
    tmpPassManager.run(*module);
-   delete mP;
-   delete fP;
-   delete bbP;
 }
