@@ -38,11 +38,10 @@
 			  ; Modify this export to add more classes
 			  ; Just remember that these three classes are pretty critical to the rest of
 			  ; the optimization
-			  (export defclass Object ParentedObject InteropObject Hint 
-						 List ParentedHint ParentedList)
+			  (export defclass ?ALL) 
 			  ; Modify this export to add more functions to be exposed
 			  ; I would advise against removing these functions
-			  (export deffunction superset equal$ has-common-element disjoint))
+			  (export deffunction ?ALL))
 
 (load* "modules/core/Object.clp")
 (load* "modules/core/ParentedObject.clp")
@@ -51,6 +50,7 @@
 (load* "modules/core/List.clp")
 (load* "modules/core/ParentedHint.clp")
 (load* "modules/core/ParentedList.clp")
+(load* "modules/core/Environment.clp")
 ; Add more defclasses here
 ; The programmer is responsible for ordering the load statements so that
 ; class dependencies are met
