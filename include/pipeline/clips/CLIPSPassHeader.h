@@ -19,10 +19,16 @@ namespace pipeline {
             LoadPathVector loadPaths;
             PassNameVector passNames;
             char* onLoadString;
+            bool needRegions;
+            bool needLoops;
          public:
             CLIPSPassHeader();
             char* getOnLoadString();
             void setOnLoadString(char* value);
+            bool needsRegions();
+            void setNeedsRegions(bool v);
+            bool needsLoops();
+            void setNeedsLoops(bool v);
             void addLoadPath(char* path);
             void addLoadPath(const char* path);
             void addLoadPath(llvm::StringRef path);
