@@ -1,8 +1,8 @@
 # Path to top level of LLVM hierarchy
-DURANDAL_LEVEL = ../..
+DURANDAL_LEVEL = ../../..
 
 # Name of the library to build
-DIRS=clips 
+LIBRARYNAME = pipeline_clips
 
 # Make the shared library become a loadable module so the tools can 
 # dlopen/dlsym on the resulting library.
