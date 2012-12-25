@@ -30,5 +30,11 @@
 (defclass core::InteropObject 
   "Interface to an item outside of the CLIPS environment"
   (is-a USER)
-  (slot pointer (type INTEGER) (visibility public)))
+  (slot pointer (type INTEGER EXTERNAL-ADDRESS) (visibility public)))
+
+(defmessage-handler core::InteropObject init around () 
+						  (call-next-handler)
+						  (if (numberp ?self:pointer) then
+							 (bind ?self:pointer (to-pointer ?self:pointer))))
+
 
