@@ -53,3 +53,22 @@ extern void* IsCurrentlyExecutingEnvironment(void* theEnv) {
 		return FalseSymbol();
 	}
 }
+
+extern void* ToPointer(void* theEnv) {
+	DATA_OBJECT arg0;
+	void* nil = (void*)0;
+	if(EnvArgCountCheck(theEnv, "to-pointer", EXACTLY, 1) == -1) {
+		EnvPrintRouter(theEnv,
+				(char*)"werror",
+				(char*)"Too few or too many arguments provided\n");
+		return nil;
+	}
+	if(EnvArgTypeCheck(theEnv, "to-pointer", 1, INTEGER, &arg0)) {
+		return (void*)(long long)DOToLong(arg0);
+	} else if(EnvArgTypeCheck(theEnv, "to-pointer", 1, EXTERNAL_ADDRESS, &arg0)) {
+		return (void*)GetValue(arg0);
+	} else {
+		return nil;
+	}
+}
+
