@@ -99,7 +99,5 @@
                     (if (= 0 ?length) then
                       (printout werror "ERROR: No arguments provided" crlf)
                       else
-                      (env-assert-string 
-                        ?self:pointer 
-                        (format nil 
-                                "(assert (%s))" (implode$ $?elements)))))
+                      (env-assert-string ?self:pointer 
+							  (implode$ $?elements))))
