@@ -32,10 +32,10 @@
   (is-a USER)
   (slot pointer (type INTEGER EXTERNAL-ADDRESS) (visibility public)))
 
-(defmessage-handler core::InteropObject init around () 
-						  (call-next-handler)
-						  (if (and (numberp ?self:pointer)
-									  (not (= 0 ?self:pointer))) then
-							 (bind ?self:pointer (to-pointer ?self:pointer))))
+;(defmessage-handler core::InteropObject init around () 
+;						  (call-next-handler)
+;						  (if (and (numberp ?self:pointer)
+;									  (not (= 0 ?self:pointer))) then
+;							 (bind ?self:pointer (to-pointer ?self:pointer))))
 
 

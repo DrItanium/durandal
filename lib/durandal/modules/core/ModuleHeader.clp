@@ -50,7 +50,7 @@
 (load* "modules/core/List.clp")
 (load* "modules/core/ParentedHint.clp")
 (load* "modules/core/ParentedList.clp")
-(load* "modules/core/Environment.clp")
+;(load* "modules/core/Environment.clp")
 ; Add more defclasses here
 ; The programmer is responsible for ordering the load statements so that
 ; class dependencies are met
