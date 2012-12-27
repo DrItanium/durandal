@@ -28,10 +28,10 @@
 ;------------------------------------------------------------------------------
 (defclass core::Environment 
  "A wrapper over a clips environment"
- (is-a Object InteropObject)
- (role concrete)
- (slot pointer (source composite) (access initialize-only)
-  (visibility public) (range 0 0) (default-dynamic 0)))
+ (is-a Object InteropObject))
+ ;(role concrete)
+ ;(slot pointer (source composite) (access initialize-only)
+ ; (visibility public)))
 
 (defmessage-handler core::Environment init around ()
  (call-next-handler)
