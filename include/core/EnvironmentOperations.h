@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern void EnvironmentOperationsDefinitions(void* theEnv);
 extern void EnvironmentDestroy(void* theEnv);
 extern void* GetCurrentlyExecutingEnvironment(void* theEnv);
-extern void* IsCurrentlExecutingEnvironment(void* theEnv);
+extern void* IsCurrentlyExecutingEnvironment(void* theEnv);
 extern void* ToPointer(void* theEnv);
 extern void RunEnvironment(void* theEnv);
 extern void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret);
