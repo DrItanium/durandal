@@ -55,7 +55,7 @@ extern void* GetCurrentlyExecutingEnvironment(void* theEnv) {
 	if(EnvArgCountCheck(theEnv, "get-currently-executing-environment", EXACTLY, 0) == -1) {
 		PrintError(theEnv, 
 				"get-currently-executing-environment does not accept arguments\n"); 
-		return;
+		return (void*)0;
 	}
 	return theEnv;
 }
