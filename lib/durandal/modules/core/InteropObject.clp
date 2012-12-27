@@ -34,7 +34,8 @@
 
 (defmessage-handler core::InteropObject init around () 
 						  (call-next-handler)
-						  (if (numberp ?self:pointer) then
+						  (if (and (numberp ?self:pointer)
+									  (not (= 0 ?self:pointer))) then
 							 (bind ?self:pointer (to-pointer ?self:pointer))))
 
 
