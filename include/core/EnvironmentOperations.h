@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _environment_operations_h
 
 extern void EnvironmentOperationsDefinitions(void* theEnv);
-extern void DestroyEnvironment(void* theEnv);
+extern void EnvironmentDestroy(void* theEnv);
 extern void* GetCurrentlyExecutingEnvironment(void* theEnv);
 extern void* IsCurrentlExecutingEnvironment(void* theEnv);
 extern void* ToPointer(void* theEnv);
@@ -39,5 +39,6 @@ extern void EnvironmentFacts(void* theEnv);
 extern void EnvironmentInstances(void* theEnv);
 extern void EnvironmentRules(void* theEnv);
 extern void EnvironmentAssertString(void* theEnv);
+extern void* EnvironmentCreate(void* theEnv);
 
 #endif

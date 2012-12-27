@@ -8,8 +8,8 @@
 
 extern void EnvironmentOperationsDefinitions(void* theEnv) {
 	EnvDefineFunction(theEnv, "env-destroy", 'v', 
-			PTIEF DestroyEnvironment, 
-			"DestroyEnvironment"); 
+			PTIEF EnvironmentDestroy, 
+			"EnvironmentDestroy"); 
 	EnvDefineFunction(theEnv, "get-currently-executing-environment", 'a',
 			PTIEF GetCurrentlyExecutingEnvironment,
 			"GetCurrentlyExecutingEnvironment");
@@ -30,8 +30,10 @@ extern void EnvironmentOperationsDefinitions(void* theEnv) {
 			"EnvironmentRules");
 	EnvDefineFunction(theEnv, "env-assert-string", 'v', PTIEF EnvironmentAssertString, 
 			"EnvironmentAssertString");
+	EnvDefineFunction(theEnv, "env-create", 'a', PTIEF EnvironmentCreate, 
+			"EnvironmentCreate");
 }
-extern void DestroyEnvironment(void* theEnv) {
+extern void EnvironmentDestroy(void* theEnv) {
 	DATA_OBJECT arg0;
 	if((EnvArgCountCheck(theEnv, "env-destroy", EXACTLY, 1) == -1)) {
 		return;
@@ -257,7 +259,18 @@ extern void EnvironmentRules(void* theEnv) {
 	EnvListDefrules(address, wdisplay, NULL);
 }
 
-
+extern void* EnvironmentCreate(void* theEnv) {
+	/*
+	 * This is really unsafe to call on it's own unless you REALLY know what
+	 * you're doing
+	 */
+ 	void* address;
+	if(EnvArgCountCheck(theEnv, "env-create", EXACTLY, 0) == -1) {
+		PrintError(theEnv, "ERROR: env-create takes in no arguments\n");
+		return (void*)0;
+	}
+	return CreateEnvironment();
+}
 
 
 #undef werror
