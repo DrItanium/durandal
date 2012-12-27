@@ -33,7 +33,7 @@ extern void* GetCurrentlyExecutingEnvironment(void* theEnv);
 extern void* IsCurrentlExecutingEnvironment(void* theEnv);
 extern void* ToPointer(void* theEnv);
 extern void RunEnvironment(void* theEnv);
-extern void* EnvironmentEval(void* theEnv);
+extern void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret);
 extern void EnvironmentBuild(void* theEnv);
 extern void EnvironmentFacts(void* theEnv);
 extern void EnvironmentInstances(void* theEnv);
