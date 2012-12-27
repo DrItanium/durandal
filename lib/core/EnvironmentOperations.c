@@ -1,10 +1,12 @@
 #include "clips.h"
 #include "core/EnvironmentOperations.h"
+#include <stdio.h>
 
 #define werror (char*)"werror"
 #define wdisplay (char*)"wdisplay"
 #define wwarning (char*)"wwarning"
 #define PrintError(e, msg) EnvPrintRouter(e, werror, (char*) msg)
+#define CharBuffer(sz) (char*)calloc(sz, sizeof(char))
 
 extern void EnvironmentOperationsDefinitions(void* theEnv) {
 	EnvDefineFunction(theEnv, "env-destroy", 'v', 
@@ -40,11 +42,11 @@ extern void EnvironmentDestroy(void* theEnv) {
 	}
 	if(EnvArgTypeCheck(theEnv, "env-destroy", 1, EXTERNAL_ADDRESS, &arg0)) {
 		void* targetEnv = (void*)GetValue(arg0);
-		EnvDestroyEnvironment(targetEnv);
+		DestroyEnvironment(targetEnv);
 		return;
 	} else if(EnvArgTypeCheck(theEnv, "env-destroy", 1, INTEGER, &arg0)) {
 		void* targetEnv = (void*)(long long)DOToLong(arg0);
-		EnvDestroyEnvironment(targetEnv);
+		DestroyEnvironment(targetEnv);
 		return;
 	} else {
 		return;
@@ -277,4 +279,5 @@ extern void* EnvironmentCreate(void* theEnv) {
 #undef wdisplay
 #undef wwarning
 #undef PrintError
+#undef CharBuffer
 
