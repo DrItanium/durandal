@@ -125,7 +125,9 @@ extern void RunEnvironment(void* theEnv) {
 	long value = (long)DOToLong(arg1);
 	address = (void*)GetValue(arg0);
 	if(value > 0L || value == -1) {
+		SetCurrentEnvironment(address);
 		EnvRun(address, value);
+		SetCurrentEnvironment(theEnv);
 		return;
 	} else {
 		PrintError(theEnv, "Provided duration must be greater than zero or -1\n");
@@ -156,7 +158,9 @@ extern void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret) {
 	tmp = DOToString(arg1);
 	result = CharBuffer(strlen(tmp) + 1);
 	sprintf(result, "%s", tmp);
+	SetCurrentEnvironment(address);
 	EnvEval(address, result, ret);
+	SetCurrentEnvironment(theEnv);
 	free(result);
 }
 
@@ -183,7 +187,9 @@ extern void EnvironmentBuild(void* theEnv) {
 	tmp = DOToString(arg1);
 	result = CharBuffer(strlen(tmp) + 1);
 	sprintf(result, "%s", tmp);
+	SetCurrentEnvironment(address);
 	EnvBuild(address, result);
+	SetCurrentEnvironment(theEnv);
 	free(result);
 }
 
@@ -210,7 +216,9 @@ extern void EnvironmentAssertString(void* theEnv) {
 	tmp = DOToString(arg1);
 	result = CharBuffer(strlen(tmp) + 1);
 	sprintf(result, "%s", tmp);
+	SetCurrentEnvironment(address);
 	EnvAssertString(address, result);
+	SetCurrentEnvironment(theEnv);
 	free(result);
 }
 
@@ -228,7 +236,9 @@ extern void EnvironmentFacts(void* theEnv) {
 	}
 
 	address = (void*)GetValue(arg0);
+	SetCurrentEnvironment(address);
 	EnvFacts(address, wdisplay, NULL, -1, -1, -1);
+	SetCurrentEnvironment(theEnv);
 }
 
 extern void EnvironmentInstances(void* theEnv) {
@@ -245,7 +255,9 @@ extern void EnvironmentInstances(void* theEnv) {
 	}
 
 	address = (void*)GetValue(arg0);
+	SetCurrentEnvironment(address);
 	EnvInstances(address, wdisplay, NULL, NULL, 1);
+	SetCurrentEnvironment(theEnv);
 }
 
 extern void EnvironmentRules(void* theEnv) {
@@ -261,7 +273,9 @@ extern void EnvironmentRules(void* theEnv) {
 		return;
 	}
 	address = (void*)GetValue(arg0);
+	SetCurrentEnvironment(address);
 	EnvListDefrules(address, wdisplay, NULL);
+	SetCurrentEnvironment(theEnv);
 }
 
 extern void* EnvironmentCreate(void* theEnv) {
