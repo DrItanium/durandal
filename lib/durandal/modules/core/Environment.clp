@@ -26,7 +26,16 @@
 ;------------------------------------------------------------------------------
 ; Environment.clp - A wrapper over a CLIPS environment
 ;------------------------------------------------------------------------------
-(defclass core::Environment (is-a Object InteropObject))
+(defclass core::Environment 
+ "A wrapper over a clips environment"
+ (is-a Object InteropObject)
+ (slot pointer (type INTEGER EXTERNAL_ADDRESS) (source composite) (access initialize-only)
+  (range 0 0) (dynamic-default 0))
+
+(defmessage-handler core::Environment init around ()
+ (call-next-handler)
+ (if (eq ?self:pointer 0) then
+  (bind ?self:pointer (env-create))))
 
 (defmessage-handler core::Environment destroy primary ()
                     (if (not (is-executing-environment ?self:pointer)) then
