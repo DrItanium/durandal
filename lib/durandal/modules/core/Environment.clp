@@ -38,7 +38,7 @@
   (bind ?self:pointer (env-create))))
 
 (defmessage-handler core::Environment destroy primary ()
-                    (if (not (is-executing-environment ?self:pointer)) then
+                    (if (not (is-currently-executing-environment ?self:pointer)) then
                       (env-destroy ?self:pointer)
                       (return (delete-instance))
                       else
@@ -48,20 +48,20 @@
                         crlf)
                       (return FALSE)))
 
-(defmessage-handler core::Environment is-executing-environment primary () 
-                    (return (is-executing-environment ?self:pointer)))
+(defmessage-handler core::Environment is-currently-executing-environment primary () 
+                    (return (is-currently-executing-environment ?self:pointer)))
 
 (defmessage-handler core::Environment run ($?count)
                     (bind ?size (length$ $?count))
                     (if (= 0 ?size) then 
-                      (if (is-executing-environment ?self:pointer) then
+                      (if (is-currently-executing-environment ?self:pointer) then
                         (run)
                         else
                         (env-run ?self:pointer))
                       else
                       (bind ?num (nth$ 1 ?count))
                       (if (and (> ?num 0) (integerp ?num)) then
-                        (if (is-executing-environment ?self:pointer) then
+                        (if (is-currently-executing-environment ?self:pointer) then
                           (run ?num)
                           else
                           (env-run ?self:pointer ?num))
@@ -70,7 +70,7 @@
 
 (defmessage-handler core::Environment eval (?string)
                     (if (stringp ?string) then
-                      (if (is-executing-environment ?self:pointer) then
+                      (if (is-currently-executing-environment ?self:pointer) then
                         (eval ?string)
                         else
                         (env-eval ?self:pointer ?string))
@@ -79,7 +79,7 @@
 
 (defmessage-handler core::Environment build (?string)
                     (if (stringp ?string) then
-                      (if (is-executing-environment ?self:pointer) then
+                      (if (is-currently-executing-environment ?self:pointer) then
                         (build ?string)
                         else
                         (env-build ?self:pointer ?string))
@@ -87,18 +87,18 @@
                       (printout werror "ERROR: string expected" crlf)))
 
 (defmessage-handler core::Environment facts ()
-                    (if (is-executing-environment ?self:pointer) then
+                    (if (is-currently-executing-environment ?self:pointer) then
                       (facts)
                       else
                       (env-facts ?self:pointer)))
 (defmessage-handler core::Environment instances () 
-                    (if (is-executing-environment ?self:pointer) then
+                    (if (is-currently-executing-environment ?self:pointer) then
                       (instances)
                       else
                       (env-instances ?self:pointer)))
 
 (defmessage-handler core::Environment rules ()
-                    (if (is-executing-environment ?self:pointer) then
+                    (if (is-currently-executing-environment ?self:pointer) then
                       (rules)
                       else
                       (env-rules ?self:pointer)))
