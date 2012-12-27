@@ -17,7 +17,7 @@ TOOLNAME=kbc
 
 LINK_COMPONENTS=all
 
-USEDLIBS = rampancy.a ExpertSystem.a clips.a clangFrontend.a \
+USEDLIBS = core.a rampancy.a ExpertSystem.a clips.a clangFrontend.a \
 			  clangSerialization.a clangDriver.a clangCodeGen.a \
            clangParse.a clangSema.a clangStaticAnalyzerFrontend.a \
            clangStaticAnalyzerCheckers.a clangStaticAnalyzerCore.a \

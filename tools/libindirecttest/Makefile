@@ -14,7 +14,7 @@ TOOLNAME=libindirecttest
 # List libraries that we'll need
 # We use LIBS because sample is a dynamic library.
 #
-USEDLIBS = indirect.a rampancy.a ExpertSystem.a clips.a clangFrontend.a \
+USEDLIBS = core.a indirect.a rampancy.a ExpertSystem.a clips.a clangFrontend.a \
 			  clangSerialization.a clangDriver.a clangCodeGen.a \
            clangParse.a clangSema.a clangStaticAnalyzerFrontend.a \
            clangStaticAnalyzerCheckers.a clangStaticAnalyzerCore.a \
