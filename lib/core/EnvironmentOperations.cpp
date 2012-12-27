@@ -1,6 +1,8 @@
-#include "clips.h"
 #include "core/EnvironmentOperations.h"
+extern "C" {
+#include "clips.h"
 #include <stdio.h>
+}
 
 #define werror (char*)"werror"
 #define wdisplay (char*)"wdisplay"
@@ -8,7 +10,20 @@
 #define PrintError(e, msg) EnvPrintRouter(e, werror, (char*) msg)
 #define CharBuffer(sz) (char*)calloc(sz, sizeof(char))
 
-extern void EnvironmentOperationsDefinitions(void* theEnv) {
+extern "C" void EnvironmentDestroy(void* theEnv);
+extern "C" void* GetCurrentlyExecutingEnvironment(void* theEnv);
+extern "C" void* IsCurrentlyExecutingEnvironment(void* theEnv);
+extern "C" void* ToPointer(void* theEnv);
+extern "C" void RunEnvironment(void* theEnv);
+extern "C" void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret);
+extern "C" void EnvironmentBuild(void* theEnv);
+extern "C" void EnvironmentFacts(void* theEnv);
+extern "C" void EnvironmentInstances(void* theEnv);
+extern "C" void EnvironmentRules(void* theEnv);
+extern "C" void EnvironmentAssertString(void* theEnv);
+extern "C" void* EnvironmentCreate(void* theEnv);
+
+void EnvironmentOperationsDefinitions(void* theEnv) {
 	EnvDefineFunction(theEnv, "env-destroy", 'v', 
 			PTIEF EnvironmentDestroy, 
 			"EnvironmentDestroy"); 
@@ -35,7 +50,7 @@ extern void EnvironmentOperationsDefinitions(void* theEnv) {
 	EnvDefineFunction(theEnv, "env-create", 'a', PTIEF EnvironmentCreate, 
 			"EnvironmentCreate");
 }
-extern void EnvironmentDestroy(void* theEnv) {
+void EnvironmentDestroy(void* theEnv) {
 	DATA_OBJECT arg0;
 	if((EnvArgCountCheck(theEnv, "env-destroy", EXACTLY, 1) == -1)) {
 		return;
@@ -53,7 +68,7 @@ extern void EnvironmentDestroy(void* theEnv) {
 	}
 }
 
-extern void* GetCurrentlyExecutingEnvironment(void* theEnv) {
+void* GetCurrentlyExecutingEnvironment(void* theEnv) {
 	if(EnvArgCountCheck(theEnv, "get-currently-executing-environment", EXACTLY, 0) == -1) {
 		PrintError(theEnv, 
 				"get-currently-executing-environment does not accept arguments\n"); 
@@ -62,7 +77,7 @@ extern void* GetCurrentlyExecutingEnvironment(void* theEnv) {
 	return GetCurrentEnvironment();
 }
 
-extern void* IsCurrentlyExecutingEnvironment(void* theEnv) {
+void* IsCurrentlyExecutingEnvironment(void* theEnv) {
 	DATA_OBJECT arg0;
 	if((EnvArgCountCheck(theEnv, "is-currently-executing-environment", EXACTLY, 1) == -1)) {
 		PrintError(theEnv, "Either too many or too few arguments provided\n");
@@ -135,7 +150,7 @@ extern void RunEnvironment(void* theEnv) {
 	}
 }
 
-extern void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret) {
+void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret) {
 	DATA_OBJECT arg0, arg1;
 	void* address;
 	char* result;
@@ -164,7 +179,7 @@ extern void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret) {
 	free(result);
 }
 
-extern void EnvironmentBuild(void* theEnv) {
+void EnvironmentBuild(void* theEnv) {
 	DATA_OBJECT arg0, arg1;
 	void* address;
 	char* result;
@@ -193,7 +208,7 @@ extern void EnvironmentBuild(void* theEnv) {
 	free(result);
 }
 
-extern void EnvironmentAssertString(void* theEnv) {
+void EnvironmentAssertString(void* theEnv) {
 	DATA_OBJECT arg0, arg1;
 	void* address;
 	char* result;
@@ -222,7 +237,7 @@ extern void EnvironmentAssertString(void* theEnv) {
 	free(result);
 }
 
-extern void EnvironmentFacts(void* theEnv) {
+void EnvironmentFacts(void* theEnv) {
 	DATA_OBJECT arg0;
 	void* address;
 	if(EnvArgCountCheck(theEnv, "env-facts", EXACTLY, 1) == -1) {
@@ -241,7 +256,7 @@ extern void EnvironmentFacts(void* theEnv) {
 	SetCurrentEnvironment(theEnv);
 }
 
-extern void EnvironmentInstances(void* theEnv) {
+void EnvironmentInstances(void* theEnv) {
 	DATA_OBJECT arg0;
 	void* address;
 	if(EnvArgCountCheck(theEnv, "env-instances", EXACTLY, 1) == -1) {
@@ -260,7 +275,7 @@ extern void EnvironmentInstances(void* theEnv) {
 	SetCurrentEnvironment(theEnv);
 }
 
-extern void EnvironmentRules(void* theEnv) {
+void EnvironmentRules(void* theEnv) {
 	DATA_OBJECT arg0;
 	void* address;
 	if(EnvArgCountCheck(theEnv, "env-rules", EXACTLY, 1) == -1) {
@@ -278,7 +293,7 @@ extern void EnvironmentRules(void* theEnv) {
 	SetCurrentEnvironment(theEnv);
 }
 
-extern void* EnvironmentCreate(void* theEnv) {
+void* EnvironmentCreate(void* theEnv) {
 	/*
 	 * This is really unsafe to call on it's own unless you REALLY know what
 	 * you're doing

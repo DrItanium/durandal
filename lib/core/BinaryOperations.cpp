@@ -1,13 +1,27 @@
-#include "clips.h" 
 #include "core/BinaryOperations.h"
+extern "C" {
+#include "clips.h" 
+}
 
 //private definitions
 typedef unsigned long long longlong;
 typedef long long clipslonglong;
 
+extern "C" long long RightShiftFunction(void*);
+extern "C" long long LeftShiftFunction(void*);
+extern "C" long long BinaryAndFunction(void*);
+extern "C" long long BinaryOrFunction(void*);
+extern "C" long long BinaryXorFunction(void*);
+extern "C" long long BinaryNotFunction(void*);
+extern "C" long long SliceFunction(void*);
+extern "C" void Slice8Function(void*, DATA_OBJECT_PTR);
+extern "C" void Slice4Function(void*, DATA_OBJECT_PTR);
+extern "C" void Slice2Function(void*, DATA_OBJECT_PTR);
+extern "C" long long MergeFunction(void*);
+
 longlong Slice(longlong w, longlong s, longlong e);
 
-extern void BinaryOperationsFunctionDefinitions(void* theEnv) {
+void BinaryOperationsFunctionDefinitions(void* theEnv) {
    EnvDefineFunction2(theEnv, "right-shift", 'g', PTIEF RightShiftFunction, "RightShiftFunction", "22i");
    EnvDefineFunction2(theEnv, "left-shift", 'g', PTIEF LeftShiftFunction, "LeftShiftFunction", "22i");
    EnvDefineFunction2(theEnv, "binary-and", 'g', PTIEF BinaryAndFunction, "BinaryAndFunction", "22i");
@@ -22,7 +36,7 @@ extern void BinaryOperationsFunctionDefinitions(void* theEnv) {
 }
 //use unsigned long long to ensure that logical shift is used instead of
 //arithmetic shift
-extern long long RightShiftFunction(void* theEnv) {
+long long RightShiftFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    longlong a, b;
    if(EnvArgCountCheck(theEnv,"right-shift",EXACTLY,2) == -1) {
@@ -39,7 +53,7 @@ extern long long RightShiftFunction(void* theEnv) {
    b = DOToLong(arg1);
    return (longlong)(a >> b);
 }
-extern long long LeftShiftFunction(void* theEnv) {
+long long LeftShiftFunction(void* theEnv) {
 
    DATA_OBJECT arg0, arg1;
    longlong a, b;
@@ -58,7 +72,7 @@ extern long long LeftShiftFunction(void* theEnv) {
    return (longlong)(a << b);
 
 }
-extern long long BinaryAndFunction(void* theEnv) {
+long long BinaryAndFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    longlong a, b;
    if(EnvArgCountCheck(theEnv,"binary-and",EXACTLY,2) == -1) {
@@ -76,7 +90,7 @@ extern long long BinaryAndFunction(void* theEnv) {
    return (longlong)(a & b);
 
 }
-extern long long BinaryOrFunction(void* theEnv) {
+long long BinaryOrFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    longlong a, b;
    if(EnvArgCountCheck(theEnv,"binary-or",EXACTLY,2) == -1) {
@@ -94,7 +108,7 @@ extern long long BinaryOrFunction(void* theEnv) {
    return (longlong)(a | b);
 
 }
-extern long long BinaryXorFunction(void* theEnv) {
+long long BinaryXorFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    longlong a, b;
    if(EnvArgCountCheck(theEnv,"binary-xor",EXACTLY,2) == -1) {
@@ -111,7 +125,7 @@ extern long long BinaryXorFunction(void* theEnv) {
    b = DOToLong(arg1);
    return (longlong)(a ^ b);
 }
-extern long long BinaryNotFunction(void* theEnv) {
+long long BinaryNotFunction(void* theEnv) {
    DATA_OBJECT arg0;
    longlong a;
    if(EnvArgCountCheck(theEnv,"binary-not",EXACTLY,1) == -1) {
@@ -147,7 +161,7 @@ longlong Slice(longlong w, longlong s, longlong e) {
    }
 }
 
-extern long long SliceFunction(void* theEnv) {
+long long SliceFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1, arg2;
    longlong w, s, e;
    if(EnvArgCountCheck(theEnv, "slice", EXACTLY, 3) == -1) {
@@ -173,7 +187,7 @@ extern long long SliceFunction(void* theEnv) {
    SetMFType(multifield, index, INTEGER); \
 SetMFValue(multifield, index, EnvAddLong(theEnv, (clipslonglong)Slice(value, from, to)))
 
-extern void Slice8Function(void* theEnv, DATA_OBJECT_PTR retVal) {
+void Slice8Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    DATA_OBJECT arg0;
    void* multifield;
    longlong value;
@@ -203,7 +217,7 @@ extern void Slice8Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    SetpDOEnd(retVal, 8);
 }
 
-extern void Slice4Function(void* theEnv, DATA_OBJECT_PTR retVal) {
+void Slice4Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    DATA_OBJECT arg0;
    void* multifield;
    longlong value;
@@ -228,7 +242,7 @@ extern void Slice4Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    SetpDOBegin(retVal, 1);
    SetpDOEnd(retVal, 4);
 }
-extern void Slice2Function(void* theEnv, DATA_OBJECT_PTR retVal) {
+void Slice2Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    DATA_OBJECT arg0;
    void* multifield;
    longlong value;
@@ -252,7 +266,7 @@ extern void Slice2Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    SetpDOEnd(retVal, 2);
 }
 
-extern long long MergeFunction(void* theEnv) {
+long long MergeFunction(void* theEnv) {
    DATA_OBJECT arg0;
    longlong length, result;
    void* multifield;
