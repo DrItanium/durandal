@@ -1226,10 +1226,16 @@ static void PrintCAddress(
   void *theValue)
   {
    char buffer[20];
-
+	void* ptr;
    EnvPrintRouter(theEnv,logicalName,"<Pointer-C-");
-        
-   gensprintf(buffer,"%p",ValueToExternalAddress(theValue));
+	ptr = ValueToExternalAddress(theValue);
+  	if(ptr) {
+		/* theValue is a clips structure */
+		gensprintf(buffer,"%p",ptr);
+	} else {
+		/* theValue is not a clips structure but a direct data pointer. */
+		gensprintf(buffer,"%p",theValue);
+	}
    EnvPrintRouter(theEnv,logicalName,buffer);
    EnvPrintRouter(theEnv,logicalName,">");
   }
