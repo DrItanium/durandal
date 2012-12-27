@@ -59,7 +59,7 @@ extern void* GetCurrentlyExecutingEnvironment(void* theEnv) {
 				"get-currently-executing-environment does not accept arguments\n"); 
 		return (void*)0;
 	}
-	return theEnv;
+	return GetCurrentEnvironment();
 }
 
 extern void* IsCurrentlyExecutingEnvironment(void* theEnv) {
@@ -136,7 +136,8 @@ extern void RunEnvironment(void* theEnv) {
 extern void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret) {
 	DATA_OBJECT arg0, arg1;
 	void* address;
-	char* result, tmp;
+	char* result;
+	char* tmp;
 	if(EnvArgCountCheck(theEnv, "env-eval", EXACTLY, 2) == -1) {
 		PrintError(theEnv, "env-eval accepts exactly two arguments\n");
 		return;
@@ -162,7 +163,8 @@ extern void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret) {
 extern void EnvironmentBuild(void* theEnv) {
 	DATA_OBJECT arg0, arg1;
 	void* address;
-	char* result, tmp;
+	char* result;
+	char* tmp;
 	if(EnvArgCountCheck(theEnv, "env-build", EXACTLY, 2) == -1) {
 		PrintError(theEnv, "env-build accepts exactly two arguments\n");
 		return;
@@ -188,7 +190,8 @@ extern void EnvironmentBuild(void* theEnv) {
 extern void EnvironmentAssertString(void* theEnv) {
 	DATA_OBJECT arg0, arg1;
 	void* address;
-	char* result, tmp;
+	char* result;
+	char* tmp;
 	if(EnvArgCountCheck(theEnv, "env-assert-string", EXACTLY, 2) == -1) {
 		PrintError(theEnv, "Only two arguments are allowed\n");
 		return;
@@ -271,7 +274,9 @@ extern void* EnvironmentCreate(void* theEnv) {
 		PrintError(theEnv, "ERROR: env-create takes in no arguments\n");
 		return (void*)0;
 	}
-	return CreateEnvironment();
+	address = CreateEnvironment();
+	SetCurrentEnvironment(theEnv);
+	return address;
 }
 
 
