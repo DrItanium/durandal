@@ -112,7 +112,7 @@ extern void* ToPointer(void* theEnv) {
 		return nil;
 	}
 	if(EnvArgTypeCheck(theEnv, "to-pointer", 1, INTEGER, &arg0)) {
-		return (void*)(long long)DOToLong(arg0);
+		return (void*)DOToLong(arg0);
 	} else if(EnvArgTypeCheck(theEnv, "to-pointer", 1, EXTERNAL_ADDRESS, &arg0)) {
 		return (void*)GetValue(arg0);
 	} else {
