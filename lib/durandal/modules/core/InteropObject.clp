@@ -32,10 +32,11 @@
   (is-a USER)
   (slot pointer (type INTEGER EXTERNAL-ADDRESS) (visibility public)))
 
+;uncomment this code and watch the LLVM PassManager fail with a general
+;protection fault
+
 ;(defmessage-handler core::InteropObject init around () 
 ;						  (call-next-handler)
 ;						  (if (and (numberp ?self:pointer)
 ;									  (not (= 0 ?self:pointer))) then
 ;							 (bind ?self:pointer (to-pointer ?self:pointer))))
-
-
