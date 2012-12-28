@@ -92,8 +92,8 @@ void EnvUserFunctions(
     * If you re-enable this then you're on your own if you get wierd errors
     * during pass reclaimation.
     */
-   //extern void EnvironmentOperationsDefinitions(void* theEnv);
-   //EnvironmentOperationsDefinitions(theEnv);
+   extern void EnvironmentOperationsDefinitions(void* theEnv);
+   EnvironmentOperationsDefinitions(theEnv);
 
 #if MAC_MCW || WIN_MCW || MAC_XCD
 #pragma unused(theEnv)
