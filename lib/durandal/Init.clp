@@ -34,8 +34,10 @@
 (batch-load 
   (create$ "modules/core/ModuleHeader.clp"
 	        "modules/llvm/ModuleHeader.clp"
-			  "modules/scheduler/ModuleHeader.clp"
-        "modules/rampancy/ModuleHeader.clp"
+        	  "modules/rampancy/ModuleHeader.clp"
+			  "modules/indirect/ModuleHeader.clp"
+			  "modules/types/ModuleHeader.clp"
+			  "modules/pipeline/ModuleHeader.clp"
 			  ; Add entries to other modules here
 			  ))
 ;(defmodule MAIN (import core ?ALL) (import llvm ?ALL))
