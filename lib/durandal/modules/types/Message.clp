@@ -27,7 +27,7 @@
 ; Message.clp - Contains a message template useful in a wide variety of
 ; situations
 ;------------------------------------------------------------------------------
-(deftemplate type::message 
+(deftemplate types::message 
  (slot from)
  (slot to)
  (slot action)
