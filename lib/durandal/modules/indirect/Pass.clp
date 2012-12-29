@@ -29,7 +29,6 @@
 (defclass indirect::PassBase 
   "The base class of all passes (native or indirect)"
   (is-a Object) 
-  (role abstract)
   (slot pass-name (type SYMBOL STRING))
   (slot pass-description (type STRING)))
 ;------------------------------------------------------------------------------
