@@ -46,6 +46,6 @@
 (defrule pipeline::terminate-pass
 			?obj <- (object (is-a PassDescriptor) (passes))
 			=>
-			(unmake-instanec ?obj)
+			(unmake-instance ?obj)
 			(pop-focus))
 ;------------------------------------------------------------------------------
