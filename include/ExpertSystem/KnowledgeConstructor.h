@@ -73,6 +73,9 @@ class KnowledgeConstructor {
    void route(LoopInfo& li, FunctionNamer& namer, char* parent);
    void updateFunctionContents(Function& fn, FunctionNamer& namer);
    void route(Function& fn, LoopInfo& li, RegionInfo& ri);
+   void route(Function& fn, RegionInfo& ri);
+   void route(Function& fn, LoopInfo& ri);
+   void route(Function& fn);
    std::string route(Module* module);
 };
 #endif

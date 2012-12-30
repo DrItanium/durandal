@@ -541,6 +541,25 @@ void KnowledgeConstructor::updateFunctionContents(Function& fn, FunctionNamer& n
       route(a, namer, fnName);
    }
 }
+void KnowledgeConstructor::route(Function& fn) {
+   char* funcName;
+   //get the function namer object
+   FunctionNamer namer;
+   if(fn.hasName()) {
+      namer.setFunctionName((char*)fn.getName().data());
+   } else {
+      char* buf = CharBuffer(128);
+      sprintf(buf, "fn.%lld", &fn);
+      std::string name (buf);
+      namer.setFunctionName((char*)name.c_str());
+   }
+   funcName = (char*)fn.getName().data();
+   namer.reset();
+   std::string tmp("nil");
+   namer.tryRegisterPointerToName(0L, tmp);
+   instances->clear();
+   updateFunctionContents(fn, namer);
+}
 void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
    char* funcName;
    //get the function namer object
@@ -561,6 +580,46 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
    updateFunctionContents(fn, namer);
    route(li, namer, funcName);
    route(ri, namer, funcName);
+}
+void KnowledgeConstructor::route(Function& fn, RegionInfo& ri) {
+   char* funcName;
+   //get the function namer object
+   FunctionNamer namer;
+   if(fn.hasName()) {
+      namer.setFunctionName((char*)fn.getName().data());
+   } else {
+      char* buf = CharBuffer(128);
+      sprintf(buf, "fn.%lld", &fn);
+      std::string name (buf);
+      namer.setFunctionName((char*)name.c_str());
+   }
+   funcName = (char*)fn.getName().data();
+   namer.reset();
+   std::string tmp("nil");
+   namer.tryRegisterPointerToName(0L, tmp);
+   instances->clear();
+   updateFunctionContents(fn, namer);
+   route(ri, namer, funcName);
+}
+void KnowledgeConstructor::route(Function& fn, LoopInfo& li) {
+   char* funcName;
+   //get the function namer object
+   FunctionNamer namer;
+   if(fn.hasName()) {
+      namer.setFunctionName((char*)fn.getName().data());
+   } else {
+      char* buf = CharBuffer(128);
+      sprintf(buf, "fn.%lld", &fn);
+      std::string name (buf);
+      namer.setFunctionName((char*)name.c_str());
+   }
+   funcName = (char*)fn.getName().data();
+   namer.reset();
+   std::string tmp("nil");
+   namer.tryRegisterPointerToName(0L, tmp);
+   instances->clear();
+   updateFunctionContents(fn, namer);
+   route(li, namer, funcName);
 }
 
 std::string KnowledgeConstructor::route(Module* mod) {
