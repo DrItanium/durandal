@@ -1,5 +1,5 @@
-#ifndef _clips_pass_templates.h
-#define _clips_pass_templates.h
+#ifndef _clips_pass_templates_h
+#define _clips_pass_templates_h
 #include "indirect/IndirectPasses.h"
 #include "pipeline/clips/CLIPSPass.h"
 using namespace indirect;

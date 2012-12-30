@@ -1,5 +1,9 @@
 #include "pipeline/clips/CLIPSPassTemplates.h"
 #include "ExpertSystem/KnowledgeConstructionEngine.h"
+#include "pipeline/clips/CLIPSPassHeader.h"
+#include "ExpertSystem/FunctionKnowledgeConversionPass.h"
+#include "llvm/PassManager.h"
+#include "llvm/PassRegistry.h"
 extern "C" {
 #include "clips.h"
 }
@@ -11,14 +15,15 @@ namespace pipeline {
 			CLIPSEnvironment* clEnv = new CLIPSEnvironment(env);
 			EnvReset(env);
 			CLIPSPassHeader* header = (CLIPSPassHeader*)getIndirectPassHeader();
-			char* passes = CharBuffer(strlen(header->passes) + 64);
-			sprintf(passes,"(passes %s)", header->passes);
+			char* passes = CharBuffer(strlen(header->getPasses()) + 64);
+			sprintf(passes,"(passes %s)", header->getPasses());
 			EnvAssertString(env, passes);
 			free(passes);
 
 			KnowledgeConstructor tmp;
-			tmp.route(module);
+			tmp.route(&module);
 			clEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
+         llvm::PassRegistry* registry = llvm::PassRegistry::getPassRegistry();
 			llvm::PassManager manager;
 			const llvm::PassInfo* ci = registry->getPassInfo(
 						llvm::StringRef("function-to-knowledge"));
@@ -29,7 +34,7 @@ namespace pipeline {
 			copy->setSkipRegions(!header->needsRegions());
 			manager.add(copy);
 			//need to have the conversion code
-			manager.run(&module);
+			manager.run(module);
 			//TODO: put in the line to build the actual knowledge
 			EnvRun(env, -1L);
 			//it's up to the code in the expert system to make changes
@@ -42,8 +47,8 @@ namespace pipeline {
 			CLIPSEnvironment* clEnv = new CLIPSEnvironment(env);
 			EnvReset(env);
 			CLIPSPassHeader* header = (CLIPSPassHeader*)getIndirectPassHeader();
-			char* passes = CharBuffer(strlen(header->passes) + 64);
-			sprintf(passes,"(passes %s)", header->passes);
+			char* passes = CharBuffer(strlen(header->getPasses()) + 64);
+			sprintf(passes,"(passes %s)", header->getPasses());
 			EnvAssertString(env, passes);
 			free(passes);
 			KnowledgeConstructor tmp;
@@ -72,8 +77,8 @@ namespace pipeline {
 			CLIPSEnvironment* clEnv = new CLIPSEnvironment(env);
 			EnvReset(env);
 			CLIPSPassHeader* header = (CLIPSPassHeader*)getIndirectPassHeader();
-			char* passes = CharBuffer(strlen(header->passes) + 64);
-			sprintf(passes,"(passes %s)", header->passes);
+			char* passes = CharBuffer(strlen(header->getPasses()) + 64);
+			sprintf(passes,"(passes %s)", header->getPasses());
 			EnvAssertString(env, passes);
 			free(passes);
 			KnowledgeConstructor tmp;
@@ -90,8 +95,8 @@ namespace pipeline {
 			CLIPSEnvironment* clEnv = new CLIPSEnvironment(env);
 			EnvReset(env);
 			CLIPSPassHeader* header = (CLIPSPassHeader*)getIndirectPassHeader();
-			char* passes = CharBuffer(strlen(header->passes) + 64);
-			sprintf(passes,"(passes %s)", header->passes);
+			char* passes = CharBuffer(strlen(header->getPasses()) + 64);
+			sprintf(passes,"(passes %s)", header->getPasses());
 			EnvAssertString(env, passes);
 			free(passes);
 			KnowledgeConstructor tmp;
@@ -109,8 +114,8 @@ namespace pipeline {
 			CLIPSEnvironment* clEnv = new CLIPSEnvironment(env);
 			EnvReset(env);
 			CLIPSPassHeader* header = (CLIPSPassHeader*)getIndirectPassHeader();
-			char* passes = CharBuffer(strlen(header->passes) + 64);
-			sprintf(passes,"(passes %s)", header->passes);
+			char* passes = CharBuffer(strlen(header->getPasses()) + 64);
+			sprintf(passes,"(passes %s)", header->getPasses());
 			EnvAssertString(env, passes);
 			free(passes);
 			KnowledgeConstructor tmp;
