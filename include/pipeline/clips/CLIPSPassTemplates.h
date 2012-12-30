@@ -46,7 +46,7 @@ namespace pipeline {
             CLIPSCallGraphSCCPass(char& id);
             using IndirectCallGraphSCCPass::runOnSCC;
             virtual bool runOnSCC(llvm::CallGraphSCC& scc);
-      }
+      };
    }
 }
 
