@@ -8,6 +8,6 @@ DURANDAL_LEVEL=..
 #
 # List all of the subdirectories that we will compile.
 #
-DIRS=clips ExpertSystem rampancy indirect core
+DIRS=clips ExpertSystem rampancy indirect core pipeline
 
 include $(DURANDAL_LEVEL)/Makefile
