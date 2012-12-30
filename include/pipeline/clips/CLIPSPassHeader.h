@@ -12,30 +12,18 @@ namespace pipeline {
        * specific to dynamic CLIPS passes.
        */
       class CLIPSPassHeader : public IndirectPassHeader {
-         public:
-            typedef llvm::SmallVector<char*, 64> LoadPathVector;
-            typedef llvm::SmallVector<char*, 32> PassNameVector;
          private:
-            LoadPathVector loadPaths;
-            PassNameVector passNames;
-            char* onLoadString;
+				char* passes;
             bool needRegions;
             bool needLoops;
          public:
             CLIPSPassHeader();
-            char* getOnLoadString();
-            void setOnLoadString(char* value);
             bool needsRegions();
             void setNeedsRegions(bool v);
             bool needsLoops();
             void setNeedsLoops(bool v);
-            void addLoadPath(char* path);
-            void addLoadPath(const char* path);
-            void addLoadPath(llvm::StringRef path);
-            void addPassName(char* path);
-            void addPassName(const char* path);
-            void addPassName(llvm::StringRef path);
-            void applyToEnvironment(void* theEnv);
+				char* getPasses();
+				void setPasses(char* passes);
       };
    }
 }
