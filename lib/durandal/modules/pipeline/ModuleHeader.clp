@@ -38,4 +38,5 @@
  (import types ?ALL)
  (export ?ALL))
 
+(load* "modules/pipeline/PassDescriptor.clp")
 (load* "modules/pipeline/PassHandler.clp")

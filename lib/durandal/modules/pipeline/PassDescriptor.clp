@@ -24,28 +24,9 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; PassHandler.clp - Contains the logic necessary to handle pass execution
+; PassDescriptor.clp - Describes the order of passes that must be executed by
+; the pipeline
 ;------------------------------------------------------------------------------
-(defrule pipeline::build-pass-descriptor
-			?fct <- (message (to pipeline) 
-								  (action pass-description) 
-								  (arguments $?passes))
-			=>
-			(retract ?fct)
-			(make-instance of PassDescriptor (passes $?passes)))
-;------------------------------------------------------------------------------
-(defrule pipeline::next-pass
-			?obj <- (object (is-a PassDescriptor) (passes ?first $?rest))
-			=>
-			(assert (message (from pipeline) (to ?first) (action initial-fact)))
-			(modify-instance ?obj (passes $?rest))
-			;remove what is currently on the focus stack
-			(pop-focus)
-			(focus ?first pipeline))
-;------------------------------------------------------------------------------
-(defrule pipeline::terminate-pass
-			?obj <- (object (is-a PassDescriptor) (passes))
-			=>
-			(unmake-instanec ?obj)
-			(pop-focus))
+(defclass PassDescriptor (is-a Object)
+ (multislot passes))
 ;------------------------------------------------------------------------------
