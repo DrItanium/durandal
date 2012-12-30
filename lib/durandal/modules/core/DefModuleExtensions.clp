@@ -24,41 +24,11 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; ModuleHeader.clp - Contains the entry point into the core module. 
+; DefModuleExtensions.clp - Contains several functions meant to expand on the
+; behavior of the module system provided by CLIPS
 ;------------------------------------------------------------------------------
-; In CLIPS, modules are defined BEFORE their corresponding contents are defined
-; so this file doubles as a loader as well. Absolute paths must be used because 
-; CLIPS does not understand the concept of partial paths. 
-;
-; If you want to change the layout of this module then you must update these
-; paths. Failure to do so will cause the optimization to not work correctly.
+(deffunction core::defmodule-exists 
+				 "Checks to see if the given name is a defined module"
+				 (?name)
+				 (return (member$ ?name (get-defmodule-list))))
 ;------------------------------------------------------------------------------
-
-(defmodule core 
-			  ; Modify this export to add more classes
-			  ; Just remember that these three classes are pretty critical to the rest of
-			  ; the optimization
-			  (export defclass ?ALL) 
-			  ; Modify this export to add more functions to be exposed
-			  ; I would advise against removing these functions
-			  (export deffunction ?ALL))
-
-(load* "modules/core/Object.clp")
-(load* "modules/core/ParentedObject.clp")
-(load* "modules/core/InteropObject.clp")
-(load* "modules/core/Hint.clp")
-(load* "modules/core/List.clp")
-(load* "modules/core/ParentedHint.clp")
-(load* "modules/core/ParentedList.clp")
-(load* "modules/core/Environment.clp")
-; Add more defclasses here
-; The programmer is responsible for ordering the load statements so that
-; class dependencies are met
-(load* "modules/core/SetExtensions.clp")
-(load* "modules/core/DefModuleExtensions.clp")
-; Add more deffunctions here
-; The programmer is responsible for ordering the load statements so that
-; function dependencies are met
-
-
-
