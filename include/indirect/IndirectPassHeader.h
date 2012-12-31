@@ -53,7 +53,6 @@ namespace indirect {
           * create a pass.
           */
 			const char* getTemplateSet();
-			void setPassType(char* name);
          void setPassType(IndirectPassHeader::IndirectPassType type);
          IndirectPassHeader::IndirectPassType getPassType();
    };
