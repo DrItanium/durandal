@@ -3,6 +3,8 @@
 #include "llvm/PassRegistry.h"
 #include "ExpertSystem/KnowledgeConstructionEngine.h"
 #include "pipeline/clips/CLIPSPassGenerator.h"
+#include "pipeline/clips/CLIPSPass.h"
+#include "pipeline/clips/CLIPSPassHeader.h"
 #include "rampancy/Cortex.h"
 #include "rampancy/CompilerManager.h"
 #include "rampancy/CompilerRegistry.h"
@@ -69,8 +71,8 @@ void CLIPSRegisterPass(void* theEnv) {
 	void* preserved;
 	DATA_OBJECT arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, 
 					arg10, arg11, arg12;
-	char *tmp0, *tmp1, *tmp2, *tmp3, *tmp4, *tmp5, *tmp5, *tmp6, *tmp7, *tmp8,
-		  *tmp9;
+	char *tmp0, *tmp1, *tmp2, *tmp3, *tmp4, *tmp5, *tmp6, *tmp7, *tmp8, *tmp9,
+		  *tmp10;
 	char* pArg;
 	char* pName;
 	bool isAnalysis, isCFG, 
@@ -86,13 +88,13 @@ void CLIPSRegisterPass(void* theEnv) {
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, register_pass, 1, STRING_OR_SYMBOL, &arg0) == FALSE) {
+	if(EnvArgTypeCheck(theEnv, register_pass, 1, SYMBOL_OR_STRING, &arg0) == FALSE) {
 		return;
 	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 2, STRING_OR_SYMBOL, &arg1) == FALSE) {
+	if(EnvArgTypeCheck(theEnv, register_pass, 2, SYMBOL_OR_STRING, &arg1) == FALSE) {
 		return;
 	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 3, STRING_OR_SYMBOL, &arg2) == FALSE) {
+	if(EnvArgTypeCheck(theEnv, register_pass, 3, SYMBOL_OR_STRING, &arg2) == FALSE) {
 		return;
 	}
 	if(EnvArgTypeCheck(theEnv, register_pass, 4, SYMBOL, &arg3) == FALSE) {
@@ -127,10 +129,10 @@ void CLIPSRegisterPass(void* theEnv) {
 	}
 	tmp0 = DOToString(arg0);
 	copy(tmp0, pArg);
-	header->setPassName((const char*)pArg, true);
+	header->setPassName((const char*)pArg);
 	tmp1 = DOToString(arg1);
 	copy(tmp1, pName);
-	header->setPassDescription((const char*)pName, true);
+	header->setPassDescription((const char*)pName);
 	tmp2 = DOToString(arg2);
 	copy(tmp2, type);
 	header->setPassType(type);
@@ -146,14 +148,17 @@ void CLIPSRegisterPass(void* theEnv) {
 	tmp6 = DOToString(arg6);
 	BoolCast(tmp6, needLoops);
 	header->setNeedsLoops(needLoops);
-	l0 = (long long)GetDOLength(arg7);
-	l1 = (long long)GetDOLength(arg8);
-	aUsage = GetValue(arg7);
+	//l0 = (long long)GetDOLength(arg7);
+	//l1 = (long long)GetDOLength(arg8);
+	//aUsage = GetValue(arg7);
 
 
 
    IndirectPassRegistry& indirectRegistry = *IndirectPassRegistry::getIndirectPassRegistry();
 	indirectRegistry.registerIndirectPassHeader(header);
+	free(pArg);
+	free(pName);
+	free(type);
 
 }
 
@@ -169,7 +174,7 @@ void* CLIPSPassRegistered(void* theEnv) {
 		return FalseSymbol();
 	}
 
-	if(EnvArgTypeCheck(theEnv, pass_registered, 1, STRING_OR_SYMBOL, &arg0) == FALSE) {
+	if(EnvArgTypeCheck(theEnv, pass_registered, 1, SYMBOL_OR_STRING, &arg0) == FALSE) {
 		return FalseSymbol();
 	}
 	a = DOToString(arg0);
