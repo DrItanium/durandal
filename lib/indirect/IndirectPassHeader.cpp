@@ -6,20 +6,24 @@ namespace indirect {
 
    }
 
+	IndirectPassHeader::~IndirectPassHeader() {
+	}
+
    const char* IndirectPassHeader::getPassDescription() {
-      return passDescription;
+      return passDescription.c_str();
    }
-   void IndirectPassHeader::setPassDescription(const char* passDesc) {
-      passDescription = passDesc;
-   }
+	void IndirectPassHeader::setPassDescription(const char* passDesc) {
+		std::string tmp(passDesc);
+		passDescription = tmp;
+	}
 
    const char* IndirectPassHeader::getPassName() {
-      return passName;
+      return passName.c_str();
    }
-
-   void IndirectPassHeader::setPassName(const char* passNm) {
-      passName = passNm;
-   }
+	void IndirectPassHeader::setPassName(const char* passNm) {
+		std::string tmp(passNm);
+		passDescription = tmp;
+	}
 
    void IndirectPassHeader::setIsCFGOnlyPass(bool isCFGOnly) {
       isCFGOnlyPass = isCFGOnly;
@@ -46,11 +50,12 @@ namespace indirect {
    }
 
    void IndirectPassHeader::setTemplateSet(const char* templateSt) {
-      templateSet = templateSt;
+		std::string tmp (templateSet);
+		templateSet = tmp;
    }
 
    const char* IndirectPassHeader::getTemplateSet() {
-      return templateSet;
+      return templateSet.c_str();
    }
 
    void IndirectPassHeader::setPassType(

@@ -26,22 +26,20 @@ namespace indirect {
             PassTypeCount
          };
       private:
-         const char* passDescription; //full name
-         const char* passName; //registrationName
+			std::string passDescription; //full name
+			std::string passName; //registrationName
+			std::string templateSet;
          bool isCFGOnlyPass;
          bool isAnalysis;
          bool isAnalysisGroup;
-			bool deletePassDescription;
-			bool deletePassName;
-         const char* templateSet;
          IndirectPassType passType;
       public:
          IndirectPassHeader();
 			~IndirectPassHeader();
-         const char* getPassDescription();
-         void setPassDescription(const char* description, bool copy = false);
-         const char* getPassName();
-         void setPassName(const char* name, bool copy = false);
+			const char* getPassDescription();
+         void setPassDescription(const char* description);
+			const char* getPassName();
+         void setPassName(const char* name);
          void setIsCFGOnlyPass(bool isCFGOnly);
          bool getIsCFGOnlyPass();
          void setIsAnalysis(bool isAnalysisPass);
@@ -54,7 +52,7 @@ namespace indirect {
           * provide this will cause an assertion to occur when attempting to
           * create a pass.
           */
-         const char* getTemplateSet();
+			const char* getTemplateSet();
 			void setPassType(char* name);
          void setPassType(IndirectPassHeader::IndirectPassType type);
          IndirectPassHeader::IndirectPassType getPassType();
