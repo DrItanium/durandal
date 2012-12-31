@@ -239,7 +239,23 @@ void CLIPSRegisterPass(void* theEnv) {
 }
 
 void CLIPSUnregisterPass(void* theEnv) {
+/* This function takes in one argument
+ * 1) passArg (string)
+ */
+	DATA_OBJECT arg0;
+	char* tmp;
+	if(EnvArgCountCheck(theEnv, unregister_pass, EXACTLY, 1) == -1) {
+		return;
+	}
 
+	if(EnvArgTypeCheck(theEnv, unregister_pass, 1, SYMBOL_OR_STRING, &arg0) == FALSE) {
+		return;
+	}
+	tmp = DOToString(arg0);
+	std::string c(tmp);
+	//this will also deregister the pass from the llvm::PassRegistry as well.
+   IndirectPassRegistry& indirectRegistry = *IndirectPassRegistry::getIndirectPassRegistry();
+	indirectRegistry.unregisterIndirectPassHeader(llvm::StringRef(c.c_str()));
 }
 
 void* CLIPSPassRegistered(void* theEnv) {
