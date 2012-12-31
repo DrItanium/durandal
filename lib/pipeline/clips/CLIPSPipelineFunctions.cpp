@@ -1,6 +1,13 @@
 #include "llvm/Pass.h"
 #include "llvm/PassManager.h"
 #include "llvm/PassRegistry.h"
+#include "llvm/Target/TargetData.h"
+#include "llvm/Target/TargetLibraryInfo.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/LinkAllPasses.h"
+#include "llvm/LinkAllVMCore.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/ADT/Triple.h"
 #include "ExpertSystem/KnowledgeConstructionEngine.h"
 #include "pipeline/clips/CLIPSPassGenerator.h"
 #include "pipeline/clips/CLIPSPass.h"
@@ -10,6 +17,8 @@
 #include "rampancy/CompilerRegistry.h"
 #include "indirect/Indirector.h"
 #include "llvm/Support/raw_ostream.h"
+#include "ExpertSystem/Types.h"
+
 
 extern "C" {
 #include "clips.h"
@@ -50,7 +59,114 @@ extern "C" void RegisterCLIPSPipelineFunctions(void* theEnv) {
 }
 
 void CLIPSOptimizeCode(void* theEnv) {
+	/* optimize has the following arguments
+	 * 1) pointer to the module that we are going to use (integer)
+	 * 2) Base optimization level (0-3) (integer)
+	 * 3) List of passes to add (multifield)
+	 * RETURNS: Nothing
+	 */
+	DATA_OBJECT modulePointerDO,
+					baseOptLevelDO,
+					passesDO;
+	void* passesMultifield;
+	int passesEnd, passesLength;
+	if(EnvArgCountCheck(theEnv, optimize, EXACTLY, 3) == -1) {
+		return;
+	}
 
+	if(EnvArgTypeCheck(theEnv, optimize, 1, INTEGER, &modulePointerDO) == FALSE) {
+		return;
+	}
+
+	if(EnvArgTypeCheck(theEnv, optimize, 2, INTEGER, &baseOptLevelDO) == FALSE) {
+		return;
+	}
+
+	if(EnvArgTypeCheck(theEnv, optimize, 3, MULTIFIELD, &passesDO) == FALSE) {
+		return;
+	}
+	//can be really unsafe :D, eventually I'll want to replace this with EXTERNAL_ADDRESSES
+	llvm::Module* module = (llvm::Module*)(PointerAddress)DOToLong(modulePointerDO);
+	int value = DOToInteger(baseOptLevelDO);
+	//normalize the value automatically
+	if(value < 0) {
+		value = 0;
+	} 
+	if(value > 3) {
+		value = 3;
+	}
+
+	passesLength = GetDOLength(passesDO);
+	if(passesLength > 0) {
+		llvm::PassManager tmpPassManager;
+		llvm::PassManagerBuilder builder;
+		//taken from opt
+		llvm::TargetLibraryInfo *tli = 
+			new llvm::TargetLibraryInfo(llvm::Triple(module->getTargetTriple()));
+		tmpPassManager.add(tli);
+		llvm::TargetData *td = 0;
+		const std::string &moduleDataLayout = module->getDataLayout();
+		if(!moduleDataLayout.empty()) {
+			td = new llvm::TargetData(moduleDataLayout);
+		}
+		if(td) {
+			tmpPassManager.add(td);
+		}
+		llvm::PassManager& PM = tmpPassManager;
+		builder.OptLevel = value;
+		builder.DisableSimplifyLibCalls = false;
+		builder.populateModulePassManager(PM);
+		//let's see if this fixes the issue
+		llvm::PassRegistry& registry = *llvm::PassRegistry::getPassRegistry();
+		IndirectPassRegistry& indirectRegistry = *IndirectPassRegistry::getIndirectPassRegistry();
+		passesMultifield = GetValue(passesDO);
+		passesEnd = GetDOEnd(passesDO);
+		for(int i = GetDOBegin(passesDO); i <= passesEnd; ++i) {
+			if(GetMFType(passesMultifield, i) == SYMBOL_OR_STRING) {
+				/* There are two groups of passes: Indirect and Native
+				 * 
+				 * Native passes are those that were defined in C++ using the
+				 * standard mechanisms provided by LLVM. 
+				 *
+				 * Indirect passes are those that were defined using libindirect.
+				 * In this context, an indirect pass is one written in CLIPS but
+				 * registered in the llvm::PassManager. 
+				 *
+				 * There is a catch, since indirect passes do not have a default
+				 * constructor it is necessary to determine if a pass is an
+				 * indirect one so it can be constructed. 
+				 *
+				 * This is actually really easy to do because of the indirect pass
+				 * registry. A native pass is a pass that is registered in the
+				 * llvm::PassRegistry and not in the IndirectPassRegistry. 
+				 *
+				 * An indirect pass is a pass that is registered in both the
+				 * llvm::PassRegistry and the IndirectPassRegistry. 
+				 */
+				char* tmpName = ValueToString(GetMFValue(passesMultifield, i));
+				std::string c(tmpName);
+
+				IndirectPassHeader* header = indirectRegistry.getIndirectPassHeader(c.c_str());
+				if(header) { //It is an indirect header
+					llvm::Pass* p = indirectRegistry.createPass(llvm::StringRef(c.c_str()));
+					//we know it's a CLIPS pass
+					pipeline::clips::CLIPSPass* tmpPass = (pipeline::clips::CLIPSPass*)p;
+					tmpPass->setEnvironment(theEnv);
+					PM.add(p);
+				} else { //it isn't an indirect header (native)
+					const llvm::PassInfo* pass = registry.getPassInfo(llvm::StringRef(c.c_str()));
+					PM.add(pass->createPass());
+				}
+				//regardless of pass type, we should add a verifier pass after it.	
+				PM.add(llvm::createVerifierPass());
+			} 
+		}
+		PM.run(*module);
+	} else {
+		EnvPrintRouter(theEnv, werror,
+				msg("ERROR: No passes provided to be executed!\n"));
+		return;
+	}
 }
 
 void CLIPSRegisterPass(void* theEnv) {
@@ -102,7 +218,7 @@ void CLIPSRegisterPass(void* theEnv) {
 		 requiredLength, 
 		 requiredTransitiveLength, 
 		 preservedLength,
-	    passesEnd,
+		 passesEnd,
 		 requiredEnd,
 		 requiredTransitiveEnd,
 		 preservedEnd;
@@ -234,14 +350,14 @@ void CLIPSRegisterPass(void* theEnv) {
 		}
 	}
 	//Once everything is done, register it with the indirect pass registry
-   IndirectPassRegistry& indirectRegistry = *IndirectPassRegistry::getIndirectPassRegistry();
+	IndirectPassRegistry& indirectRegistry = *IndirectPassRegistry::getIndirectPassRegistry();
 	indirectRegistry.registerIndirectPassHeader(header);
 }
 
 void CLIPSUnregisterPass(void* theEnv) {
-/* This function takes in one argument
- * 1) passArg (string)
- */
+	/* This function takes in one argument
+	 * 1) passArg (string)
+	 */
 	DATA_OBJECT arg0;
 	char* tmp;
 	if(EnvArgCountCheck(theEnv, unregister_pass, EXACTLY, 1) == -1) {
@@ -253,9 +369,22 @@ void CLIPSUnregisterPass(void* theEnv) {
 	}
 	tmp = DOToString(arg0);
 	std::string c(tmp);
-	//this will also deregister the pass from the llvm::PassRegistry as well.
-   IndirectPassRegistry& indirectRegistry = *IndirectPassRegistry::getIndirectPassRegistry();
-	indirectRegistry.unregisterIndirectPassHeader(llvm::StringRef(c.c_str()));
+	IndirectPassRegistry& indirectRegistry = *IndirectPassRegistry::getIndirectPassRegistry();
+	IndirectPassHeader* header = indirectRegistry.getIndirectPassHeader(c.c_str());
+	if(header) {
+		//this will also deregister the pass from the llvm::PassRegistry as well.
+		indirectRegistry.unregisterIndirectPassHeader(llvm::StringRef(c.c_str()));
+	} else {
+		llvm::PassRegistry& registry = *llvm::PassRegistry::getPassRegistry();
+		const llvm::PassInfo* ci = registry.getPassInfo(llvm::StringRef(c.c_str()));
+		if(ci) {
+			registry.unregisterPass(*ci);
+		} else {
+			EnvPrintRouter(theEnv, werror, msg("ERROR: target pass "));
+			EnvPrintRouter(theEnv, werror, (char*)c.c_str());
+			EnvPrintRouter(theEnv, werror, msg(" does not exist!\n"));
+		}
+	}
 }
 
 void* CLIPSPassRegistered(void* theEnv) {
@@ -300,39 +429,20 @@ IndirectPassHeader::IndirectPassType TranslateInput(char* input) {
 	}
 }
 /*
-	llvm::PassManager tmpPassManager;
-	llvm::PassManagerBuilder builder;
-//taken from opt
-llvm::TargetLibraryInfo *tli = 
-new llvm::TargetLibraryInfo(llvm::Triple(module->getTargetTriple()));
-tmpPassManager.add(tli);
-llvm::TargetData *td = 0;
-const std::string &moduleDataLayout = module->getDataLayout();
-if(!moduleDataLayout.empty())
-td = new llvm::TargetData(moduleDataLayout);
-if(td)
-tmpPassManager.add(td);
-llvm::PassManager& PM = tmpPassManager;
-//add em all!
-builder.OptLevel = 2;
-builder.DisableSimplifyLibCalls = false;
-builder.populateModulePassManager(PM);
-//let's see if this fixes the issue
-llvm::PassRegistry* registry = llvm::PassRegistry::getPassRegistry();
-const llvm::PassInfo* ci = registry->getPassInfo(
-llvm::StringRef("function-to-knowledge"));
-const llvm::PassInfo* ls = registry->getPassInfo(
-llvm::StringRef("loop-simplify"));
-const llvm::PassInfo* bce = registry->getPassInfo(
-llvm::StringRef("break-crit-edges"));
-ExpertSystem::FunctionKnowledgeConversionPass* copy = 
-(ExpertSystem::FunctionKnowledgeConversionPass*)ci->createPass();
-copy->setEnvironment(tEnv);
-tmpPassManager.add(ls->createPass());
-tmpPassManager.add(bce->createPass());
-tmpPassManager.add(copy);
-tmpPassManager.add(llvm::createVerifierPass());
-tmpPassManager.run(*module);
+	const llvm::PassInfo* ci = registry->getPassInfo(
+	llvm::StringRef("function-to-knowledge"));
+	const llvm::PassInfo* ls = registry->getPassInfo(
+	llvm::StringRef("loop-simplify"));
+	const llvm::PassInfo* bce = registry->getPassInfo(
+	llvm::StringRef("break-crit-edges"));
+	ExpertSystem::FunctionKnowledgeConversionPass* copy = 
+	(ExpertSystem::FunctionKnowledgeConversionPass*)ci->createPass();
+	copy->setEnvironment(tEnv);
+	tmpPassManager.add(ls->createPass());
+	tmpPassManager.add(bce->createPass());
+	tmpPassManager.add(copy);
+	tmpPassManager.add(llvm::createVerifierPass());
+	tmpPassManager.run(*module);
 
 */
 namespace pipeline {
