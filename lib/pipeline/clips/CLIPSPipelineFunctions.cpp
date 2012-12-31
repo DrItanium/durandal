@@ -35,14 +35,18 @@ sprintf(to, "%s", from)
 
 extern "C" void RegisterCLIPSPipelineFunctions(void* theEnv) {
 	EnvDefineFunction(theEnv, optimize, 'v',
-			PTIEF CLIPSOptimizeCode, "CLIPSOptimizeCode");
+			PTIEF CLIPSOptimizeCode, 
+			msg("CLIPSOptimizeCode"));
 	EnvDefineFunction(theEnv, register_pass, 'v',
-			PTIEF CLIPSRegisterPass, "CLIPSRegisterPass");
+			PTIEF CLIPSRegisterPass, 
+			msg("CLIPSRegisterPass"));
 	EnvDefineFunction(theEnv, unregister_pass, 'v',
-			PTIEF CLIPSUnregisterPass, "CLIPSUnregisterPass");
+			PTIEF CLIPSUnregisterPass, 
+			msg("CLIPSUnregisterPass"));
 	EnvDefineFunction2(theEnv, pass_registered, 'w', 
-			PTIEF CLIPSPassRegistered, "CLIPSPassRegistered", 
-			"11k");
+			PTIEF CLIPSPassRegistered, 
+			msg("CLIPSPassRegistered"),
+			msg("11k"));
 }
 
 void CLIPSOptimizeCode(void* theEnv) {
@@ -66,101 +70,172 @@ void CLIPSRegisterPass(void* theEnv) {
 	 * 13) preservesCFG (bool);
 	 */
 
-	void* passes;
-	void* required;
-	void* requiredTransitive;
-	void* preserved;
-	DATA_OBJECT arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, 
-					arg10, arg11, arg12;
-	char *tmp0, *tmp1, *tmp2, *tmp3, *tmp4, *tmp5, *tmp6, *tmp7, *tmp8, *tmp9,
-		  *tmp10;
-	char* pArg;
-	char* pName;
-	bool isAnalysis, isCFG, 
-		  needRegions, needLoops,
-		  preservesAll, preservesCFG;
-	char* type;
-	long long l0, l1, l2, l3;
-	std::string tmp;
-	raw_string_ostream stream(tmp);
+	DATA_OBJECT nameDO, 
+					descDO, 
+					typeDO, 
+					isAnalysisDO, 
+					isCFGDO,
+					needRegionsDO,
+					needLoopsDO,
+					passesDO,
+					requiredDO,
+					requiredTransitiveDO,
+					preservedDO,
+					preservesAllDO,
+					preservesCFGDO;
+	char *nameTmp,
+		  *descTmp,
+		  *typeTmp,
+		  *isAnalysisTmp,
+		  *isCFGTmp,
+		  *needRegionsTmp,
+		  *needLoopsTmp,
+		  *preservesAllTmp,
+		  *preservesCFGTmp;
+	bool isAnalysis, 
+		  isCFG, 
+		  needRegions, 
+		  needLoops,
+		  preservesAll, 
+		  preservesCFG;
+	int passesLength, 
+		 requiredLength, 
+		 requiredTransitiveLength, 
+		 preservedLength,
+	    passesEnd,
+		 requiredEnd,
+		 requiredTransitiveEnd,
+		 preservedEnd;
+	void *passesMultifield,
+		  *requiredMultifield,
+		  *requiredTransitiveMultifield,
+		  *preservedMultifield;
 	pipeline::clips::CLIPSPassHeader* header = new pipeline::clips::CLIPSPassHeader();
 	header->setTemplateSet("clips");
-	if(EnvArgCountCheck(theEnv, register_pass, EXACTLY, 13) == -1) {
-		return;
-	}
+	if(EnvArgCountCheck(theEnv, register_pass, EXACTLY, 13) == -1) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 1, SYMBOL_OR_STRING, &nameDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 2, SYMBOL_OR_STRING, &descDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 3, SYMBOL_OR_STRING, &typeDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 4, SYMBOL, &isAnalysisDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 5, SYMBOL, &isCFGDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 6, SYMBOL, &needRegionsDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 7, SYMBOL, &needLoopsDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 8, MULTIFIELD, &passesDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 9, MULTIFIELD, &requiredDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 10, MULTIFIELD, &requiredTransitiveDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 11, MULTIFIELD, &preservedDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 12, SYMBOL, &preservesAllDO) == FALSE) { return; }
+	if(EnvArgTypeCheck(theEnv, register_pass, 13, SYMBOL, &preservesCFGDO) == FALSE) { return; }
 
-	if(EnvArgTypeCheck(theEnv, register_pass, 1, SYMBOL_OR_STRING, &arg0) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 2, SYMBOL_OR_STRING, &arg1) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 3, SYMBOL_OR_STRING, &arg2) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 4, SYMBOL, &arg3) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 5, SYMBOL, &arg4) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 6, SYMBOL, &arg5) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 7, SYMBOL, &arg6) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 8, MULTIFIELD, &arg7) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 9, MULTIFIELD, &arg8) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 10, MULTIFIELD, &arg9) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 11, MULTIFIELD, &arg10) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 12, SYMBOL, &arg11) == FALSE) {
-		return;
-	}
-	if(EnvArgTypeCheck(theEnv, register_pass, 13, SYMBOL, &arg12) == FALSE) {
-		return;
-	}
-	tmp0 = DOToString(arg0);
-	copy(tmp0, pArg);
-	header->setPassName((const char*)pArg);
-	tmp1 = DOToString(arg1);
-	copy(tmp1, pName);
-	header->setPassDescription((const char*)pName);
-	tmp2 = DOToString(arg2);
-	copy(tmp2, type);
-	header->setPassType(TranslateInput(type));
-	tmp3 = DOToString(arg3);
-	BoolCast(tmp3, isAnalysis);
+	nameTmp = DOToString(nameDO);
+	header->setPassName((const char*)nameTmp);
+
+	descTmp = DOToString(descDO);
+	header->setPassDescription((const char*)descTmp);
+
+	typeTmp = DOToString(typeDO);
+	header->setPassType(TranslateInput(typeTmp));
+
+	isAnalysisTmp = DOToString(isAnalysisDO);
+	BoolCast(isAnalysisTmp, isAnalysis);
 	header->setIsAnalysis(isAnalysis);
-	tmp4 = DOToString(arg4);
-	BoolCast(tmp4, isCFG);
+
+	isCFGTmp = DOToString(isCFGDO);
+	BoolCast(isCFGTmp, isCFG);
 	header->setIsCFGOnlyPass(isCFG);
-	tmp5 = DOToString(arg5);
-	BoolCast(tmp5, needRegions);
+
+	needRegionsTmp = DOToString(needRegionsDO);
+	BoolCast(needRegionsTmp, needRegions);
 	header->setNeedsRegions(needRegions);
-	tmp6 = DOToString(arg6);
-	BoolCast(tmp6, needLoops);
+
+	needLoopsTmp = DOToString(needLoopsDO);
+	BoolCast(needLoopsTmp, needLoops);
 	header->setNeedsLoops(needLoops);
-	//l0 = (long long)GetDOLength(arg7);
-	//l1 = (long long)GetDOLength(arg8);
-	//aUsage = GetValue(arg7);
 
+	preservesAllTmp = DOToString(preservesAllDO);
+	BoolCast(preservesAllTmp, preservesAll);
+	header->setPreservesAll(preservesAllTmp);
 
+	preservesCFGTmp = DOToString(preservesCFGDO);
+	BoolCast(preservesCFGTmp, preservesCFG);
+	header->setPreservesCFG(preservesCFG);
 
+	passesLength = GetDOLength(passesDO);
+	if(passesLength > 0) {
+		passesMultifield = GetValue(passesDO);
+		std::string t0;
+		raw_string_ostream passesStream(t0);
+		passesEnd = GetDOEnd(passesDO);
+		char* passesTmpPtr;
+		for(int i = GetDOBegin(passesDO); i <= passesEnd; ++i) {
+			if(GetMFType(passesMultifield, i) == SYMBOL) {
+				passesTmpPtr = ValueToString(GetMFValue(passesMultifield, i));
+				passesStream << passesTmpPtr << " ";
+			} else {
+				EnvPrintRouter(theEnv, werror,
+						msg("ERROR: provided a pass name that wasn't a symbol!\n"));
+				return;
+			}
+		}
+		header->setPasses(passesStream.str().c_str());
+	} else {
+		header->setPasses((const char*)DOToString(nameDO));
+	}
+
+	requiredLength = GetDOLength(requiredDO);
+	if(requiredLength > 0) {
+		requiredMultifield = GetValue(requiredDO);
+		requiredEnd = GetDOEnd(requiredDO);
+		for(int i = GetDOBegin(requiredDO); i <= requiredEnd; ++i) {
+			if(GetMFType(requiredMultifield, i) == SYMBOL) {
+				char* tmpPtr = ValueToString(GetMFValue(requiredMultifield, i)); 
+				std::string c(tmpPtr);
+				header->addRequired(c.c_str());
+			} else {
+				EnvPrintRouter(theEnv, werror,
+						msg("ERROR: provided a required analysis pass that wasn't a symbol!\n"));
+				return;
+			}
+		}
+	}
+
+	requiredTransitiveLength = GetDOLength(requiredTransitiveDO);
+	if(requiredTransitiveLength > 0) {
+		requiredTransitiveMultifield = GetValue(requiredTransitiveDO);
+		requiredTransitiveEnd = GetDOEnd(requiredTransitiveDO);
+		for(int i = GetDOBegin(requiredTransitiveDO);
+				i <= requiredTransitiveEnd; ++i) {
+			if(GetMFType(requiredTransitiveMultifield, i) == SYMBOL) {
+				char* tmpPtr = ValueToString(GetMFValue(requiredTransitiveMultifield, i));
+				std::string c(tmpPtr);
+				header->addRequiredTransitive(c.c_str());
+			} else {
+				EnvPrintRouter(theEnv, werror,
+						msg("ERROR: provided a required transitive analysis pass that wasn't a symbol!\n"));
+				return;
+			}
+		}
+	}
+
+	preservedLength = GetDOLength(preservedDO);
+	if(preservedLength > 0) {
+		preservedMultifield = GetValue(preservedDO);
+		preservedEnd = GetDOEnd(preservedDO);
+		for(int i = GetDOBegin(preservedDO); i <= preservedEnd; ++i) {
+			if(GetMFType(preservedMultifield, i) == SYMBOL) {
+				char* tmpPtr = ValueToString(GetMFValue(preservedMultifield, i));
+				std::string c(tmpPtr);
+				header->addPreserved(c.c_str());
+			} else {
+				EnvPrintRouter(theEnv, werror,
+						msg("ERROR: provided a preserved analysis pass that wasn't a symbol!\n"));
+				return;
+			}
+		}
+	}
+	//Once everything is done, register it with the indirect pass registry
    IndirectPassRegistry& indirectRegistry = *IndirectPassRegistry::getIndirectPassRegistry();
 	indirectRegistry.registerIndirectPassHeader(header);
-	free(pArg);
-	free(pName);
-	free(type);
-
 }
 
 void CLIPSUnregisterPass(void* theEnv) {
@@ -169,8 +244,7 @@ void CLIPSUnregisterPass(void* theEnv) {
 
 void* CLIPSPassRegistered(void* theEnv) {
 	DATA_OBJECT arg0;
-	char* a;
-	char* b;
+	char *a, *b;
 	if(EnvArgCountCheck(theEnv, pass_registered, EXACTLY, 1) == -1) {
 		return FalseSymbol();
 	}
