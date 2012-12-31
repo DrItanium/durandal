@@ -17,6 +17,7 @@ extern "C" {
 
 using namespace llvm;
 using namespace indirect;
+extern "C" indirect::IndirectPassHeader::IndirectPassType TranslateInput(char* input);
 extern "C" void CLIPSOptimizeCode(void* theEnv);
 extern "C" void CLIPSRegisterPass(void* theEnv);
 extern "C" void CLIPSUnregisterPass(void* theEnv);
@@ -135,7 +136,7 @@ void CLIPSRegisterPass(void* theEnv) {
 	header->setPassDescription((const char*)pName);
 	tmp2 = DOToString(arg2);
 	copy(tmp2, type);
-	header->setPassType(type);
+	header->setPassType(TranslateInput(type));
 	tmp3 = DOToString(arg3);
 	BoolCast(tmp3, isAnalysis);
 	header->setIsAnalysis(isAnalysis);
@@ -187,6 +188,25 @@ void* CLIPSPassRegistered(void* theEnv) {
 		return TrueSymbol();
 	} else {
 		return FalseSymbol();
+	}
+}
+IndirectPassHeader::IndirectPassType TranslateInput(char* input) {
+	if(strcmp(input, "Module") == 0) {
+		return IndirectPassHeader::Module;
+	} else if(strcmp(input, "Function") == 0) {
+		return IndirectPassHeader::Function;
+	} else if(strcmp(input, "BasicBlock") == 0) {
+		return IndirectPassHeader::BasicBlock;
+	} else if(strcmp(input, "Loop") == 0) {
+		return IndirectPassHeader::Loop;
+	} else if(strcmp(input, "Region") == 0) {
+		return IndirectPassHeader::Region;
+	} else if(strcmp(input, "MachineFunction") == 0) {
+		return IndirectPassHeader::MachineFunction;
+	} else if(strcmp(input, "CallGraphSCC") == 0) {
+		return IndirectPassHeader::CallGraphSCC;
+	} else {
+		return IndirectPassHeader::Unknown;
 	}
 }
 /*
