@@ -31,14 +31,17 @@ namespace indirect {
          bool isCFGOnlyPass;
          bool isAnalysis;
          bool isAnalysisGroup;
+			bool deletePassDescription;
+			bool deletePassName;
          const char* templateSet;
          IndirectPassType passType;
       public:
          IndirectPassHeader();
+			~IndirectPassHeader();
          const char* getPassDescription();
-         void setPassDescription(const char* description);
+         void setPassDescription(const char* description, bool copy = false);
          const char* getPassName();
-         void setPassName(const char* name);
+         void setPassName(const char* name, bool copy = false);
          void setIsCFGOnlyPass(bool isCFGOnly);
          bool getIsCFGOnlyPass();
          void setIsAnalysis(bool isAnalysisPass);
@@ -52,6 +55,7 @@ namespace indirect {
           * create a pass.
           */
          const char* getTemplateSet();
+			void setPassType(char* name);
          void setPassType(IndirectPassHeader::IndirectPassType type);
          IndirectPassHeader::IndirectPassType getPassType();
    };

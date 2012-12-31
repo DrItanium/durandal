@@ -16,14 +16,16 @@ namespace pipeline {
 				char* passes;
             bool needRegions;
             bool needLoops;
+				bool deletePassSet;
          public:
             CLIPSPassHeader();
+				~CLIPSPassHeader();
             bool needsRegions();
             void setNeedsRegions(bool v);
             bool needsLoops();
             void setNeedsLoops(bool v);
 				char* getPasses();
-				void setPasses(char* passes);
+				void setPasses(char* passes, bool copy = false);
       };
    }
 }
