@@ -3,7 +3,6 @@
 namespace pipeline {
 	namespace clips {
 		CLIPSPassHeader::CLIPSPassHeader() { }
-
 		bool CLIPSPassHeader::needsRegions() {
 			return needRegions;
 		}
@@ -20,12 +19,13 @@ namespace pipeline {
 			needLoops = v;
 		}
 
-		char* CLIPSPassHeader::getPasses() {
-			return passes;
+		const char* CLIPSPassHeader::getPasses() {
+			return passes.c_str();
 		}
 
-		void CLIPSPassHeader::setPasses(char* p) {
-			passes = p;	
+		void CLIPSPassHeader::setPasses(const char* p) {
+			std::string tmp(p);
+			passes = tmp;
 		}
 	}
 }

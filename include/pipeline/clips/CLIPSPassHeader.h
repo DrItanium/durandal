@@ -13,19 +13,17 @@ namespace pipeline {
        */
       class CLIPSPassHeader : public IndirectPassHeader {
          private:
-				char* passes;
+				std::string passes;
             bool needRegions;
             bool needLoops;
-				bool deletePassSet;
          public:
             CLIPSPassHeader();
-				~CLIPSPassHeader();
             bool needsRegions();
             void setNeedsRegions(bool v);
             bool needsLoops();
             void setNeedsLoops(bool v);
-				char* getPasses();
-				void setPasses(char* passes, bool copy = false);
+				const char* getPasses();
+				void setPasses(const char* passes);
       };
    }
 }
