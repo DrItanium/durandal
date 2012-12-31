@@ -177,54 +177,11 @@ namespace rampancy {
       } else {
 
          CLIPSEnvironment* tEnv = new CLIPSEnvironment(theEnv);
-         DATA_OBJECT rtn;
-         char* cmd = CharBuffer(512);
-         char* cmd2 = CharBuffer(512); 
-         EnvFunctionCall(tEnv->getEnvironment(), "gensym*", NULL, &rtn);
-         std::string gensym(DOToString(rtn));
-         sprintf(cmd, "(defmodule module-%s (import core ?ALL) (import llvm ?ALL) (export ?ALL))", gensym.c_str());
-         sprintf(cmd2, "(set-current-module module-%s)", gensym.c_str());
-         tEnv->build(cmd);
-         tEnv->eval(cmd2);
-         free(cmd);
-         free(cmd2);
          //we need to cheat a little bit and create the module here
          KnowledgeConstructor tmp;
          tmp.route(module);
+			//we only build the target module, nothing more
          tEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
-         llvm::PassManager tmpPassManager;
-         llvm::PassManagerBuilder builder;
-         //taken from opt
-         llvm::TargetLibraryInfo *tli = 
-            new llvm::TargetLibraryInfo(llvm::Triple(module->getTargetTriple()));
-         tmpPassManager.add(tli);
-         llvm::TargetData *td = 0;
-         const std::string &moduleDataLayout = module->getDataLayout();
-         if(!moduleDataLayout.empty())
-            td = new llvm::TargetData(moduleDataLayout);
-         if(td)
-            tmpPassManager.add(td);
-         llvm::PassManager& PM = tmpPassManager;
-         //add em all!
-         builder.OptLevel = 2;
-         builder.DisableSimplifyLibCalls = false;
-         builder.populateModulePassManager(PM);
-         //let's see if this fixes the issue
-         llvm::PassRegistry* registry = llvm::PassRegistry::getPassRegistry();
-         const llvm::PassInfo* ci = registry->getPassInfo(
-               llvm::StringRef("function-to-knowledge"));
-         const llvm::PassInfo* ls = registry->getPassInfo(
-               llvm::StringRef("loop-simplify"));
-         const llvm::PassInfo* bce = registry->getPassInfo(
-               llvm::StringRef("break-crit-edges"));
-         ExpertSystem::FunctionKnowledgeConversionPass* copy = 
-            (ExpertSystem::FunctionKnowledgeConversionPass*)ci->createPass();
-         copy->setEnvironment(tEnv);
-         tmpPassManager.add(ls->createPass());
-         tmpPassManager.add(bce->createPass());
-         tmpPassManager.add(copy);
-         tmpPassManager.add(llvm::createVerifierPass());
-         tmpPassManager.run(*module);
       }
    }
 }

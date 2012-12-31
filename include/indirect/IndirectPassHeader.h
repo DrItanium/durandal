@@ -11,6 +11,7 @@ namespace indirect {
    public IndirectUniqueIdentifier {
       public:
          enum IndirectPassType {
+				Unknown,
             Module,
             Function,
             BasicBlock,
@@ -26,18 +27,19 @@ namespace indirect {
             PassTypeCount
          };
       private:
-         const char* passDescription; //full name
-         const char* passName; //registrationName
+			std::string passDescription; //full name
+			std::string passName; //registrationName
+			std::string templateSet;
          bool isCFGOnlyPass;
          bool isAnalysis;
          bool isAnalysisGroup;
-         const char* templateSet;
          IndirectPassType passType;
       public:
          IndirectPassHeader();
-         const char* getPassDescription();
+			~IndirectPassHeader();
+			const char* getPassDescription();
          void setPassDescription(const char* description);
-         const char* getPassName();
+			const char* getPassName();
          void setPassName(const char* name);
          void setIsCFGOnlyPass(bool isCFGOnly);
          bool getIsCFGOnlyPass();
@@ -51,7 +53,7 @@ namespace indirect {
           * provide this will cause an assertion to occur when attempting to
           * create a pass.
           */
-         const char* getTemplateSet();
+			const char* getTemplateSet();
          void setPassType(IndirectPassHeader::IndirectPassType type);
          IndirectPassHeader::IndirectPassType getPassType();
    };
