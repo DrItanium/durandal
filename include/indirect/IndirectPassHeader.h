@@ -11,6 +11,7 @@ namespace indirect {
    public IndirectUniqueIdentifier {
       public:
          enum IndirectPassType {
+				Unknown,
             Module,
             Function,
             BasicBlock,
