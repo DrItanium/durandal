@@ -3,6 +3,18 @@ extern "C" {
 #include "clips.h" 
 }
 
+#define msg(x) (char*) x
+#define right_shift (char*)"right-shift"
+#define left_shift (char*)"left_shift"
+#define binary_and (char*)"binary-and"
+#define binary_or (char*)"binary-or"
+#define binary_xor (char*)"binary-xor"
+#define binary_not (char*)"binary-not"
+#define slice (char*)"slice"
+#define slice8 (char*)"slice8"
+#define slice4 (char*)"slice4"
+#define slice2 (char*)"slice2"
+#define merge (char*)"merge"
 //private definitions
 typedef unsigned long long longlong;
 typedef long long clipslonglong;
@@ -22,31 +34,53 @@ extern "C" long long MergeFunction(void*);
 longlong Slice(longlong w, longlong s, longlong e);
 
 void BinaryOperationsFunctionDefinitions(void* theEnv) {
-   EnvDefineFunction2(theEnv, "right-shift", 'g', PTIEF RightShiftFunction, "RightShiftFunction", "22i");
-   EnvDefineFunction2(theEnv, "left-shift", 'g', PTIEF LeftShiftFunction, "LeftShiftFunction", "22i");
-   EnvDefineFunction2(theEnv, "binary-and", 'g', PTIEF BinaryAndFunction, "BinaryAndFunction", "22i");
-   EnvDefineFunction2(theEnv, "binary-or", 'g', PTIEF BinaryOrFunction, "BinaryOrFunction", "22i");
-   EnvDefineFunction2(theEnv, "binary-xor", 'g', PTIEF BinaryXorFunction, "BinaryXorFunction", "22i");
-   EnvDefineFunction2(theEnv, "binary-not", 'g', PTIEF BinaryNotFunction, "BinaryNotFunction", "11i");
-   EnvDefineFunction2(theEnv, "slice", 'g', PTIEF SliceFunction, "SliceFunction", "33i");
-   EnvDefineFunction2(theEnv, "slice8", 'm', PTIEF Slice8Function, "Slice8Function", "11i");
-   EnvDefineFunction2(theEnv, "slice4", 'm', PTIEF Slice4Function, "Slice4Function", "11i");
-   EnvDefineFunction2(theEnv, "slice2", 'm', PTIEF Slice2Function, "Slice2Function", "11i");
-   EnvDefineFunction2(theEnv, "merge", 'g', PTIEF MergeFunction, "MergeFunction", "11m");
+   EnvDefineFunction2(theEnv, right_shift, 'g', PTIEF RightShiftFunction, 
+         msg("RightShiftFunction"), 
+         msg("22i"));
+   EnvDefineFunction2(theEnv, left_shift, 'g', PTIEF LeftShiftFunction, 
+         msg("LeftShiftFunction"), 
+         msg("22i"));
+   EnvDefineFunction2(theEnv, binary_and, 'g', PTIEF BinaryAndFunction, 
+         msg("BinaryAndFunction"), 
+         msg("22i"));
+   EnvDefineFunction2(theEnv, binary_or, 'g', PTIEF BinaryOrFunction, 
+         msg("BinaryOrFunction"), 
+         msg("22i"));
+   EnvDefineFunction2(theEnv, binary_xor, 'g', PTIEF BinaryXorFunction, 
+         msg("BinaryXorFunction"), 
+         msg("22i"));
+   EnvDefineFunction2(theEnv, binary_not, 'g', PTIEF BinaryNotFunction, 
+         msg("BinaryNotFunction"), 
+         msg("11i"));
+   EnvDefineFunction2(theEnv, slice, 'g', PTIEF SliceFunction, 
+         msg("SliceFunction"), 
+         msg("33i"));
+   EnvDefineFunction2(theEnv, slice8, 'm', PTIEF Slice8Function, 
+         msg("Slice8Function"), 
+         msg("11i"));
+   EnvDefineFunction2(theEnv, slice4, 'm', PTIEF Slice4Function, 
+         msg("Slice4Function"), 
+         msg("11i"));
+   EnvDefineFunction2(theEnv, slice2, 'm', PTIEF Slice2Function, 
+         msg("Slice2Function"), 
+         msg("11i"));
+   EnvDefineFunction2(theEnv, merge, 'g', PTIEF MergeFunction, 
+         msg("MergeFunction"), 
+         msg("11m"));
 }
 //use unsigned long long to ensure that logical shift is used instead of
 //arithmetic shift
 long long RightShiftFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    longlong a, b;
-   if(EnvArgCountCheck(theEnv,"right-shift",EXACTLY,2) == -1) {
+   if(EnvArgCountCheck(theEnv,right_shift,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,"right-shift",1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,right_shift,1,INTEGER,&arg0) == FALSE) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,"right-shift",2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,right_shift,2,INTEGER,&arg1) == FALSE) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -57,14 +91,14 @@ long long LeftShiftFunction(void* theEnv) {
 
    DATA_OBJECT arg0, arg1;
    longlong a, b;
-   if(EnvArgCountCheck(theEnv,"left-shift",EXACTLY,2) == -1) {
+   if(EnvArgCountCheck(theEnv,left_shift,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,"left-shift",1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,left_shift,1,INTEGER,&arg0) == FALSE) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,"left-shift",2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,left_shift,2,INTEGER,&arg1) == FALSE) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -75,14 +109,14 @@ long long LeftShiftFunction(void* theEnv) {
 long long BinaryAndFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    longlong a, b;
-   if(EnvArgCountCheck(theEnv,"binary-and",EXACTLY,2) == -1) {
+   if(EnvArgCountCheck(theEnv,binary_and,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,"binary-and",1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_and,1,INTEGER,&arg0) == FALSE) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,"binary-and",2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_and,2,INTEGER,&arg1) == FALSE) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -93,14 +127,14 @@ long long BinaryAndFunction(void* theEnv) {
 long long BinaryOrFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    longlong a, b;
-   if(EnvArgCountCheck(theEnv,"binary-or",EXACTLY,2) == -1) {
+   if(EnvArgCountCheck(theEnv,binary_or,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,"binary-or",1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_or,1,INTEGER,&arg0) == FALSE) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,"binary-or",2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_or,2,INTEGER,&arg1) == FALSE) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -111,14 +145,14 @@ long long BinaryOrFunction(void* theEnv) {
 long long BinaryXorFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    longlong a, b;
-   if(EnvArgCountCheck(theEnv,"binary-xor",EXACTLY,2) == -1) {
+   if(EnvArgCountCheck(theEnv,binary_xor,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,"binary-xor",1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_xor,1,INTEGER,&arg0) == FALSE) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,"binary-xor",2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_xor,2,INTEGER,&arg1) == FALSE) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -128,10 +162,10 @@ long long BinaryXorFunction(void* theEnv) {
 long long BinaryNotFunction(void* theEnv) {
    DATA_OBJECT arg0;
    longlong a;
-   if(EnvArgCountCheck(theEnv,"binary-not",EXACTLY,1) == -1) {
+   if(EnvArgCountCheck(theEnv,binary_not,EXACTLY,1) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,"binary-not",1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_not,1,INTEGER,&arg0) == FALSE) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -164,16 +198,16 @@ longlong Slice(longlong w, longlong s, longlong e) {
 long long SliceFunction(void* theEnv) {
    DATA_OBJECT arg0, arg1, arg2;
    longlong w, s, e;
-   if(EnvArgCountCheck(theEnv, "slice", EXACTLY, 3) == -1) {
+   if(EnvArgCountCheck(theEnv, slice, EXACTLY, 3) == -1) {
       return 0LL;
    }
-   if(EnvArgTypeCheck(theEnv, "slice", 1, INTEGER, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice, 1, INTEGER, &arg0) == FALSE) {
       return 0LL;
    }
-   if(EnvArgTypeCheck(theEnv, "slice", 2, INTEGER, &arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice, 2, INTEGER, &arg1) == FALSE) {
       return 0LL;
    }
-   if(EnvArgTypeCheck(theEnv, "slice", 3, INTEGER, &arg2) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice, 3, INTEGER, &arg2) == FALSE) {
       return 0LL;
    }
 
@@ -191,11 +225,11 @@ void Slice8Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    DATA_OBJECT arg0;
    void* multifield;
    longlong value;
-   if(EnvArgCountCheck(theEnv, "slice8", EXACTLY, 1) == -1) {
+   if(EnvArgCountCheck(theEnv, slice8, EXACTLY, 1) == -1) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    } 
-   if(EnvArgTypeCheck(theEnv, "slice8", 1, INTEGER, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice8, 1, INTEGER, &arg0) == FALSE) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    }
@@ -221,11 +255,11 @@ void Slice4Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    DATA_OBJECT arg0;
    void* multifield;
    longlong value;
-   if(EnvArgCountCheck(theEnv, "slice4", EXACTLY, 1) == -1) {
+   if(EnvArgCountCheck(theEnv, slice4, EXACTLY, 1) == -1) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    } 
-   if(EnvArgTypeCheck(theEnv, "slice4", 1, INTEGER, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice4, 1, INTEGER, &arg0) == FALSE) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    }
@@ -246,11 +280,11 @@ void Slice2Function(void* theEnv, DATA_OBJECT_PTR retVal) {
    DATA_OBJECT arg0;
    void* multifield;
    longlong value;
-   if(EnvArgCountCheck(theEnv, "slice2", EXACTLY, 1) == -1) {
+   if(EnvArgCountCheck(theEnv, slice2, EXACTLY, 1) == -1) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    } 
-   if(EnvArgTypeCheck(theEnv, "slice2", 1, INTEGER, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice2, 1, INTEGER, &arg0) == FALSE) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    }
@@ -272,10 +306,10 @@ long long MergeFunction(void* theEnv) {
    void* multifield;
    longlong t0,t1,t2,t3,t4,t5,t6,t7;
 
-   if(EnvArgCountCheck(theEnv, "merge", EXACTLY, 1) == -1) {
+   if(EnvArgCountCheck(theEnv, merge, EXACTLY, 1) == -1) {
       return 0LL;
    }
-   if(EnvArgTypeCheck(theEnv, "merge", 1, MULTIFIELD, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, merge, 1, MULTIFIELD, &arg0) == FALSE) {
       return 0LL;
    }
    length = (longlong)GetDOLength(arg0);
@@ -323,3 +357,15 @@ long long MergeFunction(void* theEnv) {
 }
 
 #undef SetMultifieldSlot
+#undef msg
+#undef right_shift 
+#undef left_shift 
+#undef binary_and 
+#undef binary_or 
+#undef binary_xor 
+#undef binary_not 
+#undef slice 
+#undef slice8 
+#undef slice4 
+#undef slice2 
+#undef merge 
