@@ -27,7 +27,7 @@
 ; PathConstruction.clp - Contains rules devoted to starting the construction of
 ; a given path through a given region. Rewritten to take advantage of modules
 ;------------------------------------------------------------------------------
-(defrule path::initialize-path-construction-region
+(defrule paths::initialize-path-construction-region
 			(declare (salience 3))
 			?fct <- (compute paths in region ?id)
 			?r0 <- (object (is-a Region) (id ?id) (entrances $? ?a $?) 
@@ -38,7 +38,7 @@
 			(retract ?fct)
 			(make-instance of Path (parent ?n) (values ?z)))
 ;------------------------------------------------------------------------------
-(defrule path::initialize-path-construction-basicblock
+(defrule paths::initialize-path-construction-basicblock
 			(declare (salience 3))
 			?fct <- (compute paths in region ?id)
 			?r0 <- (object (is-a Region) (id ?id) (entrances $? ?a $?) 

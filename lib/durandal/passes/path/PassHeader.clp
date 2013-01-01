@@ -35,6 +35,13 @@
 ; paths. Failure to do so will cause the optimization to not work correctly.
 ;------------------------------------------------------------------------------
 
+(defmodule paths 
+ (import core ?ALL)
+ (import llvm ?ALL)
+ (import types ?ALL)
+ (import indirect ?ALL)
+ (import pipeline ?ALL)
+ (import rampancy ?ALL))
 (load* "passes/path/Path.clp")
 (load* "passes/path/PathConstruction.clp")
 (load* "passes/path/PathBuilding.clp")

@@ -27,7 +27,7 @@
 ; PathTraversal.clp - Contains rules that handle the act of traversing the
 ; region during path construction. Modified to take advantage of modules
 ;------------------------------------------------------------------------------
-(defrule path::traversal-basicblock-to-basicblock
+(defrule paths::traversal-basicblock-to-basicblock
 			(declare (salience 2))
 			?path <- (object (is-a Path) (parent ?p) (id ?id) 
 								  (values $?before ?curr) (closed FALSE))
@@ -40,7 +40,7 @@
 			(send ?path increment-reference-count)
 			(assert (Add ?next to ?id)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-region-to-basicblock
+(defrule paths::traversal-region-to-basicblock
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id)
 								  (values $?before ?curr))
@@ -52,7 +52,7 @@
 			(send ?path increment-reference-count)
 			(assert (Add ?next to ?id)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-basicblock-to-region
+(defrule paths::traversal-basicblock-to-region
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $?before ?curr))
@@ -65,7 +65,7 @@
 			(send ?path increment-reference-count)
 			(assert (Add ?next to ?id)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-region-to-region
+(defrule paths::traversal-region-to-region
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $?before ?curr))
@@ -79,7 +79,7 @@
 			(send ?path increment-reference-count)
 			(assert (Add ?next to ?id)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-region-no-exit
+(defrule paths::traversal-region-no-exit
 			"We are at a region that doesn't have an exit...Not sure if LLVM 
 			allows this but let's handle it."
 			(declare (salience 2))
@@ -90,7 +90,7 @@
 			(send ?path increment-reference-count)
 			(assert (Close ?i with nil)))
 ;------------------------------------------------------------------------------
-(defrule path::travseral-basicblock-no-exit
+(defrule paths::travseral-basicblock-no-exit
 			"We are at a basic block that has no successors...usually the end of a
 			function"
 			(declare (salience 2))
@@ -101,7 +101,7 @@
 			(send ?path increment-reference-count)
 			(assert (Close ?i with nil)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-basicblock-to-basicblock-cycle
+(defrule paths::traversal-basicblock-to-basicblock-cycle
 			(declare (salience 2))
 			?path <- (object (is-a Path) (parent ?p) (id ?id) 
 								  (values $?before ?curr) (closed FALSE))
@@ -113,7 +113,7 @@
 			(send ?path increment-reference-count)
 			(assert (Close ?id with ?next)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-region-to-basicblock-cycle
+(defrule paths::traversal-region-to-basicblock-cycle
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id)
 								  (values $?before ?curr))
@@ -124,7 +124,7 @@
 			(send ?path increment-reference-count)
 			(assert (Close ?id with ?next)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-basicblock-to-region-cycle
+(defrule paths::traversal-basicblock-to-region-cycle
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $?before ?curr))
@@ -135,7 +135,7 @@
 			(send ?path increment-reference-count)
 			(assert (Close ?id with ?next)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-region-to-region-cycle
+(defrule paths::traversal-region-to-region-cycle
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $?before ?curr))
@@ -146,7 +146,7 @@
 			(send ?path increment-reference-count)
 			(assert (Close ?next with ?id)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-basicblock-to-exit
+(defrule paths::traversal-basicblock-to-exit
 			"Marks the current path as finished because we've reached an exit to 
 			the current region"
 			(declare (salience 2))
@@ -159,7 +159,7 @@
 			(send ?path increment-reference-count)
 			(assert (Close ?id with ?e)))
 ;------------------------------------------------------------------------------
-(defrule path::traversal-region-to-exit
+(defrule paths::traversal-region-to-exit
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $? ?c))

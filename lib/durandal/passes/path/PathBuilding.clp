@@ -27,7 +27,7 @@
 ; PathBuilding.clp - Contains rules that build up the paths through the given
 ; region 
 ;------------------------------------------------------------------------------
-(defrule path::add-to-path-copy
+(defrule paths::add-to-path-copy
 			"Makes a copy of the current path object and concatenates the symbol 
 			in question to the end of the list. This rule is fired when the 
 			reference count of the given path object is greater than one."
@@ -41,7 +41,7 @@
 			(retract ?fct)
 			(make-instance of Path (parent ?p) (values $?contents ?next)))
 ;------------------------------------------------------------------------------
-(defrule path::add-to-path-concat
+(defrule paths::add-to-path-concat
 			"Concatenates the next element of the path directly to the original 
 			path object. This rule fires when the reference count of the path is 
 			equal to one"
@@ -53,7 +53,7 @@
 			(retract ?fct)
 			(modify-instance ?hint (reference-count 0) (values $?values ?next)))
 ;------------------------------------------------------------------------------
-(defrule path::close-path-update
+(defrule paths::close-path-update
 			"Closes a path via an in-place update"
 			(declare (salience 1))
 			?fct <- (Close ?id with ?bb)
@@ -63,7 +63,7 @@
 			(retract ?fct)
 			(modify-instance ?hint (reference-count 0) (closed TRUE) (exit ?bb)))
 ;------------------------------------------------------------------------------
-(defrule path::close-path-copy 
+(defrule paths::close-path-copy 
 			"Closes a path by making a copy of the target path"
 			(declare (salience 1))
 			?fct <- (Close ?id with ?bb)
