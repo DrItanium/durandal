@@ -27,9 +27,9 @@ namespace indirect {
             PassTypeCount
          };
       private:
-			std::string passDescription; //full name
-			std::string passName; //registrationName
-			std::string templateSet;
+			std::string* passDescription; //full name
+			std::string* passName; //registrationName
+			std::string* templateSet;
          bool isCFGOnlyPass;
          bool isAnalysis;
          bool isAnalysisGroup;

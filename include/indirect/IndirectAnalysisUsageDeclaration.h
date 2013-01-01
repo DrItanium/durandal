@@ -9,13 +9,14 @@
 namespace indirect {
    class IndirectAnalysisUsageDeclaration {
       public:
-         typedef llvm::SmallVector<char*, 32> VectorType;
+         typedef llvm::SmallVector<std::string*, 32> VectorType;
       private:
          bool pAll;
          bool pCFG;
          VectorType required, requiredTransitive, preserved;
       public:
          IndirectAnalysisUsageDeclaration();
+         ~IndirectAnalysisUsageDeclaration();
          void addRequired(char* name);
          void addRequired(const char* name);
          void addRequired(llvm::StringRef name);
