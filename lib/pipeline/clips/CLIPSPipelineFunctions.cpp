@@ -155,7 +155,14 @@ void CLIPSOptimizeCode(void* theEnv) {
 					PM.add(p);
 				} else { //it isn't an indirect header (native)
 					const llvm::PassInfo* pass = registry.getPassInfo(llvm::StringRef(c.c_str()));
-					PM.add(pass->createPass());
+               if(pass) {
+					   PM.add(pass->createPass());
+               } else {
+                  EnvPrintRouter(theEnv, werror, msg("The given pass "));
+                  EnvPrintRouter(theEnv, werror, msg(c.c_str()));
+                  EnvPrintRouter(theEnv, werror, msg(" is not a valid pass\n"));
+                  return;
+               }
 				}
 				//regardless of pass type, we should add a verifier pass after it.	
 				PM.add(llvm::createVerifierPass());
