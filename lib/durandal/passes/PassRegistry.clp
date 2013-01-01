@@ -31,16 +31,27 @@
 ;------------------------------------------------------------------------------
 
 ;This is part of the MAIN module
-(definstance PersistentPassRegistry
- ([pass-valid-paths] of Pass
-  (entry "passes/path/valid-only/PassHeader.clp")
-  (pass-name "valid-paths")
-  (pass-description "Generate the set of paths through user-defined valid regions in a function")
-  (target Function))
- ([pass-paths] of Pass
-  (entry "passes/path/all-paths/PassHeader.clp")
-  (pass-name "paths")
-  (pass-description "Generate the set of all paths through all regions in a function")
-  (target Function))
+(definstances PersistentPassRegistry
+ ([paths] of Pass
+  (entry-point "passes/path/PassHeader.clp")
+  (pass-name paths)
+  (pass-description "Generate the set of paths through a given function") 
+  (pass-type Function)
+  (need-loops TRUE)
+  (need-regions TRUE)
+  (passes paths)
+  (required loops regions))
+  
+  
+ ;([pass-valid-paths] of Pass
+ ; (entry "passes/path/valid-only/PassHeader.clp")
+ ; (pass-name "valid-paths")
+ ; (pass-description "Generate the set of paths through user-defined valid regions in a function")
+ ; (target Function))
+ ;([pass-paths] of Pass
+ ; (entry "passes/path/all-paths/PassHeader.clp")
+ ; (pass-name "paths")
+ ; (pass-description "Generate the set of all paths through all regions in a function")
+ ; (target Function))
 
 )
