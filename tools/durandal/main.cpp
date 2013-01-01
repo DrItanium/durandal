@@ -34,6 +34,7 @@
 #include "rampancy/Cortex.h"
 #include "rampancy/ClangCompiler.h"
 #include "rampancy/LLVMIRCompiler.h"
+#include "pipeline/clips/CLIPSPipelineFunctions.h"
 using namespace llvm;
 extern "C" {
 #include <stdio.h>
@@ -83,6 +84,7 @@ int main(int argc, char** argv) {
    compilerRegistry->registerCompiler(bc0, &ir);
    compilerRegistry->registerCompiler(bc1, &ir);
    compilerRegistry->registerCompiler(bc2, &ir);
+	pipeline::clips::initializeCLIPSIndirector();
    RerouteStdin(rampantCortex->getEnvironment()->getEnvironment(),argc,argv);
    CommandLoop(rampantCortex->getEnvironment()->getEnvironment());
 }

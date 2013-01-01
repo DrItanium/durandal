@@ -94,6 +94,8 @@ void EnvUserFunctions(
     */
    extern void EnvironmentOperationsDefinitions(void* theEnv);
    EnvironmentOperationsDefinitions(theEnv);
+	extern void RegisterCLIPSPipelineFunctions(void* theEnv);
+	RegisterCLIPSPipelineFunctions(theEnv);
 
 #if MAC_MCW || WIN_MCW || MAC_XCD
 #pragma unused(theEnv)
