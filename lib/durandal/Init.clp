@@ -33,11 +33,22 @@
 ;------------------------------------------------------------------------------
 (batch-load 
   (create$ "modules/core/ModuleHeader.clp"
-	        "modules/llvm/ModuleHeader.clp"
-        	  "modules/rampancy/ModuleHeader.clp"
+			  "modules/llvm/ModuleHeader.clp"
+			  "modules/rampancy/ModuleHeader.clp"
 			  "modules/indirect/ModuleHeader.clp"
 			  "modules/types/ModuleHeader.clp"
 			  "modules/pipeline/ModuleHeader.clp"
 			  ; Add entries to other modules here
+			  "passes/PassRegistry.clp"
 			  ))
-;(defmodule MAIN (import core ?ALL) (import llvm ?ALL))
+
+(defmodule MAIN 
+			  (import core ?ALL) 
+			  (import llvm ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import types ?ALL)
+			  (import pipeline ?ALL)
+			  (export ?ALL))
+
+(reset)
