@@ -43,9 +43,43 @@
   (is-a PassBase)
   (role concrete)
   (pattern-match reactive)
-  (slot entry (type STRING))
-  (slot target (type SYMBOL) (allowed-symbols Any Module Function Region Loop
-                                              BasicBlock Instruction Immutable))
-  (multislot pass-uses (type SYMBOL STRING INSTANCE-NAME) 
-             (allowed-classes PassBase)))
+  (slot pass-type (type SYMBOL) (allowed-symbols Unknown Module Function Region
+																 Loop BasicBlock CallGraphSCC MachineFunction))
+  (slot is-analysis (type SYMBOL) (allowed-symbols FALSE TRUE))
+  (slot is-cfg (type SYMBOL) (allowed-symbols FALSE TRUE))
+  (slot need-loops (type SYMBOL) (allowed-symbols FALSE TRUE))
+  (slot need-regions (type SYMBOL) (allowed-symbols FALSE TRUE))
+  (slot preserves-all (type SYMBOL) (allowed-symbols FALSE TRUE))
+  (slot preserves-cfg (type SYMBOL) (allowed-symbols FALSE TRUE))
+  (multislot passes (type SYMBOL))
+  (multislot required (type SYMBOL))
+  (multislot required-transitive (type SYMBOL))
+  (multislot preserved (type SYMBOL))
+  ;begin CLIPS specific slots
+  (slot entry-point (type STRING))
+  (message-handler register)
+  (message-handler unregister)
+  (message-handler is-registered))
 ;------------------------------------------------------------------------------
+(defmessage-handler indirect::Pass register ()
+						  (register-pass ?self:pass-name 
+											  ?self:pass-description
+											  ?self:pass-type
+											  ?self:is-analysis
+											  ?self:is-cfg
+											  ?self:need-regions
+											  ?self:need-loops
+											  ?self:passes
+											  ?self:required
+											  ?self:required-transitive
+											  ?self:preserved
+											  ?self:preserves-all
+											  ?self:preserves-cfg))
+;------------------------------------------------------------------------------
+(defmessage-handler indirect::Pass unregister ()
+						  (unregister-pass ?self:pass-name))
+;------------------------------------------------------------------------------
+(defmessage-handler indirect::Pass is-registered () 
+						  (pass-registered ?self:pass-name))
+;------------------------------------------------------------------------------
+
