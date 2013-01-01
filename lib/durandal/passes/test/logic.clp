@@ -24,45 +24,13 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; PassRegistry.clp - Contains the listing of the standard set of passes. 
+; logic.clp - Contains the test pass logic
 ;------------------------------------------------------------------------------
-; NOTE: If you want to define your own place to load passes from then remember
-; that it is up to you to load it initially.
-;------------------------------------------------------------------------------
+(defrule test::initial-rule
+ "A simple rule to show that the indirect passes are working"
+ ?fct <- (message (to test) (action initial-fact))
+ =>
+ (printout t "In the test pass!" crlf)
+ (instances)
+ (retract ?fct))
 
-;This is part of the MAIN module
-(definstances PersistentPassRegistry
- ([test] of Pass
-  (entry-point "passes/test/PassHeader.clp")
-  (pass-name test)
-  (pass-description "A test of the indirect pass system")
-  (pass-type Module)
-  (need-loops TRUE)
-  (need-regions TRUE)
-  (passes test)
-  (required loops regions)
-  (preserves-cfg TRUE)
-  (preserves-all TRUE))
- ([paths] of Pass
-  (entry-point "passes/path/PassHeader.clp")
-  (pass-name paths)
-  (pass-description "Generate the set of paths through a given function") 
-  (pass-type Function)
-  (need-loops TRUE)
-  (need-regions TRUE)
-  (passes paths)
-  (required loops regions))
-  
-  
- ;([pass-valid-paths] of Pass
- ; (entry "passes/path/valid-only/PassHeader.clp")
- ; (pass-name "valid-paths")
- ; (pass-description "Generate the set of paths through user-defined valid regions in a function")
- ; (target Function))
- ;([pass-paths] of Pass
- ; (entry "passes/path/all-paths/PassHeader.clp")
- ; (pass-name "paths")
- ; (pass-description "Generate the set of all paths through all regions in a function")
- ; (target Function))
-
-)
