@@ -29,8 +29,8 @@
 (defclass indirect::PassBase 
   "The base class of all passes (native or indirect)"
   (is-a Object) 
-  (slot pass-name (type SYMBOL STRING))
-  (slot pass-description (type STRING)))
+  (slot pass-name (type SYMBOL STRING) (visibility public))
+  (slot pass-description (type STRING) (visibility public)))
 ;------------------------------------------------------------------------------
 (defclass indirect::NativePass 
   "A wrapper over a native LLVM pass"
