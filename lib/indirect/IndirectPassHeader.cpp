@@ -1,29 +1,54 @@
 #include "indirect/IndirectPassHeader.h"
 
 namespace indirect {
+   static std::string empty("");
    IndirectPassHeader::IndirectPassHeader() : isAnalysis(false), 
    isAnalysisGroup(false), isCFGOnlyPass(false) {
-
+      passDescription = 0;
+      passName = 0;
+      templateSet = 0;
    }
 
-	IndirectPassHeader::~IndirectPassHeader() {
-	}
+   IndirectPassHeader::~IndirectPassHeader() {
+      if(passDescription) {
+         delete passDescription;
+      } 
+      if(passName) {
+         delete passName;
+      }
+      if(templateSet) {
+         delete templateSet;
+      }
+   }
 
    const char* IndirectPassHeader::getPassDescription() {
-      return passDescription.c_str();
+      if(passDescription) {
+         return passDescription->c_str();
+      } else {
+         return empty.c_str();
+      }
    }
-	void IndirectPassHeader::setPassDescription(const char* passDesc) {
-		std::string tmp(passDesc);
-		passDescription = tmp;
-	}
+   void IndirectPassHeader::setPassDescription(const char* passDesc) {
+      if(passDescription) {
+         delete passDescription;
+      }
+      passDescription = new std::string(passDesc);
+   }
 
    const char* IndirectPassHeader::getPassName() {
-      return passName.c_str();
+      if(passName) {
+         return passName->c_str();
+      } else {
+         return empty.c_str();
+      }
    }
-	void IndirectPassHeader::setPassName(const char* passNm) {
-		std::string tmp(passNm);
-		passDescription = tmp;
-	}
+   void IndirectPassHeader::setPassName(const char* passNm) {
+      if(passName) {
+         //totally safe since we make a copy :D
+         delete passName;
+      }
+      passName = new std::string(passNm);
+   }
 
    void IndirectPassHeader::setIsCFGOnlyPass(bool isCFGOnly) {
       isCFGOnlyPass = isCFGOnly;
@@ -50,12 +75,18 @@ namespace indirect {
    }
 
    void IndirectPassHeader::setTemplateSet(const char* templateSt) {
-		std::string tmp (templateSet);
-		templateSet = tmp;
+      if(templateSet) {
+         delete templateSet;
+      }
+      templateSet = new std::string(templateSt);
    }
 
    const char* IndirectPassHeader::getTemplateSet() {
-      return templateSet.c_str();
+      if(templateSet) {
+         return templateSet->c_str();
+      } else {
+         return empty.c_str();
+      }
    }
 
    void IndirectPassHeader::setPassType(

@@ -5,41 +5,65 @@
 namespace indirect {
    IndirectAnalysisUsageDeclaration::IndirectAnalysisUsageDeclaration() 
       : pAll(false) { }
-
+   IndirectAnalysisUsageDeclaration::~IndirectAnalysisUsageDeclaration() {
+      for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b = 
+            preserved.begin(), e = preserved.end(); b != e; ++b) {
+         delete (*b);
+      }
+      for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b = 
+            required.begin(), e = required.end(); b != e; ++b) {
+         delete (*b);
+      }
+      for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b =
+            requiredTransitive.begin(), e = requiredTransitive.end();
+            b != e; ++b) {
+         delete (*b);
+      }
+   }
+#define STRING_PTR(into,from) std::string* into = new std::string( from )
    void IndirectAnalysisUsageDeclaration::addRequired(char* name) {
-      required.push_back(name);
+      STRING_PTR(tmp, (const char*)name);
+      required.push_back(tmp);
    }
    void IndirectAnalysisUsageDeclaration::addRequired(const char* name) {
-      required.push_back((char*)name);
+      STRING_PTR(tmp,name);
+      required.push_back(tmp);
    }
    void IndirectAnalysisUsageDeclaration::addRequired(llvm::StringRef name) {
-      required.push_back((char*)name.data());
+      STRING_PTR(tmp, name.data());
+      required.push_back(tmp);
    }
 
    void IndirectAnalysisUsageDeclaration::addRequiredTransitive(char* name) {
-      requiredTransitive.push_back(name);
-      required.push_back(name);
+      STRING_PTR(tmp, (const char*)name);
+      requiredTransitive.push_back(tmp);
+      required.push_back(tmp);
    }
    void IndirectAnalysisUsageDeclaration::addRequiredTransitive(const char* name) {
-      requiredTransitive.push_back((char*)name);
-      required.push_back((char*)name);
+      STRING_PTR(tmp, name);
+      requiredTransitive.push_back(tmp);
+      required.push_back(tmp);
    }
    void IndirectAnalysisUsageDeclaration::addRequiredTransitive(
          llvm::StringRef name) {
-      requiredTransitive.push_back((char*)name.data());
-      required.push_back((char*)name.data());
+      STRING_PTR(tmp, name.data());
+      requiredTransitive.push_back(tmp);
+      required.push_back(tmp);
    }
 
    void IndirectAnalysisUsageDeclaration::addPreserved(char* name) {
-      preserved.push_back(name);
+      STRING_PTR(tmp, (const char*)name);
+      preserved.push_back(tmp);
    }
 
    void IndirectAnalysisUsageDeclaration::addPreserved(const char* name) {
-      preserved.push_back((char*)name);
+      STRING_PTR(tmp, name);
+      preserved.push_back(tmp);
    }
 
    void IndirectAnalysisUsageDeclaration::addPreserved(llvm::StringRef name) {
-      preserved.push_back((char*)name.data());
+      STRING_PTR(tmp, name.data());
+      preserved.push_back(tmp);
    }
    void IndirectAnalysisUsageDeclaration::setPreservesAll(bool preservesAll) {
       pAll = preservesAll;
@@ -70,7 +94,7 @@ namespace indirect {
        */
       for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b = 
             preserved.begin(), e = preserved.end(); b != e; ++b) {
-         char* result = *b;
+         char* result = (char*)(*b)->c_str();
          /* Strangly enough addPreserved in the llvm::AnalysisUsage class has a
           * version that takes in a llvm::StringRef
           */
@@ -82,7 +106,7 @@ namespace indirect {
        */
       for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b = 
             required.begin(), e = required.end(); b != e; ++b) {
-         char* result = *b;
+         char* result = (char*)(*b)->c_str();
          const llvm::PassInfo* pi = registry.getPassInfo(
                llvm::StringRef(result));
          char& ptr = *((char*)pi->getTypeInfo());
@@ -91,7 +115,7 @@ namespace indirect {
       for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b =
             requiredTransitive.begin(), e = requiredTransitive.end();
             b != e; ++b) {
-         char* result = *b;
+         char* result = (char*)(*b)->c_str();
          const llvm::PassInfo* pi = registry.getPassInfo(
                llvm::StringRef(result));
          char& ptr = *((char*)pi->getTypeInfo());
@@ -108,4 +132,5 @@ namespace indirect {
       }
       //And we're done :D
    }
+#undef STRING_PTR
 }
