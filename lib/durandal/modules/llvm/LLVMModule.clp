@@ -35,3 +35,6 @@
   (slot endianness (type SYMBOL) (allowed-symbols any little big))
   (slot pointer-size (type SYMBOL) (allowed-symbols any pointer32 pointer64)))
 ;------------------------------------------------------------------------------
+(defmessage-handler llvm::LLVMModule optimize (?optLevel $?passes) 
+ (optimize ?self:pointer ?optLevel ?passes))
+;------------------------------------------------------------------------------
