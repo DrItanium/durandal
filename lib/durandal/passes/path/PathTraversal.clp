@@ -32,7 +32,7 @@
 			?path <- (object (is-a Path) (parent ?p) (id ?id) 
 								  (values $?before ?curr) (closed FALSE))
 			(object (is-a BasicBlock) (id ?curr) (parent ?p) 
-					  (successors $? ?next $?))
+					  (Successors $? ?next $?))
 			(object (is-a BasicBlock) (id ?next) (parent ?p))
 			(test (and (neq ?next ?curr) 
 					     (not (member$ ?next $?before))))
@@ -44,7 +44,7 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id)
 								  (values $?before ?curr))
-			(object (is-a Region) (id ?curr) (parent ?p) (exits $? ?next $?))
+			(object (is-a Region) (id ?curr) (parent ?p) (Exits $? ?next $?))
 			(object (is-a BasicBlock) (id ?next) (parent ?p))
 			(test (and (neq ?next ?curr) 
 					     (not (member$ ?next $?before))))
@@ -57,8 +57,8 @@
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $?before ?curr))
 			(object (is-a BasicBlock) (id ?curr) (parent ?p) 
-					  (successors $? ?s $?))
-			(object (is-a Region) (entrances $? ?s $?) (id ?next) (parent ?p))
+					  (Successors $? ?s $?))
+			(object (is-a Region) (Entrances $? ?s $?) (id ?next) (parent ?p))
 			(test (and (neq ?next ?curr) 
 					     (not (member$ ?next $?before))))
 			=>
@@ -69,8 +69,8 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $?before ?curr))
-			(object (is-a Region) (id ?curr) (parent ?p) (exits $? ?e $?))
-			(object (is-a Region) (id ?next) (parent ?p) (entrances $? ?e $?)) 
+			(object (is-a Region) (id ?curr) (parent ?p) (Exits $? ?e $?))
+			(object (is-a Region) (id ?next) (parent ?p) (Entrances $? ?e $?)) 
 			(test (and (neq ?next ?curr) 
 					     (not (member$ ?next $?before))))
 			; even if the entrance is part of a nested region...we really don't 
@@ -85,7 +85,7 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (parent ?p) (id ?i) (closed FALSE) 
 								  (values $? ?a))
-			(object (is-a Region) (id ?a) (parent ?p) (exits))
+			(object (is-a Region) (id ?a) (parent ?p) (Exits))
 			=>
 			(send ?path increment-reference-count)
 			(assert (Close ?i with nil)))
@@ -96,7 +96,7 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (parent ?p) (id ?i) (closed FALSE) 
 								  (values $? ?a))
-			(object (is-a BasicBlock) (id ?a) (parent ?p) (successors))
+			(object (is-a BasicBlock) (id ?a) (parent ?p) (Successors))
 			=>
 			(send ?path increment-reference-count)
 			(assert (Close ?i with nil)))
@@ -106,7 +106,7 @@
 			?path <- (object (is-a Path) (parent ?p) (id ?id) 
 								  (values $?before ?curr) (closed FALSE))
 			(object (is-a BasicBlock) (id ?curr) (parent ?p) 
-					  (successors $? ?next $?))
+					  (Successors $? ?next $?))
 			(object (is-a BasicBlock) (id ?next) (parent ?p))
 			(test (or (eq ?next ?curr) (member$ ?next $?before)))
 			=>
@@ -117,7 +117,7 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id)
 								  (values $?before ?curr))
-			(object (is-a Region) (id ?curr) (parent ?p) (exits $? ?next $?))
+			(object (is-a Region) (id ?curr) (parent ?p) (Exits $? ?next $?))
 			(object (is-a BasicBlock) (id ?next) (parent ?p))
 			(test (or (eq ?next ?curr) (member$ ?next $?before)))
 			=>
@@ -128,8 +128,8 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $?before ?curr))
-			(object (is-a BasicBlock) (id ?curr) (parent ?p) (successors $? ?s $?))
-			(object (is-a Region) (id ?next) (parent ?p) (entrances $? ?s $?))
+			(object (is-a BasicBlock) (id ?curr) (parent ?p) (Successors $? ?s $?))
+			(object (is-a Region) (id ?next) (parent ?p) (Entrances $? ?s $?))
 			(test (or (eq ?next ?curr) (member$ ?next $?before)))
 			=>
 			(send ?path increment-reference-count)
@@ -139,8 +139,8 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $?before ?curr))
-			(object (is-a Region) (id ?curr) (parent ?p) (exits $? ?e $?))
-			(object (is-a Region) (id ?next) (parent ?p) (entrances $? ?e $?)) 
+			(object (is-a Region) (id ?curr) (parent ?p) (Exits $? ?e $?))
+			(object (is-a Region) (id ?next) (parent ?p) (Entrances $? ?e $?)) 
 			(test (or (eq ?next ?curr) (member$ ?next $?before)))
 			=>
 			(send ?path increment-reference-count)
@@ -152,8 +152,8 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (parent ?p) (id ?id) (values $? ?curr) 
 								  (closed FALSE))
-			(object (is-a BasicBlock) (id ?curr) (parent ?p) (successors $? ?e $?))
-			(object (is-a Region) (id ?p) (exits $? ?e $?))
+			(object (is-a BasicBlock) (id ?curr) (parent ?p) (Successors $? ?e $?))
+			(object (is-a Region) (id ?p) (Exits $? ?e $?))
 			;since the current block has an exit for this region we mark it
 			=>
 			(send ?path increment-reference-count)
@@ -163,8 +163,8 @@
 			(declare (salience 2))
 			?path <- (object (is-a Path) (closed FALSE) (parent ?p) (id ?id) 
 								  (values $? ?c))
-			(object (is-a Region) (id ?c) (parent ?p) (exits $? ?e $?))
-			(object (is-a Region) (id ?p) (exits $? ?e $?))
+			(object (is-a Region) (id ?c) (parent ?p) (Exits $? ?e $?))
+			(object (is-a Region) (id ?p) (Exits $? ?e $?))
 			; both the inner and outer regions have the same exit...thus the
 			; curent nested region is a terminator for one path
 			=>
