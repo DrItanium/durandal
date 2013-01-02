@@ -26,12 +26,17 @@
 ;------------------------------------------------------------------------------
 ; Path.clp - Contains the definition of the pass class
 ;------------------------------------------------------------------------------
-(defclass types::Path 
-  (is-a ParentedHint)
-  (slot exit (type SYMBOL))
-  (slot closed (type SYMBOL) (allowed-values FALSE TRUE)))
+; since multiple passes use this type it's necessary to prevent redefinition of
+; this type
 ;------------------------------------------------------------------------------
-(defmessage-handler types::Path init after
- ()
- (bind ?self:type Path))
+(if (not (class-existsp types::Path)) then
+  (defclass types::Path 
+	 (is-a ParentedHint)
+	 (slot exit (type SYMBOL))
+	 (slot closed (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
+  (defmessage-handler types::Path init after
+							 ()
+							 (bind ?self:type Path))
+;------------------------------------------------------------------------------
+  )
