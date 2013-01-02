@@ -28,11 +28,8 @@
 ;------------------------------------------------------------------------------
 
 (defmodule rampancy 
- (import core defclass ?ALL)
- (import llvm defclass ?ALL)
- (import core deffunction ?ALL)
- (export defclass ?ALL)
- (export deffunction ?ALL))
-
+ (import core ?ALL)
+ (import llvm ?ALL)
+ (export ?ALL))
 
 (load* "modules/rampancy/CompilerWrappers.clp")
