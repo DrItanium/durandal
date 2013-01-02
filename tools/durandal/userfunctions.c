@@ -72,30 +72,30 @@ void UserFunctions()
 #endif
 typedef long long PointerAddress;
 void EnvUserFunctions(
-      void *theEnv)
+    void *theEnv)
 {
-   extern void SetupLLVMIORouter(void* theEnv);
-   extern void RegisterExpertSystemFunctions(void* theEnv);
-   extern void SetupRampancyExpertSystemInterfaces(void* theEnv);
-   extern void BinaryOperationsFunctionDefinitions(void* theEnv);
-   RegisterExpertSystemFunctions(theEnv);
-   SetupLLVMIORouter(theEnv);
-   SetupRampancyExpertSystemInterfaces(theEnv);
-   BinaryOperationsFunctionDefinitions(theEnv);
-   /*
-    * Uncomment the two lines below this multiline comment to enable
-    * environment manipulation operations from within clips. 
-    *
-    * It is disabled right now because it really cocks up the pass manager is a
-    * way that I don't actually understand. So for now it is disabled.
-    *
-    * If you re-enable this then you're on your own if you get wierd errors
-    * during pass reclaimation.
-    */
-   extern void EnvironmentOperationsDefinitions(void* theEnv);
-   EnvironmentOperationsDefinitions(theEnv);
-	extern void RegisterCLIPSPipelineFunctions(void* theEnv);
-	RegisterCLIPSPipelineFunctions(theEnv);
+  extern void SetupLLVMIORouter(void* theEnv);
+  extern void RegisterExpertSystemFunctions(void* theEnv);
+  extern void SetupRampancyExpertSystemInterfaces(void* theEnv);
+  extern void BinaryOperationsFunctionDefinitions(void* theEnv);
+  extern void RegisterCLIPSPipelineFunctions(void* theEnv);
+  RegisterExpertSystemFunctions(theEnv);
+  SetupLLVMIORouter(theEnv);
+  SetupRampancyExpertSystemInterfaces(theEnv);
+  BinaryOperationsFunctionDefinitions(theEnv);
+  RegisterCLIPSPipelineFunctions(theEnv);
+  /*
+   * Uncomment the two lines below this multiline comment to enable
+   * environment manipulation operations from within clips. 
+   *
+   * It is disabled right now because it really cocks up the pass manager is a
+   * way that I don't actually understand. So for now it is disabled.
+   *
+   * If you re-enable this then you're on your own if you get wierd errors
+   * during pass reclaimation.
+   */
+  extern void EnvironmentOperationsDefinitions(void* theEnv);
+  EnvironmentOperationsDefinitions(theEnv);
 
 #if MAC_MCW || WIN_MCW || MAC_XCD
 #pragma unused(theEnv)
