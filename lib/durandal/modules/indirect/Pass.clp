@@ -64,7 +64,7 @@
 (defmessage-handler indirect::Pass init around () 
 						  (call-next-handler)
 						  ;automatically load the code if there is an entry point
-						  (if (and (< (str-length ?self:entry-point) 0)
+						  (if (and (> (str-length ?self:entry-point) 0)
 									  (not (defmodule-exists ?self:pass-name))) then
 							 (batch* ?self:entry-point))
 						  (if (not (pass-registered ?self:pass-name)) then
