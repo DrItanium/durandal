@@ -149,10 +149,23 @@ void CLIPSOptimizeCode(void* theEnv) {
 				IndirectPassHeader* header = indirectRegistry.getIndirectPassHeader(c.c_str());
 				if(header) { //It is an indirect header
 					llvm::Pass* p = indirectRegistry.createPass(llvm::StringRef(c.c_str()));
-					//we know it's a CLIPS pass
-					pipeline::clips::CLIPSPass* tmpPass = (pipeline::clips::CLIPSPass*)p;
-					tmpPass->setEnvironment(theEnv);
-					PM.add(p);
+               if(!p) {
+                  EnvPrintRouter(theEnv, werror,
+                        msg("The given pass "));
+                  EnvPrintRouter(theEnv, werror,
+                        msg(c.c_str()));
+                  EnvPrintRouter(theEnv, werror, 
+                        msg(" exists but for some reason wasn't created\n"));
+                  return;
+               } else {
+					   //we know it's a CLIPS pass
+                  indirect::IndirectPass* ps = (indirect::IndirectPass*)p;
+                  //set the header
+                  ps->setIndirectPassHeader(header);
+					   pipeline::clips::CLIPSPass* tmpPass = (pipeline::clips::CLIPSPass*)p;
+					   tmpPass->setEnvironment(theEnv);
+					   PM.add(p);
+               }
 				} else { //it isn't an indirect header (native)
 					const llvm::PassInfo* pass = registry.getPassInfo(llvm::StringRef(c.c_str()));
                if(pass) {
