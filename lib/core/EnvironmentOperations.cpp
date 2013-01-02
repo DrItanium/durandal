@@ -111,7 +111,7 @@ extern void* ToPointer(void* theEnv) {
 		PrintError(theEnv, "Too few or too many arguments provided\n");
 		return nil;
 	}
-	if(EnvArgTypeCheck(theEnv, "to-pointer", 1, INTEGER, &arg0) != -1) {
+	if(EnvArgTypeCheck(theEnv, "to-pointer", 1, INTEGER, &arg0)) {
 		return (void*)DOToLong(arg0);
 	} else if(EnvArgTypeCheck(theEnv, "to-pointer", 1, EXTERNAL_ADDRESS, &arg0)) {
 		return (void*)GetValue(arg0);
@@ -128,12 +128,12 @@ extern void RunEnvironment(void* theEnv) {
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-run", 1, EXTERNAL_ADDRESS, &arg0) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-run", 1, EXTERNAL_ADDRESS, &arg0) == 0) {
 		PrintError(theEnv, "Provided pointer address isn't an external address!\n");
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-run", 2, INTEGER, &arg1) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-run", 2, INTEGER, &arg1) == 0) {
 		PrintError(theEnv, "Provided duration is not an integer!\n");
 		return;
 	}
@@ -160,12 +160,12 @@ void EnvironmentEval(void* theEnv, DATA_OBJECT_PTR ret) {
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-eval", 1, EXTERNAL_ADDRESS, &arg0) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-eval", 1, EXTERNAL_ADDRESS, &arg0) == 0) {
 		PrintError(theEnv, "First argument must be an external address\n");
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-eval", 2, STRING, &arg1) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-eval", 2, STRING, &arg1) == 0) {
 		PrintError(theEnv, "Second argument must be a string\n");
 		return;
 	}
@@ -189,12 +189,12 @@ void EnvironmentBuild(void* theEnv) {
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-build", 1, EXTERNAL_ADDRESS, &arg0) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-build", 1, EXTERNAL_ADDRESS, &arg0) == 0) {
 		PrintError(theEnv, "First argument must be an external address\n");
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-build", 2, STRING, &arg1) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-build", 2, STRING, &arg1) == 0) {
 		PrintError(theEnv, "Second argument must be a string\n");
 		return;
 	}
@@ -218,12 +218,12 @@ void EnvironmentAssertString(void* theEnv) {
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-assert-string", 1, EXTERNAL_ADDRESS, &arg0) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-assert-string", 1, EXTERNAL_ADDRESS, &arg0) == 0) {
 		PrintError(theEnv, "First argument must be an external address\n");
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-assert-string", 2, STRING, &arg1) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-assert-string", 2, STRING, &arg1) == 0) {
 		PrintError(theEnv, "Second argument must be a string\n");
 		return;
 	}
@@ -245,7 +245,7 @@ void EnvironmentFacts(void* theEnv) {
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-facts", 1, EXTERNAL_ADDRESS, &arg0) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-facts", 1, EXTERNAL_ADDRESS, &arg0) == 0) {
 		PrintError(theEnv, "The provided argument must be an external address\n");
 		return;
 	}
@@ -264,7 +264,7 @@ void EnvironmentInstances(void* theEnv) {
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-instances", 1, EXTERNAL_ADDRESS, &arg0) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-instances", 1, EXTERNAL_ADDRESS, &arg0) == 0) {
 		PrintError(theEnv, "The provided argument must be an external address\n");
 		return;
 	}
@@ -283,7 +283,7 @@ void EnvironmentRules(void* theEnv) {
 		return;
 	}
 
-	if(EnvArgTypeCheck(theEnv, "env-rules", 1, EXTERNAL_ADDRESS, &arg0) == -1) {
+	if(EnvArgTypeCheck(theEnv, "env-rules", 1, EXTERNAL_ADDRESS, &arg0) == 0) {
 		PrintError(theEnv, "The provided argument must be an external address\n");
 		return;
 	}
