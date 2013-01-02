@@ -28,8 +28,8 @@
 ;------------------------------------------------------------------------------
 (defclass types::Path 
   (is-a ParentedHint)
-  (slot Exit (type SYMBOL))
-  (slot Closed (type SYMBOL) (allowed-values FALSE TRUE)))
+  (slot exit (type SYMBOL))
+  (slot closed (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defmessage-handler types::Path init after
  ()
