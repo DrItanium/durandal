@@ -29,22 +29,22 @@
 ;------------------------------------------------------------------------------
 (defrule paths::initialize-path-construction-region
 			(declare (salience 3))
-			?fct <- (compute paths in region ?id)
+			;?fct <- (compute paths in region ?id)
 			?r0 <- (object (is-a Region) (id ?id) (Entrances $? ?a $?) 
 								(contents $? ?z $?))
 			(object (is-a Region) (id ?z) (parent ?id) (Entrances $? ?a $?))
 			(object (is-a BasicBlock) (id ?a) (parent ?n&~?id))
 			=>
-			(retract ?fct)
+			;(retract ?fct)
 			(make-instance of Path (parent ?n) (values ?z)))
 ;------------------------------------------------------------------------------
 (defrule paths::initialize-path-construction-basicblock
 			(declare (salience 3))
-			?fct <- (compute paths in region ?id)
+			;?fct <- (compute paths in region ?id)
 			?r0 <- (object (is-a Region) (id ?id) (Entrances $? ?a $?) 
 								(contents $? ?z $?))
 			(object (is-a BasicBlock) (id ?a) (parent ?n))
 			=>
-			(retract ?fct)
+			;(retract ?fct)
 			(make-instance of Path (parent ?n) (values ?a)))
 ;------------------------------------------------------------------------------
