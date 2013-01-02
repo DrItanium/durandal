@@ -122,7 +122,7 @@ void CLIPSOptimizeCode(void* theEnv) {
 		passesMultifield = GetValue(passesDO);
 		passesEnd = GetDOEnd(passesDO);
 		for(int i = GetDOBegin(passesDO); i <= passesEnd; ++i) {
-			if(GetMFType(passesMultifield, i) == SYMBOL_OR_STRING) {
+			if(GetMFType(passesMultifield, i) == SYMBOL) {
 				/* There are two groups of passes: Indirect and Native
 				 * 
 				 * Native passes are those that were defined in C++ using the
