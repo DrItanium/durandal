@@ -67,7 +67,7 @@
 						  (if (and (< (str-length ?self:entry-point) 0)
 									  (not (defmodule-exists ?self:pass-name))) then
 							 (batch* ?self:entry-point))
-						  (if (not (is-registered ?self:pass-name)) then
+						  (if (not (pass-registered ?self:pass-name)) then
 							 (register-pass ?self:pass-name 
 												 ?self:pass-description
 												 ?self:pass-type
