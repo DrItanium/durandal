@@ -76,11 +76,11 @@ long long RightShiftFunction(void* theEnv) {
    if(EnvArgCountCheck(theEnv,right_shift,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,right_shift,1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,right_shift,1,INTEGER,&arg0) == -1) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,right_shift,2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,right_shift,2,INTEGER,&arg1) == -1) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -94,11 +94,11 @@ long long LeftShiftFunction(void* theEnv) {
    if(EnvArgCountCheck(theEnv,left_shift,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,left_shift,1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,left_shift,1,INTEGER,&arg0) == -1) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,left_shift,2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,left_shift,2,INTEGER,&arg1) == -1) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -112,11 +112,11 @@ long long BinaryAndFunction(void* theEnv) {
    if(EnvArgCountCheck(theEnv,binary_and,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,binary_and,1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_and,1,INTEGER,&arg0) == -1) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,binary_and,2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_and,2,INTEGER,&arg1) == -1) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -130,11 +130,11 @@ long long BinaryOrFunction(void* theEnv) {
    if(EnvArgCountCheck(theEnv,binary_or,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,binary_or,1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_or,1,INTEGER,&arg0) == -1) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,binary_or,2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_or,2,INTEGER,&arg1) == -1) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -148,11 +148,11 @@ long long BinaryXorFunction(void* theEnv) {
    if(EnvArgCountCheck(theEnv,binary_xor,EXACTLY,2) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,binary_xor,1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_xor,1,INTEGER,&arg0) == -1) {
       return 0LL;
    }
 
-   if(EnvArgTypeCheck(theEnv,binary_xor,2,INTEGER,&arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_xor,2,INTEGER,&arg1) == -1) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -165,7 +165,7 @@ long long BinaryNotFunction(void* theEnv) {
    if(EnvArgCountCheck(theEnv,binary_not,EXACTLY,1) == -1) {
       return 0LL;
    } 
-   if(EnvArgTypeCheck(theEnv,binary_not,1,INTEGER,&arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv,binary_not,1,INTEGER,&arg0) == -1) {
       return 0LL;
    }
    a = DOToLong(arg0);
@@ -201,13 +201,13 @@ long long SliceFunction(void* theEnv) {
    if(EnvArgCountCheck(theEnv, slice, EXACTLY, 3) == -1) {
       return 0LL;
    }
-   if(EnvArgTypeCheck(theEnv, slice, 1, INTEGER, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice, 1, INTEGER, &arg0) == -1) {
       return 0LL;
    }
-   if(EnvArgTypeCheck(theEnv, slice, 2, INTEGER, &arg1) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice, 2, INTEGER, &arg1) == -1) {
       return 0LL;
    }
-   if(EnvArgTypeCheck(theEnv, slice, 3, INTEGER, &arg2) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice, 3, INTEGER, &arg2) == -1) {
       return 0LL;
    }
 
@@ -229,7 +229,7 @@ void Slice8Function(void* theEnv, DATA_OBJECT_PTR retVal) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    } 
-   if(EnvArgTypeCheck(theEnv, slice8, 1, INTEGER, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice8, 1, INTEGER, &arg0) == -1) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    }
@@ -259,7 +259,7 @@ void Slice4Function(void* theEnv, DATA_OBJECT_PTR retVal) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    } 
-   if(EnvArgTypeCheck(theEnv, slice4, 1, INTEGER, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice4, 1, INTEGER, &arg0) == -1) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    }
@@ -284,7 +284,7 @@ void Slice2Function(void* theEnv, DATA_OBJECT_PTR retVal) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    } 
-   if(EnvArgTypeCheck(theEnv, slice2, 1, INTEGER, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, slice2, 1, INTEGER, &arg0) == -1) {
       EnvSetMultifieldErrorValue(theEnv, retVal);
       return;
    }
@@ -309,7 +309,7 @@ long long MergeFunction(void* theEnv) {
    if(EnvArgCountCheck(theEnv, merge, EXACTLY, 1) == -1) {
       return 0LL;
    }
-   if(EnvArgTypeCheck(theEnv, merge, 1, MULTIFIELD, &arg0) == FALSE) {
+   if(EnvArgTypeCheck(theEnv, merge, 1, MULTIFIELD, &arg0) == -1) {
       return 0LL;
    }
    length = (longlong)GetDOLength(arg0);
