@@ -83,7 +83,7 @@
 												 ?self:preserves-cfg)))
 ;------------------------------------------------------------------------------
 (defmessage-handler indirect::Pass register ()
-						  (if (not (is-registered ?self:pass-name)) then
+						  (if (not (pass-registered ?self:pass-name)) then
 							 (register-pass ?self:pass-name 
 												 ?self:pass-description
 												 ?self:pass-type
