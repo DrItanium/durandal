@@ -61,20 +61,47 @@
   (message-handler unregister)
   (message-handler is-registered))
 ;------------------------------------------------------------------------------
+(defmessage-handler indirect::Pass init around () 
+						  (call-next-handler)
+						  ;automatically load the code if there is an entry point
+						  (if (and (< (str-length ?self:entry-point) 0)
+									  (not (defmodule-exists ?self:pass-name))) then
+							 (batch* ?self:entry-point))
+						  (if (not (is-registered ?self:pass-name)) then
+							 (register-pass ?self:pass-name 
+												 ?self:pass-description
+												 ?self:pass-type
+												 ?self:is-analysis
+												 ?self:is-cfg
+												 ?self:need-regions
+												 ?self:need-loops
+												 ?self:passes
+												 ?self:required
+												 ?self:required-transitive
+												 ?self:preserved
+												 ?self:preserves-all
+												 ?self:preserves-cfg)))
+;------------------------------------------------------------------------------
 (defmessage-handler indirect::Pass register ()
-						  (register-pass ?self:pass-name 
-											  ?self:pass-description
-											  ?self:pass-type
-											  ?self:is-analysis
-											  ?self:is-cfg
-											  ?self:need-regions
-											  ?self:need-loops
-											  ?self:passes
-											  ?self:required
-											  ?self:required-transitive
-											  ?self:preserved
-											  ?self:preserves-all
-											  ?self:preserves-cfg))
+						  (if (not (is-registered ?self:pass-name)) then
+							 (register-pass ?self:pass-name 
+												 ?self:pass-description
+												 ?self:pass-type
+												 ?self:is-analysis
+												 ?self:is-cfg
+												 ?self:need-regions
+												 ?self:need-loops
+												 ?self:passes
+												 ?self:required
+												 ?self:required-transitive
+												 ?self:preserved
+												 ?self:preserves-all
+												 ?self:preserves-cfg)
+							 (return TRUE)
+							 else
+							 (printout werror "ERROR: pass already registered" crlf)
+							 (return FALSE)))
+
 ;------------------------------------------------------------------------------
 (defmessage-handler indirect::Pass unregister ()
 						  (unregister-pass ?self:pass-name))
