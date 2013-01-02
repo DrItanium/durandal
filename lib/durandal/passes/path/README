@@ -1,2 +1,17 @@
-This pass/module is a llvm specific piece of code that computes the set of
-paths through a given region. 
+This folder contains multiple pass types for path generation. 
+
+The all folder contains the paths pass which will generate a list of paths for
+_all_ regions in a function.
+
+The constrained folder contains the paths-conditional pass which will only
+generate a list of paths for a given path if it has been marked to be
+pathed by another pass in a group. The prior pass is responsible for generating
+messages with the action valid-pathing-target. For example:
+
+(assert (message (to paths-conditional) 
+			        (from <originating-pass>)
+					  (action valid-pathing-target)
+					  (arguments <region-name>)))
+
+Do not lump multiple arguments together because this is not how the rules in
+path-conditional match. 
