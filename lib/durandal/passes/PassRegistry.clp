@@ -26,11 +26,11 @@
 ;------------------------------------------------------------------------------
 ; PassRegistry.clp - Contains the listing of the standard set of passes. 
 ;------------------------------------------------------------------------------
-; NOTE: If you want to define your own place to load passes from then remember
-; that it is up to you to load it initially.
+; If you want to define a group of passes to be executed without reset being
+; called in between then define a pass but do not provide an entry point and a
+; set of passes to execute in the passes multislot
 ;------------------------------------------------------------------------------
 
-;This is part of the MAIN module
 (definstances PersistentPassRegistry
  ([test] of Pass
   (entry-point "passes/test/PassHeader.clp")
@@ -44,7 +44,7 @@
   (preserves-cfg TRUE)
   (preserves-all TRUE))
  ([paths] of Pass
-  (entry-point "passes/path/PassHeader.clp")
+  (entry-point "passes/path/all/PassHeader.clp")
   (pass-name paths)
   (pass-description "Generate the set of paths through a given function") 
   (pass-type Function)
@@ -52,17 +52,15 @@
   (need-regions TRUE)
   (passes paths)
   (required loops regions))
-  
-  
- ;([pass-valid-paths] of Pass
- ; (entry "passes/path/valid-only/PassHeader.clp")
- ; (pass-name "valid-paths")
- ; (pass-description "Generate the set of paths through user-defined valid regions in a function")
- ; (target Function))
- ;([pass-paths] of Pass
- ; (entry "passes/path/all-paths/PassHeader.clp")
- ; (pass-name "paths")
- ; (pass-description "Generate the set of all paths through all regions in a function")
- ; (target Function))
-
+ ([paths-conditional] of Pass
+  (entry-point "passes/path/conditional/PassHeader.clp")
+  (pass-name paths-conditional)
+  (pass-description "Generate the set of paths through a set of target regions")
+  (pass-type Function)
+  (need-loops TRUE)
+  (need-regions TRUE)
+  (passes paths-conditional)
+  (required loops regions))
+ ;Add more passes here
 )
+;------------------------------------------------------------------------------
