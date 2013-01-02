@@ -119,8 +119,8 @@ extern "C" void* UnlinkAndMoveInstructionBefore(void *theEnv) {
    //to update it's portion
    DATA_OBJECT arg0, arg1;
    if((EnvArgCountCheck(theEnv, "llvm-unlink-and-move-instruction-before", EXACTLY, 2) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-unlink-and-move-instruction-before", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-unlink-and-move-instruction-before", 2, INTEGER, &arg1) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-unlink-and-move-instruction-before", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-unlink-and-move-instruction-before", 2, INTEGER, &arg1) == 0)) { return FalseSymbol(); }
    llvm::Instruction* from = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* before = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    from->removeFromParent();
@@ -133,8 +133,8 @@ extern "C" void* UnlinkAndMoveInstructionAfter(void *theEnv) {
    //to update it's portion
    DATA_OBJECT arg0, arg1;
    if((EnvArgCountCheck(theEnv, "llvm-unlink-and-move-instruction-after", EXACTLY, 2) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-unlink-and-move-instruction-after", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-unlink-and-move-instruction-after", 2, INTEGER, &arg1) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-unlink-and-move-instruction-after", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-unlink-and-move-instruction-after", 2, INTEGER, &arg1) == 0)) { return FalseSymbol(); }
    llvm::Instruction* from = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* after = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    from->removeFromParent();
@@ -146,8 +146,8 @@ extern "C" void* MoveInstructionBefore(void *theEnv) {
    //to update it's portion
    DATA_OBJECT arg0, arg1;
    if((EnvArgCountCheck(theEnv, "llvm-move-instruction-before", EXACTLY, 2) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-move-instruction-before", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-move-instruction-before", 2, INTEGER, &arg1) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-move-instruction-before", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-move-instruction-before", 2, INTEGER, &arg1) == 0)) { return FalseSymbol(); }
    llvm::Instruction* from = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* before = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    from->insertBefore(before);
@@ -159,8 +159,8 @@ extern "C" void* MoveInstructionAfter(void *theEnv) {
    //to update it's portion
    DATA_OBJECT arg0, arg1;
    if((EnvArgCountCheck(theEnv, "llvm-move-instruction-after", EXACTLY, 2) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-move-instruction-after", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-move-instruction-after", 2, INTEGER, &arg1) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-move-instruction-after", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-move-instruction-after", 2, INTEGER, &arg1) == 0)) { return FalseSymbol(); }
    llvm::Instruction* from = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* after = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    from->insertAfter(after);
@@ -188,8 +188,8 @@ extern "C" void* ScheduleInstructions(void *theEnv) {
    void* multifieldPtr;
    int end, i;
    if((EnvArgCountCheck(theEnv, "llvm-schedule-block", EXACTLY, 2) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-schedule-block", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-schedule-block", 2, MULTIFIELD, &arg1) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-schedule-block", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-schedule-block", 2, MULTIFIELD, &arg1) == 0)) { return FalseSymbol(); }
    llvm::Instruction* last = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    end = GetDOEnd(arg1);
    multifieldPtr = GetValue(arg1);
@@ -207,8 +207,8 @@ extern "C" void* ScheduleInstructions(void *theEnv) {
 extern "C" void* ReplaceAllUsesOf(void* theEnv) {
    DATA_OBJECT arg0, arg1;
    if((EnvArgCountCheck(theEnv, "llvm-replace-all-uses", EXACTLY, 2) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-replace-all-uses", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-replace-all-uses", 2, INTEGER, &arg1) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-replace-all-uses", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-replace-all-uses", 2, INTEGER, &arg1) == 0)) { return FalseSymbol(); }
    llvm::Instruction* from = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* to = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    from->replaceAllUsesWith(to);
@@ -227,9 +227,9 @@ extern "C" void* ReplaceUsesOf(void *theEnv) {
    void* multifieldPtr;
    int end, i;
    if((EnvArgCountCheck(theEnv, "llvm-replace-uses", EXACTLY, 3) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 2, INTEGER, &arg1) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 3, MULTIFIELD, &arg2) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 2, INTEGER, &arg1) == 0)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-replace-uses", 3, MULTIFIELD, &arg2) == 0)) { return FalseSymbol(); }
    llvm::Instruction* from = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    llvm::Instruction* to = (llvm::Instruction*)(PointerAddress)DOToLong(arg1);
    end = GetDOEnd(arg2);
@@ -262,10 +262,10 @@ extern "C" PointerAddress CreatePhiNode(void *theEnv) {
    int end, i;
    if((EnvArgCountCheck(theEnv, createPhiNodeTitle, EXACTLY, 5) == -1)) { return 0L; }
    if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 1, SYMBOL, &arg0) == 0)) { return 0L; }
-   if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 2, INTEGER, &arg1) == -1)) { return 0L; }
-   if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 3, INTEGER, &arg2) == -1)) { return 0L; }
-   if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 4, INTEGER, &arg3) == -1)) { return 0L; }
-   if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 5, MULTIFIELD, &arg4) == -1)) { return 0L; }
+   if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 2, INTEGER, &arg1) == 0)) { return 0L; }
+   if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 3, INTEGER, &arg2) == 0)) { return 0L; }
+   if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 4, INTEGER, &arg3) == 0)) { return 0L; }
+   if((EnvArgTypeCheck(theEnv, createPhiNodeTitle, 5, MULTIFIELD, &arg4) == 0)) { return 0L; }
    llvm::Type* dataType = (llvm::Type*)(PointerAddress)DOToLong(arg1);
    unsigned count = (unsigned)DOToLong(arg2);
    int index = 0;
@@ -287,7 +287,7 @@ extern "C" PointerAddress CreatePhiNode(void *theEnv) {
 extern "C" void* UnlinkInstruction(void *theEnv) {
    DATA_OBJECT arg0;
    if((EnvArgCountCheck(theEnv, "llvm-unlink-instruction", EXACTLY, 1) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-unlink-instruction", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-unlink-instruction", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
    llvm::Instruction* inst = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    inst->removeFromParent();
    return TrueSymbol();
@@ -296,7 +296,7 @@ extern "C" void* UnlinkInstruction(void *theEnv) {
 extern "C" void* DeleteInstruction(void *theEnv) {
    DATA_OBJECT arg0;
    if((EnvArgCountCheck(theEnv, "llvm-delete-instruction", EXACTLY, 1) == -1)) { return FalseSymbol(); }
-   if((EnvArgTypeCheck(theEnv, "llvm-delete-instruction", 1, INTEGER, &arg0) == -1)) { return FalseSymbol(); }
+   if((EnvArgTypeCheck(theEnv, "llvm-delete-instruction", 1, INTEGER, &arg0) == 0)) { return FalseSymbol(); }
    llvm::Instruction* inst = (llvm::Instruction*)(PointerAddress)DOToLong(arg0);
    delete inst;
    return TrueSymbol();
