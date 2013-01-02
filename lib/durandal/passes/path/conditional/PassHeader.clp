@@ -35,14 +35,14 @@
 ; paths. Failure to do so will cause the optimization to not work correctly.
 ;------------------------------------------------------------------------------
 
-(defmodule paths 
+(defmodule paths-conditional
  (import core ?ALL)
  (import llvm ?ALL)
  (import types ?ALL)
  (import indirect ?ALL)
  (import pipeline ?ALL)
  (import rampancy ?ALL))
-(load* "passes/path/Path.clp")
-(load* "passes/path/PathConstruction.clp")
-(load* "passes/path/PathBuilding.clp")
-(load* "passes/path/PathTraversal.clp")
+(load* "passes/path/common/Path.clp")
+(load* "passes/path/conditional/PathConstruction.clp")
+(load* "passes/path/conditional/PathBuilding.clp")
+(load* "passes/path/conditional/PathTraversal.clp")
