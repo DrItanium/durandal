@@ -625,8 +625,7 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li) {
 std::string KnowledgeConstructor::route(Module* mod) {
    char* buf;
    buf = CharBuffer(128);
-   sprintf(buf, "mod%lld", moduleCount);
-   moduleCount++;
+   sprintf(buf, "mod%lld", mod);
    std::string name(buf);
    free(buf);
    CLIPSModuleBuilder mb(name);
