@@ -47,7 +47,7 @@
 			(focus ?first pipeline))
 ;------------------------------------------------------------------------------
 (defrule pipeline::terminate-pass
-			?obj <- (object (is-a PassDescriptor) 
+			?obj <- (object (is-a pass-description) 
 								 (passes))
 			=>
 			(unmake-instance ?obj))
