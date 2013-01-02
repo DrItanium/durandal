@@ -27,6 +27,7 @@
 ; PassDescriptor.clp - Describes the order of passes that must be executed by
 ; the pipeline
 ;------------------------------------------------------------------------------
-(defclass PassDescriptor (is-a Object)
+(defclass pipeline::pass-description
+ (is-a Object)
  (multislot passes))
 ;------------------------------------------------------------------------------

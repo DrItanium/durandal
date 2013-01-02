@@ -32,20 +32,23 @@
 								  (arguments $?passes))
 			=>
 			(retract ?fct)
-			(make-instance of PassDescriptor (passes $?passes)))
+			(make-instance of pass-description (passes $?passes)))
 ;------------------------------------------------------------------------------
 (defrule pipeline::next-pass
-			?obj <- (object (is-a PassDescriptor) (passes ?first $?rest))
+			?obj <- (object (is-a pass-description) 
+								 (passes ?first $?rest))
 			=>
-			(assert (message (from pipeline) (to ?first) (action initial-fact)))
 			(modify-instance ?obj (passes $?rest))
 			;remove what is currently on the focus stack
 			(pop-focus)
+			(assert (message (from pipeline) 
+								  (to ?first) 
+								  (action initial-fact)))
 			(focus ?first pipeline))
 ;------------------------------------------------------------------------------
 (defrule pipeline::terminate-pass
-			?obj <- (object (is-a PassDescriptor) (passes))
+			?obj <- (object (is-a PassDescriptor) 
+								 (passes))
 			=>
-			(unmake-instance ?obj)
-			(pop-focus))
+			(unmake-instance ?obj))
 ;------------------------------------------------------------------------------
