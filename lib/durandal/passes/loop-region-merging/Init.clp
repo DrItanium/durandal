@@ -24,39 +24,146 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; Init.clp - Contains the logic for initializing the loop-region-merging pass
+; Init.clp - Contains the defmodules that make up the process of
+; loop-region-merging.
 ;------------------------------------------------------------------------------
-(defrule loop-region-merging::setup-pass
- (declare (salience 10000))
- ?fct <- (message (to loop-region-merging) (action initial-fact))
- =>
- (retract ?fct)
- (assert (stage flatlist-build 
-			       flatlist-expand
-					 flatlist-claim
-					 flatlist-arbitrate
-					 flatlist-resolve
-					 determinant-construction
-					 determinant-population
-					 determinant-resolution
-					 determinant-indirect-resolution
-					 fixup
-					 fixup-update
-					 fixup-rename
-					 cleanup-merger)))
+(defmodule loop-region-building-flatlist-build
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defrule loop-region-merging::next-stage
- (declare (salience -9999))
- ?fct <- (stage ? $?rest)
- =>
- (retract ?fct)
- (assert (stage $?rest)))
+(defmodule loop-region-building-flatlist-expand
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defrule loop-region-merging::terminate
- "Fired when all stages have been completed. Clean up the stage fact"
- (declare (salience -10000))
- ?fct <- (stage ?)
- =>
- (retract ?fct))
+(defmodule loop-region-building-flatlist-claim
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-
+(defmodule loop-region-building-flatlist-arbitrate
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-flatlist-resolve
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-determinant-construction
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-determinant-population
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-determinant-resolution
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-determinant-indirect-resolution
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-fixup
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-fixup-update
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-fixup-rename
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule loop-region-building-cleanup-merger
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import rampancy ?ALL)
+			  (import indirect ?ALL)
+			  (import pipeline ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defrule loop-region-merging::modify-pass-description
+			"Modifies the target pass description to load the target subpasses"
+			?fct <- (message (to loop-region-merging) (action initial-fact))
+			?obj <- (object (is-a pass-description) (passes $?passes))
+			=>
+			(retract ?fct)
+			(modify-instance ?obj 
+								  (passes 
+									 loop-region-building-flatlist-build
+									 loop-region-building-flatlist-expand
+									 loop-region-building-flatlist-claim
+									 loop-region-building-flatlist-arbitrate
+									 loop-region-building-flatlist-resolve
+									 loop-region-building-determinant-construction
+									 loop-region-building-determinant-population
+									 loop-region-building-determinant-resolution
+									 loop-region-building-determinant-indirect-resolution
+									 loop-region-building-fixup
+									 loop-region-building-fixup-update
+									 loop-region-building-fixup-rename
+									 loop-region-building-cleanup-merger
+									 $?passes)))
+;------------------------------------------------------------------------------
