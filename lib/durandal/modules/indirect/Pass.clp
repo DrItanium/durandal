@@ -57,6 +57,11 @@
   (multislot preserved (type SYMBOL))
   ;begin CLIPS specific slots
   (slot entry-point (type STRING))
+  ; this slot will allow us to expand passes that consist of multiple modules
+  ; before changing focus to that module. This can be set to false even if
+  ; there are submodules so that the programmer can control the process
+  ; themselves. This is a convience feature more than anything else.
+  (slot is-macro (type SYMBOL) (allowed-symbols FALSE TRUE))
   (message-handler register)
   (message-handler unregister)
   (message-handler is-registered))
