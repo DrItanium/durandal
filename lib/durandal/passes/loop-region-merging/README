@@ -1,1 +1,4 @@
-This pass/module merges loops and regions together
+This pass/module merges loops and regions together.
+
+This pass uses control facts to differentiate the different aspects of the code
+without resorting to many different modules. 
