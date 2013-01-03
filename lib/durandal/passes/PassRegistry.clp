@@ -61,6 +61,16 @@
   (need-regions TRUE)
   (passes paths-conditional)
   (required loops regions))
+ ([loop-region-merging] of Pass
+  (entry-point "passes/loop-region-merging/PassHeader.clp")
+  (pass-name loop-region-merging)
+  (pass-description "Merges the loops and regions of a given function into a single logical CFG.")
+  (pass-type Function)
+  (need-loops TRUE)
+  (need-regions TRUE)
+  (passes loop-region-merging)
+  (required loops regions))
+
  ;Add more passes here
 )
 ;------------------------------------------------------------------------------
