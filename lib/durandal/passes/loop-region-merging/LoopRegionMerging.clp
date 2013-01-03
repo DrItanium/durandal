@@ -34,7 +34,7 @@
 ; experiment and I realized that it will be easier this way to ensure proper
 ; merging and (by proxy) ordering. 
 ;------------------------------------------------------------------------------
-(defrule ConstructFlatListForRegion
+(defrule loop-region-merging::ConstructFlatListForRegion
 			"Creates a flat representation of the contents of the given region"
 			(Stage BuildFlatList $?)
 			(object (is-a Region) (ID ?id) (Contents $?z))

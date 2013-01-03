@@ -24,16 +24,39 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defmodule loop-region-merging
- (import core ?ALL)
- (import llvm ?ALL)
- (import indirect ?ALL)
- (import pipeline ?ALL)
- (import rampancy ?ALL)
- (import types ?ALL)
- (import MAIN ?ALL))
+; Init.clp - Contains the logic for initializing the loop-region-merging pass
+;------------------------------------------------------------------------------
+(defrule loop-region-merging::setup-pass
+ (declare (salience 10000))
+ ?fct <- (message (to loop-region-merging) (action initial-fact))
+ =>
+ (retract ?fct)
+ (assert (stage flatlist-build 
+			       flatlist-expand
+					 flatlist-claim
+					 flatlist-arbitrate
+					 flatlist-resolve
+					 determinant-construction
+					 determinant-population
+					 determinant-resolution
+					 determinant-indirect-resolution
+					 fixup
+					 fixup-update
+					 fixup-rename
+					 cleanup-merger)))
+;------------------------------------------------------------------------------
+(defrule loop-region-merging::next-stage
+ (declare (salience -9999))
+ ?fct <- (stage ? $?rest)
+ =>
+ (retract ?fct)
+ (assert (stage $?rest)))
+;------------------------------------------------------------------------------
+(defrule loop-region-merging::terminate
+ "Fired when all stages have been completed. Clean up the stage fact"
+ (declare (salience -10000))
+ ?fct <- (stage ?)
+ =>
+ (retract ?fct))
+;------------------------------------------------------------------------------
 
-(load* "passes/loop-region-merging/common/FlatList.clp")
-(load* "passes/loop-region-merging/Init.clp")
-(load* "passes/loop-region-merging/LoopRegionMerging.clp")
-(load* "passes/loop-region-merging/PathUpdate.clp")

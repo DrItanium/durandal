@@ -23,22 +23,22 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defrule ConstructDeterminantForRegion
-			(Stage DeterminantConstruction $?)
+(defrule loop-region-merging::construct-determinant-for-region
+			(stage determinant-construction $?)
 			(object (is-a Region) (ID ?r))
 			(not (exists (object (is-a OwnershipDeterminant) (Parent ?r))))
 			=>
 			(make-instance of OwnershipDeterminant (Parent ?r)))
 ;------------------------------------------------------------------------------
-(defrule ConstructDeterminantForBasicBlock
-			(Stage DeterminantConstruction $?)
+(defrule loop-region-merging::construct-determinant-for-basicblock
+			(stage determinant-construction $?)
 			(object (is-a BasicBlock) (ID ?b))
 			(not (exists (object (is-a OwnershipDeterminant) (Parent ?b))))
 			=>
 			(make-instance of OwnershipDeterminant (Parent ?b)))
 ;------------------------------------------------------------------------------
-(defrule PopulateDeterminant
-			(Stage DeterminantPopulation $?)
+(defrule loop-region-merging::populate-determinant
+			(stage determinant-population $?)
 			?fct <- (claim ?a owns ?b)
 			?obj <- (object (is-a OwnershipDeterminant) (Parent ?b))
 			?obj2 <- (object (is-a OwnershipDeterminant) (Parent ?a))
@@ -48,8 +48,8 @@
 			(slot-insert$ ?obj2 PotentialChildren 1 ?b)
 			(slot-insert$ ?obj Claims 1 ?a)))
 ;------------------------------------------------------------------------------
-(defrule DetermineIndirectClaim
-			(Stage DeterminantResolution $?)
+(defrule loop-region-merging::determine-indirect-claim
+			(stage determinant-resolution $?)
 			?t0 <- (object (is-a OwnershipDeterminant) (Parent ?b) 
 								(Claims $?v ?a $?x) (IndirectClaims $?ic))
 			(object (is-a OwnershipDeterminant) (Parent ~?b) 
@@ -62,8 +62,8 @@
       (modify-instance ?t0 (IndirectClaims ?ic ?a) (Claims ?v ?x))
       (modify-instance ?t1 (PotentialChildren ?t ?r))))
 ;------------------------------------------------------------------------------
-(defrule DetermineIndirectIndirectClaim
-			(Stage DeterminantIndirectResolution $?)
+(defrule loop-region-merging::determine-indirect-indirect-claim
+         (stage determinant-indirect-resolution $?)
 			?t0 <- (object (is-a OwnershipDeterminant) (Parent ?b) 
 								(Claims $?l ?a $?x) (IndirectClaims $?ic))
 			(object (is-a OwnershipDeterminant) (Parent ~?b&~?a) 
@@ -75,32 +75,32 @@
        (modify-instance ?t0 (IndirectClaims ?ic ?a) (Claims ?l ?x))
        (modify-instance ?t1 (PotentialChildren ?z ?q))))
 ;------------------------------------------------------------------------------
-(defrule DeleteNonExistentReferences
-			(Stage Fixup $?)
-			?region <- (object (is-a Region) (Contents $? ?b $?))
-			(not (exists (object (ID ?b))))
+(defrule loop-region-merging::delete-non-existent-references
+         (stage fixup $?)
+			?region <- (object (is-a Region) (contents $? ?b $?))
+			(not (exists (object (id ?b))))
 			=>
       (object-pattern-match-delay 
-			(bind ?ind0 (member$ ?b (send ?region get-Contents)))
-			(slot-delete$ ?region Contents ?ind0 ?ind0)))
+			(bind ?ind0 (member$ ?b (send ?region get-contents)))
+			(slot-delete$ ?region contents ?ind0 ?ind0)))
 ;------------------------------------------------------------------------------
-(defrule UpdateOwnerOfTargetRegion
-			(Stage FixupUpdate $?)
+(defrule loop-region-merging::update-owner-of-target-region
+         (stage fixup-update $?)
 			(object (is-a OwnershipDeterminant) (Parent ?p) (Claims ?a))
 			?obj <- (object (is-a Region) (ID ?p))
 			=>
 			(modify-instance ?obj (Parent ?a)))
 ;------------------------------------------------------------------------------
-(defrule UpdateOwnerOfTargetBasicBlock
-			(Stage FixupUpdate $?)
+(defrule loop-region-merging::update-owner-of-target-basicblock
+         (stage fixup-update $?)
 			(object (is-a OwnershipDeterminant) (Parent ?p) 
 					  (Claims ?a))
 			?obj <- (object (is-a BasicBlock) (ID ?p))
 			=>
 			(modify-instance ?obj (Parent ?a)))
 ;------------------------------------------------------------------------------
-(defrule AddNewChildToTargetRegion
-			(Stage FixupUpdate $?)
+(defrule loop-region-merging::add-new-child-to-target-region
+         (stage fixup-update $?)
 			(object (is-a OwnershipDeterminant) (Parent ?p)
 					  (PotentialChildren $? ?a $?))
 			?region <- (object (is-a Region) (ID ?p) (Contents $?c))
@@ -108,26 +108,26 @@
 			=>
 			(slot-insert$ ?region Contents 1 ?a))
 ;------------------------------------------------------------------------------
-(defrule CleanupOwnershipDeterminants
+(defrule loop-region-merging::cleanup-ownership-determinants
 			"Deletes all of the OwnershipDeterminant objects in a single rule 
 			fire"
-			(Stage CleanUp-Merger $?)
+			(stage cleanup-merger $?)
 			=>
 			(progn$ (?obj (find-all-instances ((?list OwnershipDeterminant)) 
 														 TRUE))
 					  (unmake-instance ?obj)))
 ;------------------------------------------------------------------------------
-(defrule RemoveUnownedElements
+(defrule loop-region-merging::remove-unowned-elements
 			"Now that we have figured out and updated ownership claims it is 
 			necessary to remove leftover entries in other regions"
-			(Stage FixupRename $?)
+			(stage fixup-rename $?)
 			?r <- (object (is-a Region) (ID ?t) (Contents $?a ?b $?c))
 			(object (is-a TaggedObject) (ID ?b) (Parent ~?t))
 			=>
 			(modify-instance ?r (Contents $?a $?c)))
 ;------------------------------------------------------------------------------
-(defrule FAILURE-TooManyClaimsOfOwnership
-			(Stage Fixup $?)
+(defrule loop-region-merging::FAILURE-too-many-claims-of-ownership
+         (stage fixup $?)
 			(object (is-a OwnershipDeterminant) (Parent ?a) 
 					  (Claims $?z&:(> (length$ ?z) 1))
 					  (ID ?name))
@@ -136,8 +136,8 @@
 						 " it!" crlf "The claims are " ?z crlf)
 			(exit))
 ;------------------------------------------------------------------------------
-(defrule FAILURE-NoRemainingClaimsForRegion
-			(Stage Fixup $?)
+(defrule loop-region-merging::FAILURE-no-remaining-claims-for-region
+ 			(stage fixup $?)
 			(object (is-a OwnershipDeterminant) (Parent ?a) (Claims)
 					  (PotentialChildren $?pc) (IndirectClaims $?ic))
 			(object (is-a Region) (ID ?a) (IsTopLevelRegion FALSE))
@@ -147,8 +147,8 @@
 						 ?a " has " $?ic " as it's indirect claims." crlf)
 			(exit))
 ;------------------------------------------------------------------------------
-(defrule FAILURE-NoRemainingClaimsForBasicBlock
-			(Stage Fixup $?)
+(defrule loop-region-merging::FAILURE-no-remaining-claims-for-basicblock
+			(stage fixup $?)
 			(object (is-a OwnershipDeterminant) (Parent ?a) (Claims)
 					  (PotentialChildren $?pc) (IndirectClaims $?ic))
 			(object (is-a BasicBlock) (ID ?a)) 
