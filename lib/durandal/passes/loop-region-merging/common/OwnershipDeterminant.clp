@@ -24,17 +24,10 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defmodule loop-region-merging
- (import core ?ALL)
- (import llvm ?ALL)
- (import indirect ?ALL)
- (import pipeline ?ALL)
- (import rampancy ?ALL)
- (import types ?ALL)
- (import MAIN ?ALL))
-
-(load* "passes/loop-region-merging/common/FlatList.clp")
-(load* "passes/loop-region-merging/common/OwnershipDeterminant.clp")
-(load* "passes/loop-region-merging/Init.clp")
-(load* "passes/loop-region-merging/LoopRegionMerging.clp")
-(load* "passes/loop-region-merging/PathUpdate.clp")
+(defclass types::OwnershipDeterminant 
+ "An object that maintains the state of a given object with respect to merging"
+  (is-a ParentedObject) 
+  (multislot Claims)
+  (multislot IndirectClaims)
+  (multislot PotentialChildren)) 
+;------------------------------------------------------------------------------
