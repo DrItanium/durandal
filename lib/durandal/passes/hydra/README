@@ -1,0 +1,2 @@
+The hydra pass is a fully recursive pass that traverses each instruction to
+try and figure out exactly what is being used and (in some cases) modified.
