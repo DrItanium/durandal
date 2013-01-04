@@ -25,20 +25,20 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-construction::construct-determinant-for-region
 			(object (is-a Region) (ID ?r))
-			(not (exists (object (is-a OwnershipDeterminant) (Parent ?r))))
+			(not (exists (object (is-a OwnershipDeterminant) (parent ?r))))
 			=>
-			(make-instance of OwnershipDeterminant (Parent ?r)))
+			(make-instance of OwnershipDeterminant (parent ?r)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-construction::construct-determinant-for-basicblock
 			(object (is-a BasicBlock) (ID ?b))
-			(not (exists (object (is-a OwnershipDeterminant) (Parent ?b))))
+			(not (exists (object (is-a OwnershipDeterminant) (parent ?b))))
 			=>
-			(make-instance of OwnershipDeterminant (Parent ?b)))
+			(make-instance of OwnershipDeterminant (parent ?b)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-population::populate-determinant
 			?fct <- (claim ?a owns ?b)
-			?obj <- (object (is-a OwnershipDeterminant) (Parent ?b))
-			?obj2 <- (object (is-a OwnershipDeterminant) (Parent ?a))
+			?obj <- (object (is-a OwnershipDeterminant) (parent ?b))
+			?obj2 <- (object (is-a OwnershipDeterminant) (parent ?a))
 			=>
 			(retract ?fct)
       (object-pattern-match-delay 
@@ -46,11 +46,11 @@
 			(slot-insert$ ?obj Claims 1 ?a)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-resolution::determine-indirect-claim
-			?t0 <- (object (is-a OwnershipDeterminant) (Parent ?b) 
+			?t0 <- (object (is-a OwnershipDeterminant) (parent ?b) 
 								(Claims $?v ?a $?x) (IndirectClaims $?ic))
-			(object (is-a OwnershipDeterminant) (Parent ~?b) 
+			(object (is-a OwnershipDeterminant) (parent ~?b) 
 					  (PotentialChildren $? ?b $?) (Claims $? ?a $?))
-			?t1 <- (object (is-a OwnershipDeterminant) (Parent ?a) 
+			?t1 <- (object (is-a OwnershipDeterminant) (parent ?a) 
 								(PotentialChildren $?t ?b $?r))
 			=>
 			;let's see if this is faster
@@ -59,11 +59,11 @@
       (modify-instance ?t1 (PotentialChildren ?t ?r))))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-indirect-resolution::determine-indirect-indirect-claim
-			?t0 <- (object (is-a OwnershipDeterminant) (Parent ?b) 
+			?t0 <- (object (is-a OwnershipDeterminant) (parent ?b) 
 								(Claims $?l ?a $?x) (IndirectClaims $?ic))
-			(object (is-a OwnershipDeterminant) (Parent ~?b&~?a) 
+			(object (is-a OwnershipDeterminant) (parent ~?b&~?a) 
 					  (IndirectClaims $? ?a $?) (PotentialChildren $? ?b $?))
-			?t1 <- (object (is-a OwnershipDeterminant) (Parent ?a)
+			?t1 <- (object (is-a OwnershipDeterminant) (parent ?a)
 								(PotentialChildren $?z ?b $?q))
 			=>
       (object-pattern-match-delay 
@@ -79,20 +79,20 @@
 			(slot-delete$ ?region contents ?ind0 ?ind0)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup-update::update-owner-of-target-region
-			(object (is-a OwnershipDeterminant) (Parent ?p) (Claims ?a))
+			(object (is-a OwnershipDeterminant) (parent ?p) (Claims ?a))
 			?obj <- (object (is-a Region) (ID ?p))
 			=>
-			(modify-instance ?obj (Parent ?a)))
+			(modify-instance ?obj (parent ?a)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup-update::update-owner-of-target-basicblock
-			(object (is-a OwnershipDeterminant) (Parent ?p) 
+			(object (is-a OwnershipDeterminant) (parent ?p) 
 					  (Claims ?a))
 			?obj <- (object (is-a BasicBlock) (ID ?p))
 			=>
-			(modify-instance ?obj (Parent ?a)))
+			(modify-instance ?obj (parent ?a)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup-update::add-new-child-to-target-region
-			(object (is-a OwnershipDeterminant) (Parent ?p)
+			(object (is-a OwnershipDeterminant) (parent ?p)
 					  (PotentialChildren $? ?a $?))
 			?region <- (object (is-a Region) (ID ?p) (Contents $?c))
       (test (not (member$ ?a ?c)))
@@ -112,12 +112,12 @@
 			"Now that we have figured out and updated ownership claims it is 
 			necessary to remove leftover entries in other regions"
 			?r <- (object (is-a Region) (ID ?t) (Contents $?a ?b $?c))
-			(object (is-a TaggedObject) (ID ?b) (Parent ~?t))
+			(object (is-a TaggedObject) (ID ?b) (parent ~?t))
 			=>
 			(modify-instance ?r (Contents $?a $?c)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup::FAILURE-too-many-claims-of-ownership
-			(object (is-a OwnershipDeterminant) (Parent ?a) 
+			(object (is-a OwnershipDeterminant) (parent ?a) 
 					  (Claims $?z&:(> (length$ ?z) 1))
 					  (ID ?name))
 			=>
@@ -126,7 +126,7 @@
 			(exit))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup::FAILURE-no-remaining-claims-for-region
-			(object (is-a OwnershipDeterminant) (Parent ?a) (Claims)
+			(object (is-a OwnershipDeterminant) (parent ?a) (Claims)
 					  (PotentialChildren $?pc) (IndirectClaims $?ic))
 			(object (is-a Region) (ID ?a) (IsTopLevelRegion FALSE))
 			=>
@@ -136,7 +136,7 @@
 			(exit))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup::FAILURE-no-remaining-claims-for-basicblock
-			(object (is-a OwnershipDeterminant) (Parent ?a) (Claims)
+			(object (is-a OwnershipDeterminant) (parent ?a) (Claims)
 					  (PotentialChildren $?pc) (IndirectClaims $?ic))
 			(object (is-a BasicBlock) (ID ?a)) 
 			=>

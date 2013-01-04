@@ -36,16 +36,16 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-build::ConstructFlatListForRegion
 			"Creates a flat representation of the contents of the given region"
-			(object (is-a Region) (ID ?id) (Contents $?z))
-			(not (exists (object (is-a FlatList) (Parent ?id))))
+			(object (is-a Region) (id ?id) (Contents $?z))
+			(not (exists (object (is-a FlatList) (parent ?id))))
 			=>
-			(make-instance of FlatList (Parent ?id)) 
+			(make-instance of FlatList (parent ?id)) 
 			(assert (Populate FlatList of ?id with $?z)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-build::PopulateFlatList-BasicBlock
 			?f <- (Populate FlatList of ?id with ?first $?rest)
-			?o <- (object (is-a FlatList) (Parent ?id))
-			(object (is-a BasicBlock) (ID ?first))
+			?o <- (object (is-a FlatList) (parent ?id))
+			(object (is-a BasicBlock) (id ?first))
 			=>
 			(slot-insert$ ?o Contents 1 ?first)
 			(retract ?f)
@@ -53,9 +53,9 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-build::PopulateFlatList-Region
 			?f <- (Populate FlatList of ?id with ?first $?rest)
-			?o <- (object (is-a FlatList) (Parent ?id))
-			(object (is-a Region) (ID ?first))
-			(object (is-a FlatList) (Parent ?first) (ID ?name))
+			?o <- (object (is-a FlatList) (parent ?id))
+			(object (is-a Region) (id ?first))
+			(object (is-a FlatList) (parent ?first) (id ?name))
 			=>
 			;Add the reference to FlatList for the time being until we have
 			;finished constructing an entire flat list
@@ -72,33 +72,33 @@
 			"Takes a flat list and expands one of the elements of the contents if 
 			it turns out that element is another flat list"
 			?id <- (object (is-a FlatList) (Contents $?a ?b $?c))
-			(object (is-a FlatList) (ID ?b) (Contents $?j))
+			(object (is-a FlatList) (id ?b) (Contents $?j))
 			=>
 			(modify-instance ?id (Contents $?a $?j $?c)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimOwnership
 			"Asserts that a region owns another through a subset check. The first 
 			flat list is checked to see if it is a _proper_ subset of the second"
-			?f0 <- (object (is-a FlatList) (ID ?i0) (Contents $?c0) (Parent ?p0))
-			?f1 <- (object (is-a FlatList) (ID ?i1&~?i0) (Contents $?c1) 
-								(Parent ?p1))
+			?f0 <- (object (is-a FlatList) (id ?i0) (Contents $?c0) (parent ?p0))
+			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (Contents $?c1) 
+								(parent ?p1))
 			(test (and (subsetp ?c0 ?c1) (> (length$ ?c1) (length$ ?c0))))
 			=>
 			(assert (claim ?p1 owns ?p0)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimOwnershipOfBlocks
 			"This rule is used to assert ownership claims on basic blocks"
-			?f0 <- (object (is-a FlatList) (Parent ?p) (Contents $? ?b $?))
-			(object (is-a BasicBlock) (ID ?b))
+			?f0 <- (object (is-a FlatList) (parent ?p) (Contents $? ?b $?))
+			(object (is-a BasicBlock) (id ?b))
 			=>
 			(assert (claim ?p owns ?b)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimEquivalence
 			"Asserts that two regions are equivalent if one flat list contains the
 			same elements as a second one."
-			?f0 <- (object (is-a FlatList) (ID ?i0) (Contents $?c0) (Parent ?p0))
-			?f1 <- (object (is-a FlatList) (ID ?i1&~?i0) (Contents $?c1) 
-								(Parent ?p1))
+			?f0 <- (object (is-a FlatList) (id ?i0) (Contents $?c0) (parent ?p0))
+			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (Contents $?c1) 
+								(parent ?p1))
 			(test (and (subsetp ?c0 ?c1) (= (length$ ?c1) (length$ ?c0))))
 			=>
 			(assert (claim ?p1 equivalent ?p0)))
@@ -119,8 +119,8 @@
 			dies. The loop is the first entry."
 			(declare (salience 1))
 			?f0 <- (claim ?a equivalent ?b)
-			(object (is-a Loop) (ID ?a))
-			(object (is-a Region&~Loop) (ID ?b))
+			(object (is-a Loop) (id ?a))
+			(object (is-a Region&~Loop) (id ?b))
 			=>
 			(retract ?f0)
 			(assert (delete region ?b)
@@ -132,8 +132,8 @@
 			dies. The loop is the second entry."
 			(declare (salience 1))
 			?f0 <- (claim ?b equivalent ?a)
-			(object (is-a Loop) (ID ?a))
-			(object (is-a Region&~Loop) (ID ?b))
+			(object (is-a Loop) (id ?a))
+			(object (is-a Region&~Loop) (id ?b))
 			=>
 			(retract ?f0)
 			(assert (delete region ?b)
@@ -177,7 +177,7 @@
 (defrule loop-region-building-flatlist-resolve::DeleteTargetRegion
 			"Deletes the target region slated for deletion"
 			?f0 <- (delete region ?r0)
-			?region <- (object (is-a Region) (ID ?r0))
+			?region <- (object (is-a Region) (id ?r0))
 			=>
 			(retract ?f0)
 			(unmake-instance ?region))
