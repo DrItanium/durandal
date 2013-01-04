@@ -23,12 +23,12 @@ namespace pipeline {
 			KnowledgeConstructor tmp;
 			tmp.route(&module);
 			clEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
-         llvm::PassRegistry* registry = llvm::PassRegistry::getPassRegistry();
+			llvm::PassRegistry* registry = llvm::PassRegistry::getPassRegistry();
 			llvm::PassManager manager;
 			const llvm::PassInfo* ci = registry->getPassInfo(
-						llvm::StringRef("function-to-knowledge"));
-         ExpertSystem::FunctionKnowledgeConversionPass* copy = 
-            (ExpertSystem::FunctionKnowledgeConversionPass*)ci->createPass();
+					llvm::StringRef("function-to-knowledge"));
+			ExpertSystem::FunctionKnowledgeConversionPass* copy = 
+				(ExpertSystem::FunctionKnowledgeConversionPass*)ci->createPass();
 			copy->setEnvironment(clEnv);
 			copy->setSkipLoops(!header->needsLoops());
 			copy->setSkipRegions(!header->needsRegions());
@@ -43,34 +43,38 @@ namespace pipeline {
 		}
 
 		bool CLIPSFunctionPass::runOnFunction(llvm::Function& function) {
-			void* env = getEnvironment();
-			CLIPSEnvironment* clEnv = new CLIPSEnvironment(env);
-			EnvReset(env);
-			CLIPSPassHeader* header = (CLIPSPassHeader*)getIndirectPassHeader();
-			char* passes = CharBuffer(strlen(header->getPasses()) + 64);
-			sprintf(passes,"(passes %s)", header->getPasses());
-			EnvAssertString(env, passes);
-			free(passes);
-			KnowledgeConstructor tmp;
-			if(header->needsLoops() && header->needsRegions()) {
-				llvm::LoopInfo& li = getAnalysis<LoopInfo>();
-				llvm::RegionInfo& ri = getAnalysis<RegionInfo>();
-				tmp.route(function, li, ri);
-			} else if(header->needsLoops() && !header->needsRegions()) {
-				llvm::LoopInfo& li = getAnalysis<LoopInfo>();
-				tmp.route(function, li);
-			} else if(header->needsRegions() && !header->needsLoops()) {
-				llvm::RegionInfo& ri = getAnalysis<RegionInfo>();
-				tmp.route(function, ri);
+			if(!function.isDeclaration()) {
+				void* env = getEnvironment();
+				CLIPSEnvironment* clEnv = new CLIPSEnvironment(env);
+				EnvReset(env);
+				CLIPSPassHeader* header = (CLIPSPassHeader*)getIndirectPassHeader();
+				char* passes = CharBuffer(strlen(header->getPasses()) + 64);
+				sprintf(passes,"(passes %s)", header->getPasses());
+				EnvAssertString(env, passes);
+				free(passes);
+				KnowledgeConstructor tmp;
+				if(header->needsLoops() && header->needsRegions()) {
+					llvm::LoopInfo& li = getAnalysis<LoopInfo>();
+					llvm::RegionInfo& ri = getAnalysis<RegionInfo>();
+					tmp.route(function, li, ri);
+				} else if(header->needsLoops() && !header->needsRegions()) {
+					llvm::LoopInfo& li = getAnalysis<LoopInfo>();
+					tmp.route(function, li);
+				} else if(header->needsRegions() && !header->needsLoops()) {
+					llvm::RegionInfo& ri = getAnalysis<RegionInfo>();
+					tmp.route(function, ri);
+				} else {
+					tmp.route(function);
+				}
+				clEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
+				//TODO: put in the line to build the actual knowledge
+				EnvRun(env, -1L);
+				//it's up to the code in the expert system to make changes
+				EnvReset(env);
+				return true;
 			} else {
-				tmp.route(function);
+				return false;
 			}
-			clEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
-			//TODO: put in the line to build the actual knowledge
-			EnvRun(env, -1L);
-			//it's up to the code in the expert system to make changes
-			EnvReset(env);
-			return true;
 		}
 		bool CLIPSBasicBlockPass::runOnBasicBlock(llvm::BasicBlock& bb) {
 			void* env = getEnvironment();
