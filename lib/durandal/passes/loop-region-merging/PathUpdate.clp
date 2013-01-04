@@ -36,7 +36,9 @@
 			(make-instance of OwnershipDeterminant (parent ?b)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-population::populate-determinant
-			?fct <- (claim ?a owns ?b)
+ 			?fct <- (message (to loop-region-merging) 
+				(action claim-owns) 
+				(arguments ?a => ?b))
 			?obj <- (object (is-a OwnershipDeterminant) (parent ?b))
 			?obj2 <- (object (is-a OwnershipDeterminant) (parent ?a))
 			=>
@@ -97,7 +99,7 @@
 			?region <- (object (is-a Region) (id ?p) (contents $?c))
       (test (not (member$ ?a ?c)))
 			=>
-			(slot-insert$ ?region values 1 ?a))
+			(slot-insert$ ?region contents 1 ?a))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-cleanup-merger::cleanup-ownership-determinants
 			"Deletes all of the OwnershipDeterminant objects in a single rule 
@@ -115,7 +117,7 @@
 			?r <- (object (is-a Region) (id ?t) (contents $?a ?b $?c))
 			(object (is-a ParentedObject) (id ?b) (parent ~?t))
 			=>
-			(modify-instance ?r (values $?a $?c)))
+			(modify-instance ?r (contents $?a $?c)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup::FAILURE-too-many-claims-of-ownership
 			(object (is-a OwnershipDeterminant) (parent ?a) 
