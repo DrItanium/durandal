@@ -28,162 +28,230 @@
 ; Written by Joshua Scoggins (7/1/2012)
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis::MarkLocalDependency-Call
- 			(declare (salience 1))
-         (object (is-a CallInstruction) (parent ?p) (id ?t0) 
-                        (ArgumentOperands $? ?o $?))
-         (object (is-a Instruction) (id ?o) (parent ?p))
-         =>
-         (assert (Instruction ?o produces ?t0)
-                 (Instruction ?t0 consumes ?o)))
+			(declare (salience 1))
+			(object (is-a CallInstruction) (parent ?p) (id ?t0) 
+					  (ArgumentOperands $? ?o $?))
+			(object (is-a Instruction) (id ?o) (parent ?p))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action instruction-produces)
+								  (arguments ?o => ?t0))
+					  (message (to dependency-analysis)
+								  (action instruction-consumes)
+								  (arguments ?t0 => ?o))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis::MarkLocalDependency 
-         ?i0 <- (object (is-a Instruction&~CallInstruction) (parent ?p) (id ?t0) 
-                        (Operands $? ?o $?))
-         (object (is-a Instruction) (id ?o) (parent ?p))
-         =>
-         (assert (Instruction ?o produces ?t0)
-                 (Instruction ?t0 consumes ?o)))
+			?i0 <- (object (is-a Instruction&~CallInstruction) (parent ?p) (id ?t0) 
+								(Operands $? ?o $?))
+			(object (is-a Instruction) (id ?o) (parent ?p))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action instruction-produces)
+								  (arguments ?o => ?t0))
+					  (message (to dependency-analysis)
+								  (action instruction-consumes)
+								  (arguments ?t0 => ?o))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis::MarkInstructionsThatHappenBeforeCall-WritesToMemory
-         (object (is-a BasicBlock) (id ?v) (contents $?before ?n0 $?))
-         (object (is-a CallInstruction) (id ?n0) (parent ?v) 
-                 (MayWriteToMemory TRUE))
-         =>
-         (progn$ (?n1 ?before)
-                 (assert (Instruction ?n0 consumes ?n1)
-                         (Instruction ?n1 produces ?n0))))
+			(object (is-a BasicBlock) (id ?v) (contents $?before ?n0 $?))
+			(object (is-a CallInstruction) (id ?n0) (parent ?v) 
+					  (MayWriteToMemory TRUE))
+			=>
+			(progn$ (?n1 ?before)
+					  (assert (message (to dependency-analysis)
+											 (action instruction-produces)
+											 (arguments ?n1 => ?n0))
+								 (message (to dependency-analysis)
+											 (action instruction-consumes)
+											 (arguments ?n0 => ?n1)))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis::MarkInstructionsThatHappenBeforeCall-HasSideEffects
-         (Stage Analysis $?)
-         (object (is-a BasicBlock) (id ?p) (contents $?a ?n0 $?))
-         (object (is-a CallInstruction) (id ?n0) (parent ?p)
-                 (MayHaveSideEffects TRUE))
-         =>
-         (progn$ (?n1 ?a)
-                 (assert (Instruction ?n0 consumes ?n1)
-                         (Instruction ?n1 produces ?n0))))
+			(Stage Analysis $?)
+			(object (is-a BasicBlock) (id ?p) (contents $?a ?n0 $?))
+			(object (is-a CallInstruction) (id ?n0) (parent ?p)
+					  (MayHaveSideEffects TRUE))
+			=>
+			(progn$ (?n1 ?a)
+					  (assert (message (to dependency-analysis)
+											 (action instruction-produces)
+											 (arguments ?n1 => ?n0))
+								 (message (to dependency-analysis)
+											 (action instruction-consumes)
+											 (arguments ?n0 => ?n1)))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis::MarkCallInstructionDependency-ModifiesMemory
-         "Creates a series of dependencies for all instructions following a 
-         call instruction if it turns out that the call could modify memory."
-         (object (is-a BasicBlock) (id ?p) (contents $? ?name $?rest))
-         (object (is-a CallInstruction) (id ?name) (parent ?p)
-                 (MayWriteToMemory TRUE))
-         =>
-         (assert (Element ?p has a CallBarrier))
-         (progn$ (?following ?rest)
-                 (assert (Instruction ?following has a CallDependency)
-                         ;(Instruction ?following consumes ?name)
-                         (Instruction ?name produces ?following))))
+			"Creates a series of dependencies for all instructions following a 
+			call instruction if it turns out that the call could modify memory."
+			(object (is-a BasicBlock) (id ?p) (contents $? ?name $?rest))
+			(object (is-a CallInstruction) (id ?name) (parent ?p)
+					  (MayWriteToMemory TRUE))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?p)))
+			(progn$ (?following ?rest)
+					  (assert (message (to dependency-analysis)
+											 (action instruction-has-a-call-barrier)
+											 (arguments ?following))
+								 ;(message (to dependency-analysis)
+								 ;	      (action instruction-consumes)
+								 ;		   (arguments ?following => ?name))
+								 (message (to dependency-analysis)
+											 (action instruction-produces)
+											 (arguments ?name => ?following)))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis::MarkCallInstructionDependency-InlineAsm
-         "Creates a series of dependencies for all instructions following a 
-         call instruction if it turns out that the call is inline asm."
-         (object (is-a BasicBlock) (id ?p) (contents $? ?name $?rest))
-         (object (is-a CallInstruction) (id ?name) (parent ?p) 
-                 (IsInlineAsm TRUE))
-         =>
-         (assert (Element ?p has a CallBarrier))
-         (progn$ (?following ?rest)
-                 (assert (Instruction ?following has a CallDependency)
-                         ;(Instruction ?following consumes ?name)
-                         (Instruction ?name produces ?following))))
+			"Creates a series of dependencies for all instructions following a 
+			call instruction if it turns out that the call is inline asm."
+			(object (is-a BasicBlock) (id ?p) (contents $? ?name $?rest))
+			(object (is-a CallInstruction) (id ?name) (parent ?p) 
+					  (IsInlineAsm TRUE))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?p)))
+			(progn$ (?following ?rest)
+					  (assert (message (to dependency-analysis)
+											 (action instruction-has-a-call-barrier)
+											 (arguments ?following))
+								 ;(message (to dependency-analysis)
+								 ;	      (action instruction-consumes)
+								 ;		   (arguments ?following => ?name))
+								 (message (to dependency-analysis)
+											 (action instruction-produces)
+											 (arguments ?name => ?following)))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis::MarkCallInstructionDependency-SideEffects
-         "Creates a series of dependencies for all instructions following a 
-         call instruction if it turns out that the call has side effects."
-         (object (is-a CallInstruction) (id ?name) (parent ?p)
-                 (MayHaveSideEffects TRUE)) 
-         (object (is-a BasicBlock) (id ?p) (contents $? ?name $?rest))
-         =>
-         (assert (Element ?p has a CallBarrier))
-         (progn$ (?following ?rest)
-                 (assert (Instruction ?following has a CallDependency)
-                         ;(Instruction ?following consumes ?name)
-                         (Instruction ?name produces ?following))))
+			"Creates a series of dependencies for all instructions following a 
+			call instruction if it turns out that the call has side effects."
+			(object (is-a CallInstruction) (id ?name) (parent ?p)
+					  (MayHaveSideEffects TRUE)) 
+			(object (is-a BasicBlock) (id ?p) (contents $? ?name $?rest))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?p)))
+			(progn$ (?following ?rest)
+					  (assert (message (to dependency-analysis)
+											 (action instruction-has-a-call-barrier)
+											 (arguments ?following))
+								 ;(message (to dependency-analysis)
+								 ;	      (action instruction-consumes)
+								 ;		   (arguments ?following => ?name))
+								 (message (to dependency-analysis)
+											 (action instruction-produces)
+											 (arguments ?name => ?following)))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis-update::FlagCallBarrierForDiplomat-HasParent
-         ;(declare (salience -10))
-         ?fct <- (Element ?z has a CallBarrier)
-         ?d <- (object (is-a Diplomat) (id ?z) (parent ?p) 
-                       (HasCallBarrier FALSE))
-         (exists (object (is-a Diplomat) (id ?p)))
-         =>
-         (retract ?fct)
-         (assert (Element ?p has a CallBarrier))
-         (modify-instance ?d (HasCallBarrier TRUE)))
+			;(declare (salience -10))
+			?fct <- (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?z))
+			?d <- (object (is-a Diplomat) (id ?z) (parent ?p) 
+							  (HasCallBarrier FALSE))
+			(exists (object (is-a Diplomat) (id ?p)))
+			=>
+			(retract ?fct)
+			(assert (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?p)))
+			(modify-instance ?d (HasCallBarrier TRUE)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis-update::PropagateCallBarrierForDiplomat-HasParent
-         ;(declare (salience -10))
-         ?fct <- (Element ?z has a CallBarrier)
-         ?d <- (object (is-a Diplomat) (id ?z) (parent ?p) 
-                       (HasCallBarrier TRUE))
-         (exists (object (is-a Diplomat) (id ?p)))
-         =>
-         (retract ?fct)
-         (assert (Element ?p has a CallBarrier)))
+			;(declare (salience -10))
+			?fct <- (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?z))
+			?d <- (object (is-a Diplomat) (id ?z) (parent ?p) 
+							  (HasCallBarrier TRUE))
+			(exists (object (is-a Diplomat) (id ?p)))
+			=>
+			(retract ?fct)
+			(assert (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?p))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis-update::FlagCallBarrierForDiplomat-NoParent
-         ;(declare (salience -10))
-         ?fct <- (Element ?z has a CallBarrier)
-         ?d <- (object (is-a Diplomat) (id ?z) (parent ?p) 
-                       (HasCallBarrier FALSE))
-         (not (exists (object (is-a Diplomat) (id ?p))))
-         =>
-         (retract ?fct)
-         (modify-instance ?d (HasCallBarrier TRUE)))
+			;(declare (salience -10))
+			?fct <- (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?z))
+			?d <- (object (is-a Diplomat) (id ?z) (parent ?p) 
+							  (HasCallBarrier FALSE))
+			(not (exists (object (is-a Diplomat) (id ?p))))
+			=>
+			(retract ?fct)
+			(modify-instance ?d (HasCallBarrier TRUE)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis-update::PropagateCallBarrierForDiplomat-NoParent
-         ;(declare (salience -10))
-         ?fct <- (Element ?z has a CallBarrier)
-         ?d <- (object (is-a Diplomat) (id ?z) (parent ?p) 
-                       (HasCallBarrier TRUE))
-         (not (exists (object (is-a Diplomat) (id ?p))))
-         =>
-         (retract ?fct))
+			;(declare (salience -10))
+			?fct <- (message (to dependency-analysis)
+								  (action element-has-a-call-barrier)
+								  (arguments ?z))
+			?d <- (object (is-a Diplomat) (id ?z) (parent ?p) 
+							  (HasCallBarrier TRUE))
+			(not (exists (object (is-a Diplomat) (id ?p))))
+			=>
+			(retract ?fct))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis-update::MarkHasACallDependency-Set
-         ?fct <- (Instruction ?target has a CallDependency)
-         ?inst <- (object (is-a Instruction) (id ?target) 
-                          (HasCallDependency FALSE))
-         =>
-         (retract ?fct)
-         (modify-instance ?inst (HasCallDependency TRUE)))
+			?fct <- (message (to dependency-analysis)
+								  (action instruction-has-a-call-barrier)
+								  (arguments ?target))
+			?inst <- (object (is-a Instruction) (id ?target) 
+								  (HasCallDependency FALSE))
+			=>
+			(retract ?fct)
+			(modify-instance ?inst (HasCallDependency TRUE)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-analysis-update::MarkHasACallDependency-Ignore
-         ?fct <- (Instruction ?target has a CallDependency)
-         ?inst <- (object (is-a Instruction) (id ?target) 
-                          (HasCallDependency TRUE))
-         =>
-         (retract ?fct))
+			?fct <- (message (to dependency-analysis)
+								  (action instruction-has-a-call-barrier)
+								  (arguments ?target))
+			?inst <- (object (is-a Instruction) (id ?target) 
+								  (HasCallDependency TRUE))
+			=>
+			(retract ?fct))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis::StoreToLoadDependency
-         (object (is-a StoreInstruction) (parent ?p) (id ?t0)
-                 (TimeIndex ?ti0) (MemoryTarget ?sym0))
-         (object (is-a LoadInstruction) (parent ?p) (id ?t1) 
-                 (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
-         (test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
-         =>
-         (assert (Instruction ?t1 consumes ?t0)
-                 (Instruction ?t0 produces ?t1)))
+			(object (is-a StoreInstruction) (parent ?p) (id ?t0)
+					  (TimeIndex ?ti0) (MemoryTarget ?sym0))
+			(object (is-a LoadInstruction) (parent ?p) (id ?t1) 
+					  (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
+			(test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action instruction-consumes)
+								  (arguments ?t1 => ?t0))
+					  (message (to dependency-analysis)
+								  (action instruction-produces)
+								  (arguments ?t0 => ?t1))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis::StoreToStoreDependency
-         (object (is-a StoreInstruction) (parent ?p) (id ?t0)
-                 (TimeIndex ?ti0) (MemoryTarget ?sym0))
-         (object (is-a StoreInstruction) (parent ?p) (id ?t1) 
-                 (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
-         (test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
-         =>
-         (assert (Instruction ?t1 consumes ?t0)
-                 (Instruction ?t0 produces ?t1)))
+			(object (is-a StoreInstruction) (parent ?p) (id ?t0)
+					  (TimeIndex ?ti0) (MemoryTarget ?sym0))
+			(object (is-a StoreInstruction) (parent ?p) (id ?t1) 
+					  (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
+			(test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action instruction-consumes)
+								  (arguments ?t1 => ?t0))
+					  (message (to dependency-analysis)
+								  (action instruction-produces)
+								  (arguments ?t0 => ?t1))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis::LoadToStoreDependency
-         (object (is-a LoadInstruction) (parent ?p) (id ?t0)
-                 (TimeIndex ?ti0) (MemoryTarget ?sym0)) 
-         (object (is-a StoreInstruction) (parent ?p) (id ?t1) 
-                 (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
-         (test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
-         =>
-         (assert (Instruction ?t1 consumes ?t0)
-                 (Instruction ?t0 produces ?t1)))
+			(object (is-a LoadInstruction) (parent ?p) (id ?t0)
+					  (TimeIndex ?ti0) (MemoryTarget ?sym0)) 
+			(object (is-a StoreInstruction) (parent ?p) (id ?t1) 
+					  (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
+			(test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action instruction-consumes)
+								  (arguments ?t1 => ?t0))
+					  (message (to dependency-analysis)
+								  (action instruction-produces)
+								  (arguments ?t0 => ?t1))))
 ;------------------------------------------------------------------------------

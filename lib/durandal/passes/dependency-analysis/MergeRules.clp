@@ -27,123 +27,172 @@
 ; Written by Joshua Scoggins (11/18/2012)
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers
-         ?f0 <- (Instruction ?a consumes ?id)
-         ?f1 <- (Instruction ?b&~?a consumes ?id)
-         =>
-         (retract ?f0 ?f1)
-         (assert (Instruction ?id consumed ?a ?b)))
+			?f0 <- (message (to dependency-analysis)
+								 (action instruction-consumes)
+								 (arguments ?a => ?id))
+			?f1 <- (message (to dependency-analysis)
+								 (action instruction-consumes)
+								 (arguments ?b&~?a => ?id))
+			=>
+			(retract ?f0 ?f1)
+			(assert (message (to dependency-analysis)
+								  (action instruction-consume-list)
+								  (arguments ?id => ?a ?b))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers
-         ?f0 <- (Instruction ?a produces ?id)
-         ?f1 <- (Instruction ?b&~?a produces ?id)
-         =>
-         (retract ?f0 ?f1)
-         (assert (Instruction ?id produced ?a ?b)))
+			?f0 <- (message (to dependency-analysis)
+								 (action instruction-produces)
+								 (arguments ?a => ?id))
+			?f1 <- (message (to dependency-analysis)
+								 (action instruction-produces)
+								 (arguments ?b&~?a => ?id))
+			=>
+			(retract ?f0 ?f1)
+			(assert (message (to dependency-analysis)
+								  (action instruction-produce-list)
+								  (arguments ?id => ?a ?b))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers-Multi
-         ?f0 <- (Instruction ?id consumed $?a)
-         ?f1 <- (Instruction ?id consumed $?b)
-         (test (neq ?f0 ?f1))
-         =>
-         (retract ?f0 ?f1)
-         (assert (Instruction ?id consumed $?a $?b)))
+			?f0 <- (message (to dependency-analysis)
+								 (action instruction-consume-list)
+								 (arguments ?id => $?a))
+			?f1 <- (message (to dependency-analysis)
+								 (action instruction-consume-list)
+								 (arguments ?id => $?b))
+			(test (neq ?f0 ?f1))
+			=>
+			(retract ?f0 ?f1)
+			(assert (message (to dependency-analysis)
+								  (action instruction-consume-list)
+								  (arguments ?id => $?a $?b))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers-Multi
-         ?f0 <- (Instruction ?id produced $?a)
-         ?f1 <- (Instruction ?id produced $?b)
-         (test (neq ?f0 ?f1))
-         =>
-         (retract ?f0 ?f1)
-         (assert (Instruction ?id produced $?a $?b)))
+			?f0 <- (message (to dependency-analysis)
+								 (action instruction-produce-list)
+								 (arguments ?id => $?a))
+			?f1 <- (message (to dependency-analysis)
+								 (action instruction-produce-list)
+								 (arguments ?id => $?b))
+			(test (neq ?f0 ?f1))
+			=>
+			(retract ?f0 ?f1)
+			(assert (message (to dependency-analysis)
+								  (action instruction-produce-list)
+								  (arguments ?id => $?a $?b))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers-Only
-         (declare (salience -2))
-         ?f0 <- (Instruction ?a consumes ?b)
-         =>
-         (retract ?f0)
-         (assert (Instruction ?b consumed ?a)))
+			(declare (salience -2))
+			?f <- (message (to dependency-analysis)
+								(action instruction-consumes)
+								(arguments ?a => ?b))
+			=>
+			(retract ?f)
+			(assert (message (to dependency-analysis)
+								  (action instruction-consume-list)
+								  (arguments ?b => ?a))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers-Only
-         (declare (salience -2))
-         ?f0 <- (Instruction ?a produces ?b)
-         =>
-         (retract ?f0)
-         (assert (Instruction ?b produced ?a)))
+			(declare (salience -2))
+			?f <- (message (to dependency-analysis)
+								(action instruction-produces)
+								(arguments ?a => ?b))
+			=>
+			(retract ?f)
+			(assert (message (to dependency-analysis)
+								  (action instruction-produce-list)
+								  (arguments ?b => ?a))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-inject::InjectConsumers-Producers-And-LocalDependencies
-         "Performs the actions of InjectConsumers and
-         InjectProducersAndLocalDependencies in a single rule fire."
-         (declare (salience 1))
-         ?f0 <- (Instruction ?id consumed $?t0)
-         ?f1 <- (Instruction ?id produced $?t1)
-         ?inst <- (object (is-a Instruction) (id ?id) (Consumers $?c) 
-                          (Producers $?p) (LocalDependencies $?ld))
-         =>
-         (retract ?f0 ?f1)
-         (bind ?cs $?c)
-         (bind ?ps $?p)
-         (bind ?lds $?ld)
-         (object-pattern-match-delay
-         (progn$ (?target ?t0)
-                 (if (not (member$ ?target ?cs)) then
-                   (bind ?cs (insert$ ?cs 1 ?target))))
-         (progn$ (?target ?t1)
-                 (if (not (member$ ?target ?lds)) then
-                   (bind ?lds (insert$ ?lds 1 ?target)))
-                 (if (not (member$ ?target ?ps)) then
-                   (bind ?ps (insert$ ?ps 1 ?target))))
-         (modify-instance ?inst (Consumers ?cs) (Producers ?ps) 
-                          (LocalDependencies ?lds))))
+			"Performs the actions of InjectConsumers and
+			InjectProducersAndLocalDependencies in a single rule fire."
+			(declare (salience 1))
+			?f0 <- (message (to dependency-analysis)
+								 (action instruction-produce-list)
+								 (arguments ?id => $?t0))
+			?f1 <- (message (to dependency-analysis)
+								 (action instruction-consume-list)
+								 (arguments ?id => $?t1))
+			?inst <- (object (is-a Instruction) 
+								  (id ?id) 
+								  (Consumers $?c) 
+								  (Producers $?p) 
+								  (LocalDependencies $?ld))
+			=>
+			(retract ?f0 ?f1)
+			(bind ?cs $?c)
+			(bind ?ps $?p)
+			(bind ?lds $?ld)
+			(object-pattern-match-delay
+			  (progn$ (?target ?t0)
+						 (if (not (member$ ?target ?cs)) then
+							(bind ?cs (insert$ ?cs 1 ?target))))
+			  (progn$ (?target ?t1)
+						 (if (not (member$ ?target ?lds)) then
+							(bind ?lds (insert$ ?lds 1 ?target)))
+						 (if (not (member$ ?target ?ps)) then
+							(bind ?ps (insert$ ?ps 1 ?target))))
+			  (modify-instance ?inst (Consumers ?cs) (Producers ?ps) 
+									 (LocalDependencies ?lds))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-inject::InjectConsumers
-         "Adds a given consumer to the target instruction"
-         ?fct <- (Instruction ?id consumed $?targets)
-         ?inst <- (object (is-a Instruction) (id ?id) (Consumers $?cs))
-         =>
-         (retract ?fct)
-         (bind ?cons $?cs)
-         (object-pattern-match-delay
-         (progn$ (?target ?targets)
-                 (if (not (member$ ?target ?cons)) then
-                   (bind ?cons (insert$ ?cons 1 ?target))))
-         (modify-instance ?inst (Consumers ?cons))))
+			"Adds a given consumer to the target instruction"
+			?fct <- (message (to dependency-analysis)
+								  (action instruction-consume-list)
+								  (arguments ?id => $?targets))
+			?inst <- (object (is-a Instruction) 
+								  (id ?id) 
+								  (Consumers $?cs))
+			=>
+			(retract ?fct)
+			(bind ?cons $?cs)
+			(object-pattern-match-delay
+			  (progn$ (?target ?targets)
+						 (if (not (member$ ?target ?cons)) then
+							(bind ?cons (insert$ ?cons 1 ?target))))
+			  (modify-instance ?inst (Consumers ?cons))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-inject::InjectProducersAndLocalDependencies
-         "Adds a given producer to the target instruction."
-         ?fct <- (Instruction ?id produced $?targets)
-         ?inst <- (object (is-a Instruction) (id ?id) (Producers $?ps)
-                          (LocalDependencies $?ld))
-         =>
-         (retract ?fct)
-         (bind ?prods $?ps)
-         (bind ?lds $?ld)
-         (object-pattern-match-delay
-         (progn$ (?target ?targets)
-                 (if (not (member$ ?target ?lds)) then
-                   (bind ?lds (insert$ ?lds 1 ?target)))
-                 (if (not (member$ ?target ?prods)) then
-                   (bind ?prods (insert$ ?prods 1 ?target))))
-         (modify-instance ?inst (Producers ?prods) (LocalDependencies ?lds))))
+			"Adds a given producer to the target instruction."
+			?fct <- (message (to dependency-analysis)
+								  (action instruction-produce-list)
+								  (arguments ?id => $?targets))
+			?inst <- (object (is-a Instruction) 
+								  (id ?id) 
+								  (Producers $?ps)
+								  (LocalDependencies $?ld))
+			=>
+			(retract ?fct)
+			(bind ?prods $?ps)
+			(bind ?lds $?ld)
+			(object-pattern-match-delay
+			  (progn$ (?target ?targets)
+						 (if (not (member$ ?target ?lds)) then
+							(bind ?lds (insert$ ?lds 1 ?target)))
+						 (if (not (member$ ?target ?prods)) then
+							(bind ?prods (insert$ ?prods 1 ?target))))
+			  (modify-instance ?inst (Producers ?prods) (LocalDependencies ?lds))))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-make-set::SetifyInstructionProducers
-         ?inst <- (object (is-a Instruction) (Producers $?a ?b $?c ?b $?d))
-         =>
-         (modify-instance ?inst (Producers $?a ?b $?c $?d)))
+			?inst <- (object (is-a Instruction) 
+								  (Producers $?a ?b $?c ?b $?d))
+			=>
+			(modify-instance ?inst (Producers $?a ?b $?c $?d)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-make-set::SetifyInstructionConsumers
-         ?inst <- (object (is-a Instruction) (Consumers $?a ?b $?c ?b $?d))
-         =>
-         (modify-instance ?inst (Consumers $?a ?b $?c $?d)))
+			?inst <- (object (is-a Instruction) 
+								  (Consumers $?a ?b $?c ?b $?d))
+			=>
+			(modify-instance ?inst (Consumers $?a ?b $?c $?d)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-make-set::SetifyLocalDependencies
-         ?inst <- (object (is-a Instruction) 
-                          (LocalDependencies $?a ?b $?c ?b $?d))
-         =>
-         (modify-instance ?inst (LocalDependencies $?a ?b $?c $?d)))
+			?inst <- (object (is-a Instruction) 
+								  (LocalDependencies $?a ?b $?c ?b $?d))
+			=>
+			(modify-instance ?inst (LocalDependencies $?a ?b $?c $?d)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-make-set::SetifyNonLocalDependencies
-         ?inst <- (object (is-a Instruction) 
-                          (NonLocalDependencies $?a ?b $?c ?b $?d))
-         =>
-         (modify-instance ?inst (NonLocalDependencies $?a ?b $?c $?d)))
+			?inst <- (object (is-a Instruction) 
+								  (NonLocalDependencies $?a ?b $?c ?b $?d))
+			=>
+			(modify-instance ?inst (NonLocalDependencies $?a ?b $?c $?d)))
 ;------------------------------------------------------------------------------
