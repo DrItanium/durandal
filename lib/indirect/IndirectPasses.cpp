@@ -14,7 +14,6 @@ namespace indirect {
 
       }
    void IndirectFunctionPass::getAnalysisUsage(llvm::AnalysisUsage& usage) const {
-		llvm::errs() << "Calling getAnalysisUsage()\n";
       applyIndirectAnalysisUsage(usage);
    }
 
