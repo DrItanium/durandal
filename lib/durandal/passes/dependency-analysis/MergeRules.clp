@@ -76,7 +76,7 @@
          (declare (salience 1))
          ?f0 <- (Instruction ?id consumed $?t0)
          ?f1 <- (Instruction ?id produced $?t1)
-         ?inst <- (object (is-a Instruction) (ID ?id) (Consumers $?c) 
+         ?inst <- (object (is-a Instruction) (id ?id) (Consumers $?c) 
                           (Producers $?p) (LocalDependencies $?ld))
          =>
          (retract ?f0 ?f1)
@@ -98,7 +98,7 @@
 (defrule dependency-analysis-extended-memory-analysis-inject::InjectConsumers
          "Adds a given consumer to the target instruction"
          ?fct <- (Instruction ?id consumed $?targets)
-         ?inst <- (object (is-a Instruction) (ID ?id) (Consumers $?cs))
+         ?inst <- (object (is-a Instruction) (id ?id) (Consumers $?cs))
          =>
          (retract ?fct)
          (bind ?cons $?cs)
@@ -111,7 +111,7 @@
 (defrule dependency-analysis-extended-memory-analysis-inject::InjectProducersAndLocalDependencies
          "Adds a given producer to the target instruction."
          ?fct <- (Instruction ?id produced $?targets)
-         ?inst <- (object (is-a Instruction) (ID ?id) (Producers $?ps)
+         ?inst <- (object (is-a Instruction) (id ?id) (Producers $?ps)
                           (LocalDependencies $?ld))
          =>
          (retract ?fct)
