@@ -3,13 +3,25 @@ If you're reading this document then you're interested in the different aspects
 of the durandal tool set. This document has many different parts to it
 including:
 
-1) Motiviation
-2) How libExpertSystem works
-3) How librampancy works
-4) How libindirect works
-5) What's in lib/durandal
+1. What is durandal?
+2. Motiviation
+3. How libExpertSystem works
+4. How librampancy works
+5. How libindirect works
+6. How libpipeline-clips works
+7. What's in lib/durandal
 
-==== Motiviation ====
+# What is durandal?
+
+Durandal is a tool chain that takes the power of an expert system and provides
+it to those who work with LLVM. 
+
+The name durandal is a reference to the AI durandal in the video game Marathon
+by Bungie Inc. I chose that name because durandal is one of my favorite
+villians of all time. 
+
+
+# Motiviation 
 
 The topic of cs masters thesis was "Implementing Wavefront Scheduling on
 Superscalar Processors". While the scheduling algorithm itself is unimportant
@@ -57,11 +69,11 @@ rewrote the clips code to use the CLIPS module system which then acted as a
 catalyst to migrate the project over to the durandal tool set that this
 document is a part of. The objective of this new project was
 
-1) To provide a quick way to test new optimization ideas
-2) Provide the ability to easily get testing material (pain in the ass during
+1. To provide a quick way to test new optimization ideas
+2. Provide the ability to easily get testing material (pain in the ass during
    my thesis)
-3) Provide a way to access the LLVM Pass system in a dynamic fashion. 
-4) Make it possible to write passes in languages other than C++
+3. Provide a way to access the LLVM Pass system in a dynamic fashion. 
+4. Make it possible to write passes in languages other than C++
 
 The first objective has been provided through the use of the durandal program
 which is a CLIPS REPL with extra functions and abilities. It is also provided
@@ -103,7 +115,7 @@ The next step is libpipeline which contains the language specific code to allow
 the language to interact with libindirect as well as allow libindirect and llvm
 to provide the language with the information necessary to run a pass within it.  
 
-==== How libExpertSystem works ====
+# How libExpertSystem works
 
 libExpertSystem is the name I use for the knowledge construction engine I wrote
 during my thesis. I've rewritten it for durandal so that it uses classes
@@ -116,7 +128,7 @@ class.
 
 This required 
 
-==== How librampancy works ====
+# How librampancy works
 
 librampancy, as stated above, is a library that provides a logical router for
 compilers. It keeps track of compilers that are defined as a subtype of
@@ -141,11 +153,23 @@ knowledge conversion pass to convert the module and component pieces to a form
 that clips can operate on. Most of librampancy is an internal affair that the 
 end user only needs to look at if they want to reimplement different aspects of it. 
 
-==== How libindirect works ====
+# How libindirect works
 
 Lib indirect
 
+# How libpipeline-clips works
 
+## The architecture of a CLIPS pass template
 
+# What's in lib/durandal
+
+lib/durandal contains the CLIPS source code that streamlines the process of
+writing LLVM passes within CLIPS. There are two major folders in lib/durandal
+
+* modules - contains all of the objects, functions, and logic that LLVM passes
+  written in CLIPS use
+* passes - contains the PassRegistry and a series of passes written in CLIPS.
+
+A separate guide details the writing of passes within CLIPS.
 
 
