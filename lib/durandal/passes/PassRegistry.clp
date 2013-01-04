@@ -70,6 +70,15 @@
   (need-regions TRUE)
   (passes loop-region-merging)
   (required loops regions))
+ ([dependency-analysis] of Pass
+  (entry-point "passes/dependency-analysis/PassHeader.clp")
+  (pass-name dependency-analysis)
+  (pass-description "Performs dependency analysis between instructions in a function")
+  (pass-type Function)
+  (need-loops TRUE)
+  (need-regions TRUE)
+  (passes dependency-analysis)
+  (required loops regions))
 
  ;Add more passes here
 )
