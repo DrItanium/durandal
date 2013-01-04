@@ -36,7 +36,7 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-build::ConstructFlatListForRegion
 			"Creates a flat representation of the contents of the given region"
-			(object (is-a Region) (id ?id) (Contents $?z))
+			(object (is-a Region) (id ?id) (contents $?z))
 			(not (exists (object (is-a FlatList) (parent ?id))))
 			=>
 			(make-instance of FlatList (parent ?id)) 
@@ -47,7 +47,7 @@
 			?o <- (object (is-a FlatList) (parent ?id))
 			(object (is-a BasicBlock) (id ?first))
 			=>
-			(slot-insert$ ?o Contents 1 ?first)
+			(slot-insert$ ?o contents 1 ?first)
 			(retract ?f)
 			(assert (Populate FlatList of ?id with $?rest)))
 ;------------------------------------------------------------------------------
@@ -59,7 +59,7 @@
 			=>
 			;Add the reference to FlatList for the time being until we have
 			;finished constructing an entire flat list
-			(slot-insert$ ?o Contents 1 ?name)
+			(slot-insert$ ?o contents 1 ?name)
 			(retract ?f)
 			(assert (Populate FlatList of ?id with $?rest)))
 ;------------------------------------------------------------------------------
@@ -71,16 +71,16 @@
 (defrule loop-region-merging-flatlist-expand::ExpandFlatListEntry
 			"Takes a flat list and expands one of the elements of the contents if 
 			it turns out that element is another flat list"
-			?id <- (object (is-a FlatList) (Contents $?a ?b $?c))
-			(object (is-a FlatList) (id ?b) (Contents $?j))
+			?id <- (object (is-a FlatList) (contents $?a ?b $?c))
+			(object (is-a FlatList) (id ?b) (contents $?j))
 			=>
-			(modify-instance ?id (Contents $?a $?j $?c)))
+			(modify-instance ?id (contents $?a $?j $?c)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimOwnership
 			"Asserts that a region owns another through a subset check. The first 
 			flat list is checked to see if it is a _proper_ subset of the second"
-			?f0 <- (object (is-a FlatList) (id ?i0) (Contents $?c0) (parent ?p0))
-			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (Contents $?c1) 
+			?f0 <- (object (is-a FlatList) (id ?i0) (contents $?c0) (parent ?p0))
+			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (contents $?c1) 
 								(parent ?p1))
 			(test (and (subsetp ?c0 ?c1) (> (length$ ?c1) (length$ ?c0))))
 			=>
@@ -88,7 +88,7 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimOwnershipOfBlocks
 			"This rule is used to assert ownership claims on basic blocks"
-			?f0 <- (object (is-a FlatList) (parent ?p) (Contents $? ?b $?))
+			?f0 <- (object (is-a FlatList) (parent ?p) (contents $? ?b $?))
 			(object (is-a BasicBlock) (id ?b))
 			=>
 			(assert (claim ?p owns ?b)))
@@ -96,8 +96,8 @@
 (defrule loop-region-merging-flatlist-claim::ClaimEquivalence
 			"Asserts that two regions are equivalent if one flat list contains the
 			same elements as a second one."
-			?f0 <- (object (is-a FlatList) (id ?i0) (Contents $?c0) (parent ?p0))
-			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (Contents $?c1) 
+			?f0 <- (object (is-a FlatList) (id ?i0) (contents $?c0) (parent ?p0))
+			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (contents $?c1) 
 								(parent ?p1))
 			(test (and (subsetp ?c0 ?c1) (= (length$ ?c1) (length$ ?c0))))
 			=>
@@ -147,7 +147,7 @@
 ;
 ; Then we go through and perform partial replacement on the flat lists 
 ;------------------------------------------------------------------------------
-(defrule loop-region-building-flatlist-resolve::RemoveStaleClaims-DeletionTargetClaimsAnother
+(defrule loop-region-merging-flatlist-resolve::RemoveStaleClaims-DeletionTargetClaimsAnother
 			"We target claims of ownership that deal with a given region that has 
 			to be replaced by another due to equivalence"
 			(declare (salience 1))
@@ -158,7 +158,7 @@
 			(assert (claim ?new owns ?other)
 					  (replace ?old with ?new)))
 ;------------------------------------------------------------------------------
-(defrule loop-region-building-flatlist-resolve::RemoveStaleClaims-AnotherClaimsDeletionTarget
+(defrule loop-region-merging-flatlist-resolve::RemoveStaleClaims-AnotherClaimsDeletionTarget
 			(declare (salience 1))
 			?f0 <- (replace ?old with ?new)
 			?f1 <- (claim ?other owns ?old)
@@ -167,14 +167,14 @@
 			(assert (claim ?other owns ?new)
 					  (replace ?old with ?new)))
 ;------------------------------------------------------------------------------
-(defrule loop-region-building-flatlist-resolve::RemoveStaleClaims-NoMoreConvergence
+(defrule loop-region-merging-flatlist-resolve::RemoveStaleClaims-NoMoreConvergence
 			"Retract replacement facts because there are no more claims to worry 
 			about"
 			?f0 <- (replace ?old with ?new)
 			=>
 			(retract ?f0))
 ;------------------------------------------------------------------------------
-(defrule loop-region-building-flatlist-resolve::DeleteTargetRegion
+(defrule loop-region-merging-flatlist-resolve::DeleteTargetRegion
 			"Deletes the target region slated for deletion"
 			?f0 <- (delete region ?r0)
 			?region <- (object (is-a Region) (id ?r0))
@@ -182,7 +182,7 @@
 			(retract ?f0)
 			(unmake-instance ?region))
 ;------------------------------------------------------------------------------
-(defrule loop-region-building-cleanup-merger::DeleteFlatLists 
+(defrule loop-region-merging-cleanup-merger::DeleteFlatLists 
 			"Deletes all of the flat lists in a single rule fire"
 			=>
 			(progn$ (?fl (find-all-instances ((?list FlatList)) TRUE))
