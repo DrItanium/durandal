@@ -27,7 +27,7 @@
 ; scheduling to 
 ; Written by Joshua Scoggins (6/30/2012) 
 ;------------------------------------------------------------------------------
-(defrule wavefront-determinant::InstanceFrequencyCounter
+(defrule wavefront-scheduling-determinant::InstanceFrequencyCounter
 			"Creates a frequency counter hint for basic blocks"
 			(declare (salience 2))
 			(object (is-a Region) 
@@ -38,7 +38,7 @@
 			=>
 			(make-instance of FrequencyAnalysis (parent ?p)))
 ;------------------------------------------------------------------------------
-(defrule wavefront-determinant::IncrementFrequencyCounter-BasicBlock
+(defrule wavefront-scheduling-determinant::IncrementFrequencyCounter-BasicBlock
 			"Goes through a given Region counting the number of basic blocks found
 			within the region. Valid blocks are blocks that contain more than one 
 			instruction as we don't want to count JS nodes as they don't usually 
@@ -57,7 +57,7 @@
 			=>
 			(send ?wa increment-frequency))
 ;------------------------------------------------------------------------------
-(defrule wavefront-determinant::ImplyEnoughBlocks
+(defrule wavefront-scheduling-determinant::ImplyEnoughBlocks
 			"There are enough blocks within the target region to make it a 
 			candidate for wavefront scheduling. Make a hint that says this."
 			?fa <- (object (is-a FrequencyAnalysis) 
