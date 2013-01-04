@@ -42,7 +42,8 @@
  (import indirect ?ALL)
  (import pipeline ?ALL)
  (import rampancy ?ALL))
-(load* "passes/path/common/Path.clp")
+(if (not (class-existp types::Path)) then
+(batch* "passes/path/common/Path.clp"))
 (load* "passes/path/all/PathConstruction.clp")
 (load* "passes/path/all/PathBuilding.clp")
 (load* "passes/path/all/PathTraversal.clp")

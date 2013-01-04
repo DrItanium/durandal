@@ -26,10 +26,6 @@
 ;------------------------------------------------------------------------------
 ; Path.clp - Contains the definition of the pass class
 ;------------------------------------------------------------------------------
-; since multiple passes use this type it's necessary to prevent redefinition of
-; this type
-;------------------------------------------------------------------------------
-(if (not (class-existsp types::Path)) then
   (defclass types::Path 
 	 (is-a ParentedHint)
 	 (slot exit (type SYMBOL))
@@ -39,4 +35,3 @@
 							 ()
 							 (bind ?self:type Path))
 ;------------------------------------------------------------------------------
-  )
