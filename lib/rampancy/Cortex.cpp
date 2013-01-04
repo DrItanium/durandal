@@ -182,6 +182,12 @@ namespace rampancy {
          tmp.route(module);
 			//we only build the target module, nothing more
          tEnv->makeInstances((char*)tmp.getInstancesAsString().c_str());
+			char* definstances = CharBuffer(1024);
+		 	sprintf(definstances, "(definstances MAIN::module-%lld-declaration %s)", 
+					(PointerAddress)module, 
+					tmp.getInstancesAsString().c_str());
+			tEnv->build(definstances);
+			free(definstances);
       }
    }
 }
