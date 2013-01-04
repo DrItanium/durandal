@@ -17,7 +17,7 @@ namespace indirect {
          ~IndirectPass();
          void setIndirectPassHeader(IndirectPassHeader* header);
          IndirectPassHeader* getIndirectPassHeader();
-         void applyIndirectAnalysisUsage(llvm::AnalysisUsage& usage);
+         void applyIndirectAnalysisUsage(llvm::AnalysisUsage& usage) const;
    };
 }
 #endif

@@ -104,18 +104,18 @@ namespace indirect {
        * because they are registerd with the llvm::PassRegistry when the
        * IndirectPassHeader is registered with the IndirectPassRegistry
        */
-      for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b = 
-            required.begin(), e = required.end(); b != e; ++b) {
-         char* result = (char*)(*b)->c_str();
+      for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b0 = 
+            required.begin(), e0 = required.end(); b0 != e0; ++b0) {
+         char* result = (char*)((*b0)->c_str());
          const llvm::PassInfo* pi = registry.getPassInfo(
                llvm::StringRef(result));
          char& ptr = *((char*)pi->getTypeInfo());
          usage.addRequiredID(ptr);
       }
-      for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b =
-            requiredTransitive.begin(), e = requiredTransitive.end();
-            b != e; ++b) {
-         char* result = (char*)(*b)->c_str();
+      for(IndirectAnalysisUsageDeclaration::VectorType::const_iterator b1 =
+            requiredTransitive.begin(), e1 = requiredTransitive.end();
+            b1 != e1; ++b1) {
+         char* result = (char*)((*b1)->c_str());
          const llvm::PassInfo* pi = registry.getPassInfo(
                llvm::StringRef(result));
          char& ptr = *((char*)pi->getTypeInfo());

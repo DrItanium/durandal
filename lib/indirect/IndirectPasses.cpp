@@ -5,7 +5,7 @@ namespace indirect {
       : llvm::ModulePass(ident) {
 
       }
-   void IndirectModulePass::getAnalysisUsage(llvm::AnalysisUsage& usage) {
+   void IndirectModulePass::getAnalysisUsage(llvm::AnalysisUsage& usage) const {
       applyIndirectAnalysisUsage(usage);
    }
 
@@ -13,7 +13,8 @@ namespace indirect {
       : llvm::FunctionPass(ident) {
 
       }
-   void IndirectFunctionPass::getAnalysisUsage(llvm::AnalysisUsage& usage) {
+   void IndirectFunctionPass::getAnalysisUsage(llvm::AnalysisUsage& usage) const {
+		llvm::errs() << "Calling getAnalysisUsage()\n";
       applyIndirectAnalysisUsage(usage);
    }
 
@@ -21,35 +22,35 @@ namespace indirect {
       : llvm::BasicBlockPass(ident) {
 
       }
-   void IndirectBasicBlockPass::getAnalysisUsage(llvm::AnalysisUsage& usage) {
+   void IndirectBasicBlockPass::getAnalysisUsage(llvm::AnalysisUsage& usage) const {
       applyIndirectAnalysisUsage(usage);
    }
    IndirectRegionPass::IndirectRegionPass(char& ident) 
       : llvm::RegionPass(ident) {
 
       }
-   void IndirectRegionPass::getAnalysisUsage(llvm::AnalysisUsage& usage) {
+   void IndirectRegionPass::getAnalysisUsage(llvm::AnalysisUsage& usage) const {
       applyIndirectAnalysisUsage(usage);
    }
    IndirectLoopPass::IndirectLoopPass(char& ident) 
       : llvm::LoopPass(ident) {
 
       }
-   void IndirectLoopPass::getAnalysisUsage(llvm::AnalysisUsage& usage) {
+   void IndirectLoopPass::getAnalysisUsage(llvm::AnalysisUsage& usage) const {
       applyIndirectAnalysisUsage(usage);
    }
    IndirectMachineFunctionPass::IndirectMachineFunctionPass(char& ident) 
       : llvm::MachineFunctionPass(ident) {
 
       }
-   void IndirectMachineFunctionPass::getAnalysisUsage(llvm::AnalysisUsage& usage) {
+   void IndirectMachineFunctionPass::getAnalysisUsage(llvm::AnalysisUsage& usage) const {
       applyIndirectAnalysisUsage(usage);
    }
    IndirectCallGraphSCCPass::IndirectCallGraphSCCPass(char& ident) 
       : llvm::CallGraphSCCPass(ident) {
 
       }
-   void IndirectCallGraphSCCPass::getAnalysisUsage(llvm::AnalysisUsage& usage) {
+   void IndirectCallGraphSCCPass::getAnalysisUsage(llvm::AnalysisUsage& usage) const {
       applyIndirectAnalysisUsage(usage);
    }
 }

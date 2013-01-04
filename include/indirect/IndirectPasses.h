@@ -31,7 +31,7 @@ namespace indirect {
          IndirectModulePass(char& ident);
          using llvm::ModulePass::runOnModule;
          using llvm::ModulePass::getAnalysisUsage;
-         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage);
+         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const;
          virtual bool runOnModule(llvm::Module &m) = 0;
    };
    class IndirectFunctionPass : public llvm::FunctionPass, public IndirectPass{
@@ -39,7 +39,7 @@ namespace indirect {
          IndirectFunctionPass(char& ident);
          using llvm::FunctionPass::runOnFunction;
          using llvm::FunctionPass::getAnalysisUsage;
-         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage);
+         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const;
          virtual bool runOnFunction(llvm::Function& fn) = 0;
    };
 
@@ -48,7 +48,7 @@ namespace indirect {
          IndirectBasicBlockPass(char& ident);
          using llvm::BasicBlockPass::runOnBasicBlock;
          using llvm::BasicBlockPass::getAnalysisUsage;
-         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage);
+         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const;
          virtual bool runOnBasicBlock(llvm::BasicBlock& bb) = 0;
    };
    
@@ -57,7 +57,7 @@ namespace indirect {
          IndirectLoopPass(char& ident);
          using llvm::LoopPass::runOnLoop;
          using llvm::LoopPass::getAnalysisUsage;
-         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage);
+         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const;
          virtual bool runOnLoop(llvm::Loop* loop, 
                llvm::LPPassManager& lpm) = 0;
    };
@@ -67,7 +67,7 @@ namespace indirect {
          IndirectMachineFunctionPass(char& ident);
          using llvm::MachineFunctionPass::runOnMachineFunction;
          using llvm::MachineFunctionPass::getAnalysisUsage;
-         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage);
+         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const;
          virtual bool runOnMachineFunction(llvm::MachineFunction& mf) = 0;
    };
 
@@ -76,7 +76,7 @@ namespace indirect {
          IndirectRegionPass(char& ident);
          using llvm::RegionPass::runOnRegion;
          using llvm::RegionPass::getAnalysisUsage;
-         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage);
+         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const;
          virtual bool runOnRegion(llvm::Region* region, 
                llvm::RGPassManager& rgm) = 0;
    };
@@ -86,7 +86,7 @@ namespace indirect {
          IndirectCallGraphSCCPass(char& ident);
          using llvm::CallGraphSCCPass::runOnSCC;
          using llvm::CallGraphSCCPass::getAnalysisUsage;
-         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage);
+         virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const;
          virtual bool runOnSCC(llvm::CallGraphSCC& scc) = 0;
    };
 

@@ -10,7 +10,7 @@ namespace indirect {
    IndirectPassHeader* IndirectPass::getIndirectPassHeader() {
       return header;
    }
-   void IndirectPass::applyIndirectAnalysisUsage(llvm::AnalysisUsage& usage) {
+   void IndirectPass::applyIndirectAnalysisUsage(llvm::AnalysisUsage& usage) const {
       (*header)(usage);
    }
 }
