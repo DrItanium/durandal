@@ -102,8 +102,9 @@
 (defrule loop-region-merging-cleanup-merger::cleanup-ownership-determinants
 			"Deletes all of the OwnershipDeterminant objects in a single rule 
 			fire"
-			(stage cleanup-merger $?)
+			?f0 <- (delete ownership-determinants)
 			=>
+			(retract ?f0)
 			(progn$ (?obj (find-all-instances ((?list OwnershipDeterminant)) 
 														 TRUE))
 					  (unmake-instance ?obj)))

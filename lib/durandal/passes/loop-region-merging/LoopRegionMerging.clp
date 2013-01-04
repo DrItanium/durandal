@@ -84,14 +84,18 @@
 								(parent ?p1))
 			(test (and (subsetp ?c0 ?c1) (> (length$ ?c1) (length$ ?c0))))
 			=>
-			(assert (claim ?p1 owns ?p0)))
+			(assert (message (to loop-region-merging) 
+								  (action claim-owns) 
+								  (arguments ?p1 => ?p0))))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimOwnershipOfBlocks
 			"This rule is used to assert ownership claims on basic blocks"
 			?f0 <- (object (is-a FlatList) (parent ?p) (values $? ?b $?))
 			(object (is-a BasicBlock) (id ?b))
 			=>
-			(assert (claim ?p owns ?b)))
+			(assert (message (to loop-region-merging) 
+								  (action claim-owns) 
+								  (arguments ?p => ?b))))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimEquivalence
 			"Asserts that two regions are equivalent if one flat list contains the
@@ -101,43 +105,63 @@
 								(parent ?p1))
 			(test (and (subsetp ?c0 ?c1) (= (length$ ?c1) (length$ ?c0))))
 			=>
-			(assert (claim ?p1 equivalent ?p0)))
+			(assert (message (to loop-region-merging)
+								  (action claim-equivalent) 
+								  (arguments ?p1 => ?p0))))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::MergeClaimsOfEquivalence
 			"It is possible for two facts of equivalence to actually be the same 
 			fact"
 			(declare (salience -1))
-			?f0 <- (claim ?a equivalent ?b)
-			?f1 <- (claim ?b equivalent ?a)
+			?f0 <- (message (to loop-region-merging) 
+								 (action claim-equivalent) 
+								 (arguments ?a => ?b))
+			?f1 <- (message (to loop-region-merging) 
+								 (action claim-equivalent) 
+								 (arguments ?b => ?a))
 			=>
 			(retract ?f0 ?f1)
-			(assert (claim ?a equivalent ?b)))
+			(assert (message (to loop-region-merging) 
+								  (action claim-equivalent) 
+								  (arguments ?a => ?b))))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-arbitrate::EliminateEquivalences-LoopFirst
 			"If we find an equivalence then it means that a loop and a region 
 			contain the same elements. Therefore the loop persists and the region 
 			dies. The loop is the first entry."
 			(declare (salience 1))
-			?f0 <- (claim ?a equivalent ?b)
+			?f0 <- (message (to loop-region-merging)
+								 (action claim-equivalent) 
+								 (arguments ?a => ?b))
 			(object (is-a Loop) (id ?a))
 			(object (is-a Region&~Loop) (id ?b))
 			=>
 			(retract ?f0)
-			(assert (delete region ?b)
-					  (replace ?b with ?a)))
+			(assert (message (to loop-region-merging) 
+								  (action delete-region) 
+								  (arguments ?b))
+					  (message (to loop-region-merging) 
+								  (action replace) 
+								  (arguments ?b => ?a))))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-arbitrate::EliminateEquivalences-LoopSecond
 			"If we find an equivalence then it means that a loop and a region 
 			contain the same elements. Therefore the loop persists and the region
 			dies. The loop is the second entry."
 			(declare (salience 1))
-			?f0 <- (claim ?b equivalent ?a)
+			?f0 <- (message (to loop-region-merging) 
+				(action claim-equivalent) 
+				(arguments ?b => ?a))
 			(object (is-a Loop) (id ?a))
 			(object (is-a Region&~Loop) (id ?b))
 			=>
 			(retract ?f0)
-			(assert (delete region ?b)
-					  (replace ?b with ?a)))
+			(assert (message (to loop-region-merging) 
+								  (action delete-region) 
+								  (arguments ?b))
+					  (message (to loop-region-merging) 
+								  (action replace) 
+								  (arguments ?b => ?a))))
 ;------------------------------------------------------------------------------
 ; Now that we have asserted delete and replacement claims it's necessary to
 ; carry those claims out. First, we need to do the replacement actions
@@ -151,40 +175,73 @@
 			"We target claims of ownership that deal with a given region that has 
 			to be replaced by another due to equivalence"
 			(declare (salience 1))
-			?f0 <- (replace ?old with ?new)
-			?f1 <- (claim ?old owns ?other)
+			?f0 <- (message (to loop-region-merging)
+				(action replace)
+				(arguments ?old => ?new))
+			?f1 <- (message (to loop-region-merging)
+				(action claim-owns) 
+				(arguments ?old => ?other))
 			=>
 			(retract ?f0 ?f1)
-			(assert (claim ?new owns ?other)
-					  (replace ?old with ?new)))
+			(assert (message (to loop-region-merging)
+						        (action claim-owns)
+								  (arguments ?new => ?other))
+			        (message (to loop-region-merging)
+						        (action replace)
+								  (arguments ?old => ?new))))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-resolve::RemoveStaleClaims-AnotherClaimsDeletionTarget
 			(declare (salience 1))
-			?f0 <- (replace ?old with ?new)
-			?f1 <- (claim ?other owns ?old)
+			?f0 <- (message (to loop-region-merging)
+				             (action replace)
+								 (arguments ?old => ?new))
+			?f1 <- (message (to loop-region-merging)
+				             (action claim-owns)
+								 (arguments ?other => ?old))
 			=>
 			(retract ?f0 ?f1)
-			(assert (claim ?other owns ?new)
-					  (replace ?old with ?new)))
+			(assert (message (to loop-region-merging)
+						        (action claim-owns)
+								  (arguments ?other => ?new))
+			        (message (to loop-region-merging)
+						        (action replace)
+								  (arguments ?old => ?new))))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-resolve::RemoveStaleClaims-NoMoreConvergence
 			"Retract replacement facts because there are no more claims to worry 
 			about"
-			?f0 <- (replace ?old with ?new)
+			?f0 <- (message (to loop-region-merging)
+				  (action replace)
+				  (arguments ?old with ?new))
 			=>
 			(retract ?f0))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-resolve::DeleteTargetRegion
 			"Deletes the target region slated for deletion"
-			?f0 <- (delete region ?r0)
+			?f0 <- (message (to loop-region-merging)
+				             (action delete-region)
+								 (arguments ?r0))
 			?region <- (object (is-a Region) (id ?r0))
 			=>
 			(retract ?f0)
 			(unmake-instance ?region))
 ;------------------------------------------------------------------------------
+(defrule loop-region-merging-cleanup-merger::initiate-deletion
+ "Retracts the initial fact for this module and asserts local facts for
+ deleting flat lists and ownership determinants"
+	?f <- (message (from pipeline)
+		            (to loop-region-merging-cleanup-merger)
+						(action initial-fact))
+	=>
+	(retract ?f)
+	(assert (delete ownership-determinants)
+	        (delete flat-lists)))
+;------------------------------------------------------------------------------
 (defrule loop-region-merging-cleanup-merger::DeleteFlatLists 
 			"Deletes all of the flat lists in a single rule fire"
+			?f0 <- (delete flat-lists)
 			=>
+			(retract ?f0)
 			(progn$ (?fl (find-all-instances ((?list FlatList)) TRUE))
 					  (unmake-instance ?fl)))
 ;------------------------------------------------------------------------------
