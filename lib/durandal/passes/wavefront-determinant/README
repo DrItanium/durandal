@@ -1,2 +1,0 @@
-This pass/module performs a check to see if wavefront scheduling should be
-applied to a target region.
