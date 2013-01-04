@@ -24,7 +24,6 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(if (not (class-existsp types::FlatList)) then
 (defclass types::FlatList 
  "A flat list is a container"
  (is-a ParentedHint))
@@ -33,4 +32,3 @@
  () 
  (bind ?self:type FlatList))
 ;------------------------------------------------------------------------------
-)

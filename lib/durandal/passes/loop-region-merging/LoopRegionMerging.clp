@@ -47,7 +47,7 @@
 			?o <- (object (is-a FlatList) (parent ?id))
 			(object (is-a BasicBlock) (id ?first))
 			=>
-			(slot-insert$ ?o contents 1 ?first)
+			(slot-insert$ ?o values 1 ?first)
 			(retract ?f)
 			(assert (Populate FlatList of ?id with $?rest)))
 ;------------------------------------------------------------------------------
@@ -59,7 +59,7 @@
 			=>
 			;Add the reference to FlatList for the time being until we have
 			;finished constructing an entire flat list
-			(slot-insert$ ?o contents 1 ?name)
+			(slot-insert$ ?o values 1 ?name)
 			(retract ?f)
 			(assert (Populate FlatList of ?id with $?rest)))
 ;------------------------------------------------------------------------------
@@ -71,16 +71,16 @@
 (defrule loop-region-merging-flatlist-expand::ExpandFlatListEntry
 			"Takes a flat list and expands one of the elements of the contents if 
 			it turns out that element is another flat list"
-			?id <- (object (is-a FlatList) (contents $?a ?b $?c))
-			(object (is-a FlatList) (id ?b) (contents $?j))
+			?id <- (object (is-a FlatList) (values $?a ?b $?c))
+			(object (is-a FlatList) (id ?b) (values $?j))
 			=>
-			(modify-instance ?id (contents $?a $?j $?c)))
+			(modify-instance ?id (values $?a $?j $?c)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimOwnership
 			"Asserts that a region owns another through a subset check. The first 
 			flat list is checked to see if it is a _proper_ subset of the second"
-			?f0 <- (object (is-a FlatList) (id ?i0) (contents $?c0) (parent ?p0))
-			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (contents $?c1) 
+			?f0 <- (object (is-a FlatList) (id ?i0) (values $?c0) (parent ?p0))
+			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (values $?c1) 
 								(parent ?p1))
 			(test (and (subsetp ?c0 ?c1) (> (length$ ?c1) (length$ ?c0))))
 			=>
@@ -88,7 +88,7 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-flatlist-claim::ClaimOwnershipOfBlocks
 			"This rule is used to assert ownership claims on basic blocks"
-			?f0 <- (object (is-a FlatList) (parent ?p) (contents $? ?b $?))
+			?f0 <- (object (is-a FlatList) (parent ?p) (values $? ?b $?))
 			(object (is-a BasicBlock) (id ?b))
 			=>
 			(assert (claim ?p owns ?b)))
@@ -96,8 +96,8 @@
 (defrule loop-region-merging-flatlist-claim::ClaimEquivalence
 			"Asserts that two regions are equivalent if one flat list contains the
 			same elements as a second one."
-			?f0 <- (object (is-a FlatList) (id ?i0) (contents $?c0) (parent ?p0))
-			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (contents $?c1) 
+			?f0 <- (object (is-a FlatList) (id ?i0) (values $?c0) (parent ?p0))
+			?f1 <- (object (is-a FlatList) (id ?i1&~?i0) (values $?c1) 
 								(parent ?p1))
 			(test (and (subsetp ?c0 ?c1) (= (length$ ?c1) (length$ ?c0))))
 			=>

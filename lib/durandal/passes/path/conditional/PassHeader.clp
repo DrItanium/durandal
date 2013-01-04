@@ -43,7 +43,7 @@
  (import pipeline ?ALL)
  (import rampancy ?ALL))
 (if (not (class-existp types::Path)) then
-(batch "passes/path/common/Path.clp"))
-(load "passes/path/conditional/PathConstruction.clp")
-(load "passes/path/conditional/PathBuilding.clp")
-(load "passes/path/conditional/PathTraversal.clp")
+(batch* "passes/path/common/Path.clp"))
+(load* "passes/path/conditional/PathConstruction.clp")
+(load* "passes/path/conditional/PathBuilding.clp")
+(load* "passes/path/conditional/PathTraversal.clp")

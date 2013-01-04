@@ -33,8 +33,8 @@
  (import types ?ALL)
  (import MAIN ?ALL))
 
-(load* "passes/loop-region-merging/common/FlatList.clp")
-(load* "passes/loop-region-merging/common/OwnershipDeterminant.clp")
+(batch* "passes/loop-region-merging/common/FlatList.clp")
+(batch* "passes/loop-region-merging/common/OwnershipDeterminant.clp")
 (load* "passes/loop-region-merging/Init.clp")
 (load* "passes/loop-region-merging/LoopRegionMerging.clp")
 (load* "passes/loop-region-merging/PathUpdate.clp")

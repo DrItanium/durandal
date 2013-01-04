@@ -26,7 +26,7 @@
 ;------------------------------------------------------------------------------
 (defclass types::OwnershipDeterminant 
  "An object that maintains the state of a given object with respect to merging"
-  (is-a ParentedObject) 
+  (is-a Object ParentedObject) 
   (multislot Claims)
   (multislot IndirectClaims)
   (multislot PotentialChildren)) 

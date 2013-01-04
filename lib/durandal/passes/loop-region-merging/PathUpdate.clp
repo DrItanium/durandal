@@ -24,13 +24,13 @@
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-construction::construct-determinant-for-region
-			(object (is-a Region) (ID ?r))
+			(object (is-a Region) (id ?r))
 			(not (exists (object (is-a OwnershipDeterminant) (parent ?r))))
 			=>
 			(make-instance of OwnershipDeterminant (parent ?r)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-construction::construct-determinant-for-basicblock
-			(object (is-a BasicBlock) (ID ?b))
+			(object (is-a BasicBlock) (id ?b))
 			(not (exists (object (is-a OwnershipDeterminant) (parent ?b))))
 			=>
 			(make-instance of OwnershipDeterminant (parent ?b)))
@@ -80,24 +80,24 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup-update::update-owner-of-target-region
 			(object (is-a OwnershipDeterminant) (parent ?p) (Claims ?a))
-			?obj <- (object (is-a Region) (ID ?p))
+			?obj <- (object (is-a Region) (id ?p))
 			=>
 			(modify-instance ?obj (parent ?a)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup-update::update-owner-of-target-basicblock
 			(object (is-a OwnershipDeterminant) (parent ?p) 
 					  (Claims ?a))
-			?obj <- (object (is-a BasicBlock) (ID ?p))
+			?obj <- (object (is-a BasicBlock) (id ?p))
 			=>
 			(modify-instance ?obj (parent ?a)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup-update::add-new-child-to-target-region
 			(object (is-a OwnershipDeterminant) (parent ?p)
 					  (PotentialChildren $? ?a $?))
-			?region <- (object (is-a Region) (ID ?p) (Contents $?c))
+			?region <- (object (is-a Region) (id ?p) (contents $?c))
       (test (not (member$ ?a ?c)))
 			=>
-			(slot-insert$ ?region Contents 1 ?a))
+			(slot-insert$ ?region values 1 ?a))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-cleanup-merger::cleanup-ownership-determinants
 			"Deletes all of the OwnershipDeterminant objects in a single rule 
@@ -111,15 +111,15 @@
 (defrule loop-region-merging-fixup-rename::remove-unowned-elements
 			"Now that we have figured out and updated ownership claims it is 
 			necessary to remove leftover entries in other regions"
-			?r <- (object (is-a Region) (ID ?t) (Contents $?a ?b $?c))
-			(object (is-a TaggedObject) (ID ?b) (parent ~?t))
+			?r <- (object (is-a Region) (id ?t) (contents $?a ?b $?c))
+			(object (is-a ParentedObject) (id ?b) (parent ~?t))
 			=>
-			(modify-instance ?r (Contents $?a $?c)))
+			(modify-instance ?r (values $?a $?c)))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-fixup::FAILURE-too-many-claims-of-ownership
 			(object (is-a OwnershipDeterminant) (parent ?a) 
 					  (Claims $?z&:(> (length$ ?z) 1))
-					  (ID ?name))
+					  (id ?name))
 			=>
 			(printout t "ERROR: " ?name " has more than one claim of ownership on"
 						 " it!" crlf "The claims are " ?z crlf)
@@ -128,7 +128,7 @@
 (defrule loop-region-merging-fixup::FAILURE-no-remaining-claims-for-region
 			(object (is-a OwnershipDeterminant) (parent ?a) (Claims)
 					  (PotentialChildren $?pc) (IndirectClaims $?ic))
-			(object (is-a Region) (ID ?a) (IsTopLevelRegion FALSE))
+			(object (is-a Region) (id ?a) (IsTopLevelRegion FALSE))
 			=>
 			(printout t "ERROR: " ?a " has no remaining claims!" crlf 
 						 ?a " has " $?pc " as it's potential children." crlf
@@ -138,7 +138,7 @@
 (defrule loop-region-merging-fixup::FAILURE-no-remaining-claims-for-basicblock
 			(object (is-a OwnershipDeterminant) (parent ?a) (Claims)
 					  (PotentialChildren $?pc) (IndirectClaims $?ic))
-			(object (is-a BasicBlock) (ID ?a)) 
+			(object (is-a BasicBlock) (id ?a)) 
 			=>
 			(printout t "ERROR: BasicBlock " ?a " has no remaining claims!" crlf 
 						 ?a " has " $?pc " as it's potential children." crlf
