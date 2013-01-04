@@ -27,7 +27,7 @@
 ; Init.clp - Contains the defmodules that make up the process of
 ; loop-region-merging.
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-flatlist-build
+(defmodule loop-region-merging-flatlist-build
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -36,7 +36,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-flatlist-expand
+(defmodule loop-region-merging-flatlist-expand
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -45,7 +45,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-flatlist-claim
+(defmodule loop-region-merging-flatlist-claim
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -54,7 +54,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-flatlist-arbitrate
+(defmodule loop-region-merging-flatlist-arbitrate
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -63,7 +63,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-flatlist-resolve
+(defmodule loop-region-merging-flatlist-resolve
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -72,7 +72,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-determinant-construction
+(defmodule loop-region-merging-determinant-construction
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -81,7 +81,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-determinant-population
+(defmodule loop-region-merging-determinant-population
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -90,7 +90,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-determinant-resolution
+(defmodule loop-region-merging-determinant-resolution
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -99,7 +99,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-determinant-indirect-resolution
+(defmodule loop-region-merging-determinant-indirect-resolution
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -108,7 +108,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-fixup
+(defmodule loop-region-merging-fixup
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -117,7 +117,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-fixup-update
+(defmodule loop-region-merging-fixup-update
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -126,7 +126,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-fixup-rename
+(defmodule loop-region-merging-fixup-rename
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -135,7 +135,7 @@
 			  (import pipeline ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule loop-region-building-cleanup-merger
+(defmodule loop-region-merging-cleanup-merger
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -152,18 +152,18 @@
 			(retract ?fct)
 			(modify-instance ?obj 
 								  (passes 
-									 loop-region-building-flatlist-build
-									 loop-region-building-flatlist-expand
-									 loop-region-building-flatlist-claim
-									 loop-region-building-flatlist-arbitrate
-									 loop-region-building-flatlist-resolve
-									 loop-region-building-determinant-construction
-									 loop-region-building-determinant-population
-									 loop-region-building-determinant-resolution
-									 loop-region-building-determinant-indirect-resolution
-									 loop-region-building-fixup
-									 loop-region-building-fixup-update
-									 loop-region-building-fixup-rename
-									 loop-region-building-cleanup-merger
+									 loop-region-merging-flatlist-build
+									 loop-region-merging-flatlist-expand
+									 loop-region-merging-flatlist-claim
+									 loop-region-merging-flatlist-arbitrate
+									 loop-region-merging-flatlist-resolve
+									 loop-region-merging-determinant-construction
+									 loop-region-merging-determinant-population
+									 loop-region-merging-determinant-resolution
+									 loop-region-merging-determinant-indirect-resolution
+									 loop-region-merging-fixup
+									 loop-region-merging-fixup-update
+									 loop-region-merging-fixup-rename
+									 loop-region-merging-cleanup-merger
 									 $?passes)))
 ;------------------------------------------------------------------------------
