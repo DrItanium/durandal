@@ -44,6 +44,8 @@
  (import rampancy ?ALL))
 (if (not (class-existp types::Path)) then
 (batch* "passes/path/common/Path.clp"))
+(load* "passes/path/all/Init.clp")
 (load* "passes/path/all/PathConstruction.clp")
 (load* "passes/path/all/PathBuilding.clp")
 (load* "passes/path/all/PathTraversal.clp")
+(load* "passes/path/all/BlockUpdates.clp")
