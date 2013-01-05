@@ -24,22 +24,22 @@
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-modification-propagation::PropagateBlockProducers
-			(object (is-a BasicBlock) (id ?b) (parent ?r) 
+			(object (is-a BasicBlock) (parent ?r) 
 					  (Produces $?produces))
 			=>
-			(assert (Give ?r from ?b the following produced items $?produces)))
+			(assert (Give ?r the following produced items $?produces)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-modification-propagation::PropagateRegionProducers-ParentExists
-			?fct <- (Give ?r from ? the following produced items $?produced)
+			?fct <- (Give ?r the following produced items $?produced)
 			?region <- (object (is-a Region) (id ?r) (parent ?p))
 			(exists (object (is-a Region) (id ?p)))
 			=>
 			(retract ?fct)
-			(assert (Give ?p from ?r the following produced items $?produced))
+			(assert (Give ?p the following produced items $?produced))
 			(slot-insert$ ?region Produces 1 ?produced))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-modification-propagation::PropagateRegionProducers-ParentDoesntExist
-			?fct <- (Give ?r from ? the following produced items $?produced)
+			?fct <- (Give ?r the following produced items $?produced)
 			?region <- (object (is-a Region) (id ?r) (parent ?p))
 			(not (exists (object (is-a Region) (id ?p))))
 			=>
@@ -47,8 +47,7 @@
 			(slot-insert$ ?region Produces 1 ?produced))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-modification-propagation::IdentifyNonLocalDependencies
-			?i0 <- (object (is-a Instruction) (parent ?p) (id ?t0) 
-								(Operands $? ?op $?))
+			?i0 <- (object (is-a Instruction) (parent ?p) (Operands $? ?op $?))
 			(object (is-a ParentedObject) (id ?op) (parent ~?p))
 			;(test (not (member$ ?op (send ?i0 get-NonLocalDependencies))))
 			=>
