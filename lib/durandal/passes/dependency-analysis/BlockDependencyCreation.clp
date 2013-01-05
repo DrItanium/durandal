@@ -213,12 +213,16 @@
 			=>
 			(retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis::StoreToLoadDependency
-			(object (is-a StoreInstruction) (parent ?p) (id ?t0)
-					  (TimeIndex ?ti0) (MemoryTarget ?sym0))
-			(object (is-a LoadInstruction) (parent ?p) (id ?t1) 
-					  (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
-			(test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
+(defrule dependency-analysis-extended-memory-analysis::StoreDependency-UNKNOWN
+			(object (is-a StoreInstruction) 
+					  (MemoryTarget UNKNOWN)
+					  (id ?t0) 
+					  (parent ?p))
+			(object (is-a BasicBlock) 
+					  (id ?p) 
+					  (contents $? ?t0 $? ?t1 $?))
+			(object (is-a StoreInstruction|LoadInstruction) 
+					  (id ?t1))
 			=>
 			(assert (message (to dependency-analysis)
 								  (action instruction-consumes)
@@ -227,12 +231,16 @@
 								  (action instruction-produces)
 								  (arguments ?t0 => ?t1))))
 ;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis::StoreToStoreDependency
-			(object (is-a StoreInstruction) (parent ?p) (id ?t0)
-					  (TimeIndex ?ti0) (MemoryTarget ?sym0))
-			(object (is-a StoreInstruction) (parent ?p) (id ?t1) 
-					  (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
-			(test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
+(defrule dependency-analysis-extended-memory-analysis::LoadDependency-UNKNOWN
+			(object (is-a LoadInstruction) 
+					  (parent ?p) 
+					  (id ?t0) 
+					  (MemoryTarget UNKNOWN))
+			(object (is-a BasicBlock) 
+					  (id ?p) 
+					  (contents $? ?t0 $? ?t1 $?))
+			(object (is-a StoreInstruction) 
+					  (id ?t1))
 			=>
 			(assert (message (to dependency-analysis)
 								  (action instruction-consumes)
@@ -241,12 +249,56 @@
 								  (action instruction-produces)
 								  (arguments ?t0 => ?t1))))
 ;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis::LoadToStoreDependency
-			(object (is-a LoadInstruction) (parent ?p) (id ?t0)
-					  (TimeIndex ?ti0) (MemoryTarget ?sym0)) 
-			(object (is-a StoreInstruction) (parent ?p) (id ?t1) 
-					  (TimeIndex ?ti1&:(< ?ti0 ?ti1)) (MemoryTarget ?sym1))
-			(test (or (eq ?sym0 ?sym1) (eq ?sym0 UNKNOWN)))
+(defrule dependency-analysis-extended-memory-analysis::Store=>LoadDependency
+			(object (is-a StoreInstruction) 
+					  (parent ?p) 
+					  (id ?t0)
+					  (MemoryTarget ?sym0&~UNKNOWN))
+			(object (is-a BasicBlock) 
+					  (id ?p) 
+					  (contents $? ?t0 $? ?t1 $?))
+			(object (is-a LoadInstruction) 
+					  (parent ?p) 
+					  (id ?t1) 
+					  (MemoryTarget ?sym0))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action instruction-consumes)
+								  (arguments ?t1 => ?t0))
+					  (message (to dependency-analysis)
+								  (action instruction-produces)
+								  (arguments ?t0 => ?t1))))
+;------------------------------------------------------------------------------
+(defrule dependency-analysis-extended-memory-analysis::Store=>StoreDependency
+			(object (is-a StoreInstruction) 
+					  (parent ?p) 
+					  (id ?t0)
+					  (MemoryTarget ?sym0&~UNKNOWN))
+			(object (is-a BasicBlock) 
+					  (id ?p) 
+					  (contents $? ?t0 $? ?t1 $?))
+			(object (is-a StoreInstruction) 
+					  (id ?t1) 
+					  (MemoryTarget ?sym0))
+			=>
+			(assert (message (to dependency-analysis)
+								  (action instruction-consumes)
+								  (arguments ?t1 => ?t0))
+					  (message (to dependency-analysis)
+								  (action instruction-produces)
+								  (arguments ?t0 => ?t1))))
+;------------------------------------------------------------------------------
+(defrule dependency-analysis-extended-memory-analysis::Load=>StoreDependency
+			(object (is-a LoadInstruction) 
+					  (parent ?p) 
+					  (id ?t0)
+					  (MemoryTarget ?sym0&~UNKNOWN)) 
+			(object (is-a BasicBlock)
+					  (id ?p)
+					  (contents $? ?t0 $? ?t1 $?))
+			(object (is-a StoreInstruction) 
+					  (id ?t1) 
+					  (MemoryTarget ?sym0))
 			=>
 			(assert (message (to dependency-analysis)
 								  (action instruction-consumes)
