@@ -145,8 +145,10 @@
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging::modify-pass-description
-			"Modifies the target pass description to load the target subpasses"
+			"Modifies the target pass description to load the target subpasses.
+			This will only happen if the current function has loops"	
 			?fct <- (message (to loop-region-merging) (action initial-fact))
+			(exists (object (is-a Loop)))
 			?obj <- (object (is-a pass-description) (passes $?passes))
 			=>
 			(retract ?fct)
@@ -166,4 +168,11 @@
 									 loop-region-merging-fixup-rename
 									 loop-region-merging-cleanup-merger
 									 $?passes)))
+;------------------------------------------------------------------------------
+(defrule loop-region-merging::skip-pass
+			"This rule fires if the given function does not have any defined loops!"
+			?fct <- (message (to loop-region-merging) (action initial-fact))
+			(not (exists (object (is-a Loop))))
+			=>
+			(retract ?fct))
 ;------------------------------------------------------------------------------
