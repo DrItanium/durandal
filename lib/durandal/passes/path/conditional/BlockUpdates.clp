@@ -30,11 +30,11 @@
 ;------------------------------------------------------------------------------
 (defrule paths-conditional-update::FAIL-UNFINISHED-PATHS 
 			(test (> (length$ 
-						  (find-all-instances ((?path Path)) (not ?path:Closed))) 0))
+						  (find-all-instances ((?path Path)) (not ?path:closed))) 0))
 			=>
 			(printout t "ERROR: Not all paths were closed!" crlf)
 			(progn$ (?inst (find-all-instances ((?path Path)) 
-									(not ?path:Closed)))
+									(not ?path:closed)))
 						(send ?inst print))
 			(printout t "Current facts!" crlf)
 			(facts)
@@ -44,14 +44,14 @@
 (defrule paths-conditional::AddPathToDiplomat
 			"Adds the given path name to the target diplomat"
 			(declare (salience 1))
-			(object (is-a Path) (Closed TRUE) (ID ?i) (Contents $? ?b $?))
+			(object (is-a Path) (closed TRUE) (ID ?i) (Contents $? ?b $?))
 			?d <- (object (is-a Diplomat) (ID ?b))
 			(test (not (member$ ?i (send ?d get-Paths))))
 			=>
 			(slot-insert$ ?d Paths 1 ?i))
 
 (defrule paths-conditional-update::TraversePathForElementInjection
-			(object (is-a Path) (Closed TRUE) (ID ?p) (Contents $? ?a ?b $?))
+			(object (is-a Path) (closed TRUE) (ID ?p) (Contents $? ?a ?b $?))
 			?o0 <- (object (is-a Diplomat) (ID ?a))
 			?o1 <- (object (is-a Diplomat) (ID ?b))
 			=>
