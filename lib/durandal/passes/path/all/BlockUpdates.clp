@@ -44,16 +44,16 @@
 (defrule paths::AddPathToDiplomat
 			"Adds the given path name to the target diplomat"
 			(declare (salience 1))
-			(object (is-a Path) (closed TRUE) (ID ?i) (Contents $? ?b $?))
-			?d <- (object (is-a Diplomat) (ID ?b))
+			(object (is-a Path) (closed TRUE) (id ?i) (contents $? ?b $?))
+			?d <- (object (is-a Diplomat) (id ?b))
 			(test (not (member$ ?i (send ?d get-Paths))))
 			=>
 			(slot-insert$ ?d Paths 1 ?i))
 
 (defrule paths-update::TraversePathForElementInjection
-			(object (is-a Path) (closed TRUE) (ID ?p) (Contents $? ?a ?b $?))
-			?o0 <- (object (is-a Diplomat) (ID ?a))
-			?o1 <- (object (is-a Diplomat) (ID ?b))
+			(object (is-a Path) (closed TRUE) (id ?p) (contents $? ?a ?b $?))
+			?o0 <- (object (is-a Diplomat) (id ?a))
+			?o1 <- (object (is-a Diplomat) (id ?b))
 			=>
 			(if (not (member$ ?a (send ?o1 get-PreviousPathElements))) then
 			  (slot-insert$ ?o1 PreviousPathElements 1 ?a))
