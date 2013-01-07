@@ -1,3 +1,4 @@
+;------------------------------------------------------------------------------
 ;Copyright (c) 2012, Joshua Scoggins 
 ;All rights reserved.
 ;
@@ -23,130 +24,150 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defrule MoveContentsToDeleteNodes
-			"Moves blocks out of the contents into the closed list"
-			(declare (salience 2701))
-			(Stage WavefrontSchedule $?)
-			(Substage AdvanceInit $?)
-			?wave <- (object (is-a Wavefront) (ID ?z) (Parent ?r) 
-								  (Contents $?c) (Closed $?cl))
-			(test (or (> (length$ ?c) 0) (> (length$ ?cl) 0)))
-			=>
-			(slot-insert$ ?wave DeleteNodes 1 ?c ?cl))
+(defrule wavefront-scheduling-advance-init::MoveContentsToDeleteNodes
+         "Moves blocks out of the contents into the closed list"
+         (declare (salience 2701))
+         ?wave <- (object (is-a Wavefront) 
+                          (id ?z) 
+                          (parent ?r) 
+                          (contents $?c) 
+                          (Closed $?cl))
+         (test (or (> (length$ ?c) 0) 
+                   (> (length$ ?cl) 0)))
+         =>
+         (slot-insert$ ?wave DeleteNodes 1 ?c ?cl))
 ;------------------------------------------------------------------------------
-(defrule MarkShouldStayOnWavefront
-			(declare (salience 343))
-			(Stage WavefrontSchedule $?)
-			(Substage AdvanceIdentify $?)
-			?wave <- (object (is-a Wavefront) (ID ?q) (Parent ?r) 
-								  (DeleteNodes $?a ?b $?c))
-			?bb <- (object (is-a Diplomat) (ID ?b) (NextPathElements ?s))
-			(object (is-a Diplomat) (ID ?s) (PreviousPathElements $?ppe))
-			(test (not (subsetp ?ppe (send ?wave get-DeleteNodes)))) 
-			?agObj <- (object (is-a PathAggregate) (Parent ?b))
-			=>
-      (object-pattern-match-delay
-			(if (not (member$ ?b (send ?wave get-Closed))) then
-			  (bind ?ind (member$ ?b (send ?wave get-Contents)))
-			  (slot-delete$ ?wave Contents ?ind ?ind)
-			  (slot-insert$ ?wave Closed 1 ?b))
-			(modify-instance ?wave (DeleteNodes $?a $?c))))
+(defrule wavefront-schedule-advance-identify::MarkShouldStayOnWavefront
+         (declare (salience 343))
+         ?wave <- (object (is-a Wavefront) 
+                          (id ?q) 
+                          (parent ?r) 
+                          (DeleteNodes $?a ?b $?c)
+                          (Closed $?clos)
+                          (contents $?contents))
+
+         ?bb <- (object (is-a Diplomat) 
+                        (id ?b) 
+                        (NextPathElements ?s))
+         (object (is-a Diplomat) 
+                 (id ?s) 
+                 (PreviousPathElements $?ppe))
+         (test (not (subsetp ?ppe (create$ ?a ?b ?c))))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?b))
+         =>
+         (object-pattern-match-delay
+           (if (not (member$ ?b $?clos)) then
+             (bind ?ind (member$ ?b $?contents))
+             (slot-delete$ ?wave Contents ?ind ?ind)
+             (modify-instance ?wave (Closed $?clos ?b)
+                              (DeleteNodes $?a $?c))
+             else
+             (modify-instance ?wave (DeleteNodes $?a $?c)))))
 ;------------------------------------------------------------------------------
-(defrule DeleteElementFromWavefront
-			(declare (salience 180))
-			(Stage WavefrontSchedule $?)
-			(Substage Advance $?)
-			?wave <- (object (is-a Wavefront) (ID ?id) (Parent ?r) 
-								  (DeleteNodes ?a $?))
-			(object (is-a Diplomat) (ID ?a) (NextPathElements $?npe))
-			=>
-      (object-pattern-match-delay
-			(bind ?ind (member$ ?a (send ?wave get-Contents)))
-			(bind ?ind2 (member$ ?a (send ?wave get-Closed)))
-			(slot-delete$ ?wave DeleteNodes 1 1)
-			(if ?ind then (slot-delete$ ?wave Contents ?ind ?ind))
-			(if ?ind2 then (slot-delete$ ?wave Closed ?ind2 ?ind2))
-			(assert (Add into ?id blocks $?npe))))
+(defrule wavefront-schedule-advance::DeleteElementFromWavefront
+         (declare (salience 180))
+         ?wave <- (object (is-a Wavefront) 
+                          (id ?id) 
+                          (parent ?r) 
+                          (DeleteNodes ?a $?))
+         (object (is-a Diplomat) 
+                 (id ?a) 
+                 (NextPathElements $?npe))
+         =>
+         ;TODO: Continue to port here
+         (object-pattern-match-delay
+           (bind ?ind (member$ ?a (send ?wave get-Contents)))
+           (bind ?ind2 (member$ ?a (send ?wave get-Closed)))
+           (slot-delete$ ?wave DeleteNodes 1 1)
+           (if ?ind then (slot-delete$ ?wave Contents ?ind ?ind))
+           (if ?ind2 then (slot-delete$ ?wave Closed ?ind2 ?ind2))
+           (assert (Add into ?id blocks $?npe))))
 ;------------------------------------------------------------------------------
 (defrule PutSuccessorsOntoWavefront-Match
-			(declare (salience 100))
-			(Stage WavefrontSchedule $?)
-			(Substage AdvanceEnd $?)
-			?fct <- (Add into ?id blocks ?next $?rest)
-			?wave <- (object (is-a Wavefront) (ID ?id))
-			=>
-			(retract ?fct)
-			;I know that this is procedural but I really want to get this done
-			(assert (Add into ?id blocks $?rest))
-			(if (not (member$ ?next (send ?wave get-Contents))) then
-			  (slot-insert$ ?wave Contents 1 ?next)))
+         (declare (salience 100))
+         (Stage WavefrontSchedule $?)
+         (Substage AdvanceEnd $?)
+         ?fct <- (Add into ?id blocks ?next $?rest)
+         ?wave <- (object (is-a Wavefront) (ID ?id))
+         =>
+         (retract ?fct)
+         ;I know that this is procedural but I really want to get this done
+         (assert (Add into ?id blocks $?rest))
+         (if (not (member$ ?next (send ?wave get-Contents))) then
+           (slot-insert$ ?wave Contents 1 ?next)))
 ;------------------------------------------------------------------------------
 (defrule PutSuccessorsOntoWavefront-NoMoreElements
-			(declare (salience 100))
-			(Stage WavefrontSchedule $?)
-			(Substage AdvanceEnd $?)
-			?fct <- (Add into ? blocks)
-			=>
-			(retract ?fct))
+         (declare (salience 100))
+         (Stage WavefrontSchedule $?)
+         (Substage AdvanceEnd $?)
+         ?fct <- (Add into ? blocks)
+         =>
+         (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule PonderRestartOfWavefrontScheduling
-			(declare (salience -512))
-			(Stage WavefrontSchedule $?)
-			?fct <- (Substage Update $?)
-			=>
-			(bind ?instances (find-all-instances ((?wave Wavefront)) 
-															 (> (length$ ?wave:Contents) 0)))
-			(if (> (length$ ?instances) 0) then
-			  (retract ?fct)
-			  (assert (Substage Init 
-									  Identify 
-									  PhiIdentify 
-									  PhiNode 
-									  PhiNodeUpdate 
-									  Pathing 
-									  Strip 
-									  Inject 
-									  Acquire 
-									  Slice 
-									  AnalyzeInit 
-									  GenerateAnalyze0
-									  GenerateAnalyze
-									  Analyze 
-									  SliceAnalyze 
-									  MergeInit 
-									  Merge 
-									  MergeUpdate
-									  ReopenBlocks
-									  Ponder 
-									  Rename 
-									  DependencyAnalysis 
-									  ;ScheduleObjectCreation 
-									  ;ScheduleObjectUsage 
-									  ;ResetScheduling 
-									  ;InitLLVMUpdate
-									  ;LLVMUpdate 
-									  AdvanceInit 
-									  AdvanceIdentify
-									  Advance
-									  AdvanceEnd
-									  Update))))
+(defrule wavefront-scheduling-update::PonderRestartOfWavefrontScheduling
+         ?fct <- (message (to wavefront-scheduling-update)
+                          (from pipeline)
+                          (action initial-fact))
+         ?obj <- (object (is-a pass-description) 
+                         (passes $?passes))
+         =>
+         (retract ?fct)
+         (bind ?instances (find-all-instances ((?wave Wavefront)) 
+                                              (> (length$ ?wave:contents) 0)))
+         (if (> (length$ ?instances) 0) then
+           (modify-instance ?obj 
+                            (passes wavefront-scheduling-init
+                                    wavefront-scheduling-identify
+                                    wavefront-scheduling-phi-identify
+                                    wavefront-scheduling-phi-node 
+                                    wavefront-scheduling-phi-node-update
+                                    wavefront-scheduling-pathing
+                                    wavefront-scheduling-strip 
+                                    wavefront-scheduling-inject 
+                                    wavefront-scheduling-acquire 
+                                    wavefront-scheduling-slice 
+                                    wavefront-scheduling-analyze-init 
+                                    wavefront-scheduling-pre-generate-analyze
+                                    wavefront-scheduling-generate-analyze
+                                    wavefront-scheduling-analyze 
+                                    wavefront-scheduling-slice-analyze
+                                    wavefront-scheduling-merge-init 
+                                    wavefront-scheduling-merge 
+                                    wavefront-scheduling-merge-update 
+                                    wavefront-scheduling-reopen-blocks
+                                    wavefront-scheduling-ponder
+                                    wavefront-scheduling-post-ponder
+                                    wavefront-scheduling-rename 
+                                    wavefront-scheduling-dependency-analysis 
+                                    wavefront-scheduling-advance-init
+                                    wavefront-scheduling-advance-identify
+                                    wavefront-scheduling-advance
+                                    wavefront-scheduling-advance-end
+                                    wavefront-scheduling-update
+                                    $?passes))))
 ;------------------------------------------------------------------------------
-(defrule RetractUnlinkedInstructions
-			(Stage WavefrontFinal $?)
-			?bb <- (object (is-a BasicBlock) (ID ?b) 
-								(UnlinkedInstructions ?i $?rest))
-			?instruction <- (object (is-a Instruction) (ID ?i) (Parent ?b) 
-											(Pointer ?ptr))
-			(object (is-a PathAggregate) (Parent ?b) 
-					  (InstructionPropagation $? ?i ?new ?b ! $?))
-			(object (is-a Instruction) (ID ?new) (Pointer ?nPtr))
-			=>
-			;this is a little gross but it is a very easy way to ensure that
-			;things work correctly
-      (object-pattern-match-delay
-			(llvm-replace-all-uses ?ptr ?nPtr)
-			(modify-instance ?bb (UnlinkedInstructions $?rest))
-			(llvm-unlink-and-delete-instruction ?ptr)
-			(unmake-instance ?instruction)))
+(defrule wavefront-scheduling-final::RetractUnlinkedInstructions
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?b) 
+                        (UnlinkedInstructions ?i $?rest))
+         ?instruction <- (object (is-a Instruction) 
+                                 (id ?i) 
+                                 (parent ?b) 
+                                 (pointer ?ptr))
+         (object (is-a PathAggregate) 
+                 (parent ?b) 
+                 (InstructionPropagation $? ?i ?new ?b ! $?))
+         (object (is-a Instruction) 
+                 (id ?new) 
+                 (pointer ?nPtr))
+         =>
+         ;this is a little gross but it is a very easy way to ensure that
+         ;things work correctly so that the LLVM ModuleVerifier doesn't come
+         ;down like a hammer on what we're doing
+         (object-pattern-match-delay
+           (llvm-replace-all-uses ?ptr ?nPtr)
+           (modify-instance ?bb (UnlinkedInstructions $?rest))
+           (llvm-unlink-and-delete-instruction ?ptr)
+           (unmake-instance ?instruction)))
 ;------------------------------------------------------------------------------
