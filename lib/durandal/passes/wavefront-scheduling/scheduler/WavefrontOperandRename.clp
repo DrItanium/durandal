@@ -56,7 +56,7 @@
                  (pointer ?nPtr))
          (object (is-a BasicBlock) 
                  (id ?e) 
-                 (Contents $? ?new $?rest))
+                 (contents $? ?new $?rest))
          =>
          (bind ?ptrList (create$))
          (bind ?symList (create$))
