@@ -336,89 +336,102 @@
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule RemoveInstructionsFromProducers
+(defrule wavefront-scheduling-dependency-merge-update::RemoveInstructionsFromProducers
          (declare (salience 768))
-         (Stage WavefrontSchedule $?)
-         (Substage MergeUpdate $?)
-         ?fct <- (Remove evidence of ?tInst from instructions ?inst $?insts)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action remove-evidence)
+                          (arguments ?tInst => ?inst $?insts))
          ?iObj <- (object (is-a Instruction) 
-                          (ID ?inst) 
+                          (id ?inst) 
+                          (NonLocalDependencies $?nld)
                           (Producers $?pb ?tInst $?pa)
                           (LocalDependencies $?ldb ?tInst $?lda))
          =>
-         (retract ?fct)
-         (assert (Remove evidence of ?tInst from instructions $?insts))
+         (modify ?fct (arguments ?tInst => $?insts))
          (modify-instance ?iObj (Producers $?pb $?pa)
-                          (LocalDependencies $?ldb $?lda))
-         (slot-insert$ ?iObj NonLocalDependencies 1 ?tInst))
+                          (LocalDependencies $?ldb $?lda)
+                          (NonLocalDependencies $?nld ?tInst)))
 ;------------------------------------------------------------------------------
-(defrule RetractRemoveInstructionsFromProducers
+(defrule wavefront-scheduling-merge-update::RetractRemoveInstructionsFromProducers
          (declare (salience 768))
-         (Stage WavefrontSchedule $?)
-         (Substage MergeUpdate $?)
-         ?fct <- (Remove evidence of ? from instructions)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action remove-evidence)
+                          (arguments ? =>))
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule StartRecomputeBlock
+(defrule wavefront-scheduling-merge-update::StartRecomputeBlock
          (declare (salience 100))
-         (Stage WavefrontSchedule $?)
-         (Substage MergeUpdate $?)
-         ?fct <- (Recompute block ?b)
-         ?bb <- (object (is-a BasicBlock) (ID ?b) 
-                        (Contents $?instructions ?last))
-         (object (is-a TerminatorInstruction) (ID ?last))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action recompute-block)
+                          (arguments ?b))
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?b) 
+                        (contents $?instructions ?last))
+         (object (is-a TerminatorInstruction) 
+                 (id ?last))
          =>
-         (modify-instance ?bb (ReadsFrom) (WritesTo) (HasMemoryBarrier FALSE))
-         (retract ?fct)
-         (assert (Recompute block ?b with instructions $?instructions)))
+         (modify-instance ?bb 
+                          (ReadsFrom) 
+                          (WritesTo) 
+                          (HasMemoryBarrier FALSE))
+         (modify ?fct 
+                 (action recompute-block-with-instructions)
+                 (arguments ?b => $?instructions)))
 ;------------------------------------------------------------------------------
-(defrule RecomputeNonMemoryInstructionForBlock
+(defrule wavefront-scheduling-merge-update::RecomputeNonMemoryInstructionForBlock
          (declare (salience 99))
-         (Stage WavefrontSchedule $?)
-         (Substage MergeUpdate $?)
-         ?fct <- (Recompute block ?b with instructions ?inst $?rest)
-         (object (is-a BasicBlock) (ID ?b))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action recompute-block-with-instructions)
+                          (arguments ?b => ?inst $?rest))
          (object (is-a Instruction&~LoadInstruction&~StoreInstruction) 
-                 (ID ?inst) (Parent ?b))
+                 (id ?inst) 
+                 (parent ?b))
          =>
-         (retract ?fct)
-         (assert (Recompute block ?b with instructions $?rest)))
+         (modify ?fct (arguments ?b => $?rest)))
 ;------------------------------------------------------------------------------
-(defrule RecomputeLoadInstructionForBlock
+(defrule wavefront-scheduling-merge-update::RecomputeLoadInstructionForBlock
          (declare (salience 99))
-         (Stage WavefrontSchedule $?)
-         (Substage MergeUpdate $?)
-         ?fct <- (Recompute block ?b with instructions ?inst $?rest)
-         (object (is-a LoadInstruction) (ID ?inst) (Parent ?b) 
+         ?fct <- (message (to wavefront-scheduling)
+                          (action recompute-block-with-instructions)
+                          (arguments ?b => ?inst $?rest))
+         (object (is-a LoadInstruction) 
+                 (id ?inst) 
+                 (parent ?b) 
                  (MemoryTarget ?mt)) 
-         ?bb <- (object (is-a BasicBlock) (ID ?b))
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?b)
+                        (ReadsFrom $?rf))
          =>
-         (if (not (member$ ?mt (send ?bb get-ReadsFrom))) then
-           (slot-insert$ ?bb ReadsFrom 1 ?mt))
-         (retract ?fct)
-         (assert (Recompute block ?b with instructions $?rest)))
+         (if (not (member$ ?mt $?rf)) then
+           (modify-instance ?bb (ReadsFrom $?rf ?mt)))
+         (modify ?fct (arguments ?b => $?rest)))
 ;------------------------------------------------------------------------------
-(defrule RecomputeStoreInstructionForBlock
+(defrule wavefront-scheduling-merge-update::RecomputeStoreInstructionForBlock
          (declare (salience 99))
-         (Stage WavefrontSchedule $?)
-         (Substage MergeUpdate $?)
-         ?fct <- (Recompute block ?b with instructions ?inst $?rest)
-         (object (is-a StoreInstruction) (ID ?inst) (Parent ?b) 
+         ?fct <- (message (to wavefront-scheduling)
+                          (action recompute-block-with-instructions)
+                          (arguments ?b => ?inst $?rest))
+         (object (is-a StoreInstruction) 
+                 (id ?inst) 
+                 (parent ?b) 
                  (MemoryTarget ?mt))
-         ?bb <- (object (is-a BasicBlock) (ID ?b))
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?b)
+                        (WritesTo $?wt))
          =>
-         (if (not (member$ ?mt (send ?bb get-WritesTo))) then
-           (slot-insert$ ?bb WritesTo 1 ?mt))
-         (retract ?fct)
-         (assert (Recompute block ?b with instructions $?rest)))
+         (if (not (member$ ?mt $?wt)) then
+           (modify-instance ?bb (WritesTo $?wt ?mt)))
+         (modify ?fct (arguments ?b => $?rest)))
 ;------------------------------------------------------------------------------
-(defrule FinishRecomputationForBlock
+(defrule wavefront-scheduling-merge-update::FinishRecomputationForBlock
          (declare (salience 98))
-         (Stage WavefrontSchedule $?)
-         (Substage MergeUpdate $?)
-         ?fct <- (Recompute block ?b with instructions)
-         ?bb <- (object (is-a BasicBlock) (ID ?b) (ReadsFrom $?rf)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action recompute-block-with-instructions)
+                          (arguments ?b =>))
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?b) 
+                        (ReadsFrom $?rf)
                         (WritesTo $?wt))
          =>
          (retract ?fct)
