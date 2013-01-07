@@ -294,7 +294,7 @@
                                wavefront-scheduling-acquire 
                                wavefront-scheduling-slice 
                                wavefront-scheduling-analyze-init 
-                               wavefront-scheduling-pre-generate-Analyze
+                               wavefront-scheduling-pre-generate-analyze
                                wavefront-scheduling-generate-analyze
                                wavefront-scheduling-analyze 
                                wavefront-scheduling-slice-analyze
