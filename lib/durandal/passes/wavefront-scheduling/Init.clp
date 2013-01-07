@@ -52,6 +52,15 @@
 			  (import rampancy ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-code
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import pipeline ?ALL)
+			  (import indirect ?ALL)
+			  (import rampancy ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
 (defrule wavefront-scheduling::macro-expand-passes
 			"Pushes the modules that make up this pass into the pass-description"
 			?f <- (message (from pipeline)
@@ -67,5 +76,6 @@
 										paths-conditional
                     wavefront-scheduling-pre-init
 										wavefront-scheduling-code
+                    wavefront-scheduling-final
 										$?passes)))
 ;------------------------------------------------------------------------------
