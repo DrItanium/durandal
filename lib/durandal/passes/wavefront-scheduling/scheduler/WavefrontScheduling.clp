@@ -188,7 +188,6 @@
            (modify-instance ?pa (MemoryBarriers $?mb ?t))))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-inject::InjectCallBarrierBlocks 
-         ;get the Mrs. Hitler birth certificate
          ?fct <- (message (to wavefront-scheduling)
                           (action element-has-call-barrier)
                           (argument ?t => ?e))
@@ -204,19 +203,19 @@
 ; CPV's that represent valid movable instructions for the given block on the
 ; wavefront. 
 ;------------------------------------------------------------------------------
-(defrule SelectValidCPVs 
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
-         (object (is-a Wavefront) (Parent ?r) (Contents $? ?e $?))
-         (object (is-a BasicBlock) (ID ?e) (IsOpen TRUE))
-         ?pa <- (object (is-a PathAggregate) (ID ?ag) (Parent ?e)
-                        (PotentiallyValid $?pv))
+(defrule wavefront-scheduling-acquire::SelectValidCPVs 
+         (object (is-a Wavefront) 
+                 (contents $? ?e $?))
+         (object (is-a BasicBlock) 
+                 (id ?e) 
+                 (IsOpen TRUE))
+         (object (is-a PathAggregate) 
+                 (parent ?e)
+                 (PotentiallyValid $?pv))
          =>
          (assert (For ?e find CPVs for $?pv)))
 ;------------------------------------------------------------------------------
-(defrule FindValidCPVsForBlock
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
+(defrule wavefront-scheduling-acquire::FindValidCPVsForBlock
          ?fct <- (For ?e find CPVs for ?pv $?pvs)
          (object (is-a BasicBlock) (ID ?pv) (Contents $?instructions))
          =>
@@ -224,7 +223,7 @@
          (assert (For ?e find CPVs for $?pvs)
                  (Get CPVs out of ?pv for ?e using $?instructions)))
 ;------------------------------------------------------------------------------
-(defrule SkipRegionsForFindingValidCPVsForBlock
+(defrule wavefront-scheduling-acquire::SkipRegionsForFindingValidCPVsForBlock
          (Stage WavefrontSchedule $?)
          (Substage Acquire $?)
          ?fct <- (For ?e find CPVs for ?pv $?pvs)
@@ -233,155 +232,198 @@
          (retract ?fct)
          (assert (For ?e find CPVs for $?pvs)))
 ;------------------------------------------------------------------------------
-(defrule RetractValidCPVsForBlock
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
+(defrule wavefront-scheduling-acquire::RetractValidCPVsForBlock
          ?fct <- (For ? find CPVs for)
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule IgnorePHIInstructions
+(defrule wavefront-scheduling-acquire::IgnorePHIInstructions
          (declare (salience 1))
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
          ?fct <- (Get CPVs out of ?pv for ?e using ?inst $?insts)
-         (object (is-a PhiNode) (ID ?inst))
+         (object (is-a PhiNode) 
+                 (id ?inst))
          =>
          (retract ?fct)
          (assert (Get CPVs out of ?pv for ?e using $?insts)))
 ;------------------------------------------------------------------------------
-(defrule IgnoreCallInstructions
+(defrule wavefront-scheduling-acquire::IgnoreCallInstructions
          (declare (salience 1))
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
          ?fct <- (Get CPVs out of ?pv for ?e using ?inst $?insts)
-         (object (is-a CallInstruction) (ID ?inst))
+         (object (is-a CallInstruction) 
+                 (id ?inst))
          =>
          (retract ?fct)
          (assert (Get CPVs out of ?pv for ?e using $?insts)))
 ;------------------------------------------------------------------------------
-(defrule IgnoreTerminatorInstructions
+(defrule wavefront-scheduling-acquire::IgnoreTerminatorInstructions
          (declare (salience 1))
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
          ?fct <- (Get CPVs out of ?pv for ?e using ?inst $?insts)
-         (object (is-a TerminatorInstruction) (ID ?inst))
+         (object (is-a TerminatorInstruction) 
+                 (id ?inst))
          =>
          (retract ?fct)
          (assert (Get CPVs out of ?pv for ?e using $?insts)))
 ;------------------------------------------------------------------------------
-(defrule DisableInstructionsDependentOnDestinationPhis
+(defrule wavefront-scheduling-acquire::DisableInstructionsDependentOnDestinationPhis
          (declare (salience 2))
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
          ?fct <- (Get CPVs out of ?pv for ?e using ?inst $?insts)
          ;make sure that the parent block is the same
-         (object (is-a Instruction) (ID ?inst) (Parent ?p) 
+         (object (is-a Instruction)
+                 (id ?inst) 
+                 (parent ?p) 
                  (DestinationRegisters $? ?reg $?))
-         (object (is-a PhiNode) (ID ?reg) (Parent ?p))
+         (object (is-a PhiNode) 
+                 (id ?reg) 
+                 (parent ?p))
          =>
          (retract ?fct)
          (assert (Get CPVs out of ?pv for ?e using $?insts)))
 ;------------------------------------------------------------------------------
-(defrule DisableInstructionsDependentOnLocalPhis
+(defrule wavefront-scheduling-acquire::DisableInstructionsDependentOnLocalPhis
          (declare (salience 2))
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
          ?fct <- (Get CPVs out of ?pv for ?e using ?inst $?insts)
          ;make sure that the parent block is the same 
-         (object (is-a Instruction) (ID ?inst) (LocalDependencies $? ?reg $?))
-         (object (is-a PhiNode) (ID ?reg))
+         (object (is-a Instruction) 
+                 (id ?inst) 
+                 (LocalDependencies $? ?reg $?))
+         (object (is-a PhiNode) 
+                 (id ?reg))
          =>
          (retract ?fct)
          (assert (Get CPVs out of ?pv for ?e using $?insts)))
 ;------------------------------------------------------------------------------
-(defrule TagValidCPVs
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
+(defrule wavefront-scheduling-acquire::TagValidCPVs
          ?fct <- (Get CPVs out of ?pv for ?e using ?inst $?insts)
-         ?i <- (object (is-a Instruction) (ID ?inst) (IsTerminator FALSE) 
+         ?i <- (object (is-a Instruction) 
+                       (id ?inst) 
+                       (IsTerminator FALSE) 
                        (HasCallDependency FALSE))
          =>
          (retract ?fct)
          (assert (Get CPVs out of ?pv for ?e using $?insts)
                  (Marked ?inst as valid for block ?e)))
 ;------------------------------------------------------------------------------
-(defrule RetractDrainedGetCPVFacts
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
+(defrule wavefront-scheduling-acquire::RetractDrainedGetCPVFacts
          ?fct <- (Get CPVs out of ?pv for ?e using)
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule ReloadCPVIntoNewAggregate
+(defrule wavefront-scheduling-acquire::ReloadCPVIntoNewAggregate
          "Put the CPV that has already been created into the target path 
          aggregate"
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
          ?fct <- (Marked ?inst as valid for block ?e)
-         (object (is-a CompensationPathVector) (Parent ?inst) (ID ?cpvID))
-         ?agObj <- (object (is-a PathAggregate) (ID ?ag) (Parent ?e))
-         (object (is-a Instruction) (ID ?inst) (NonLocalDependencies $?nlds)
-                 (DestinationRegisters ?reg) (Class ?class))
-         (test (not (member$ ?cpvID 
-                             (send ?agObj 
-                                   get-ImpossibleCompensationPathVectors))))
+         (object (is-a CompensationPathVector) 
+                 (parent ?inst) 
+                 (id ?cpvID))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?e)
+                           (InstructionList $?il)
+                           (ScheduledInstructions $?si)
+                           (CompensationPathVectors $?cpvs)
+                           (ImpossibleCompensationPathVectors 
+                             $?icpv&:(not (member$ ?cpvID $?icpv))))
+         (object (is-a Instruction) 
+                 (id ?inst) 
+                 (NonLocalDependencies $?nlds)
+                 (DestinationRegisters ?reg))
          =>
          (retract ?fct)
-         (if (not (member$ ?inst (send ?agObj get-InstructionList))) then 
-           (slot-insert$ ?agObj InstructionList 1 ?inst))
-         (if (not (member$ ?reg (send ?agObj get-InstructionList))) then
-           (slot-insert$ ?agObj InstructionList 1 ?reg))
+         (bind ?ils $?il)
+         (bind ?sis $?si)
+         (if (not (member$ ?inst ?ils)) then
+           (bind ?ils (create$ ?ils ?inst)))
+         (if (and (neq ?reg ?inst)
+                  (not (member$ ?reg ?ils))) then
+           (bind ?ils (create$ ?ils ?reg)))
          (progn$ (?nld ?nlds)
-                 (if (not (member$ ?nld 
-                                   (send ?agObj 
-                                         get-ScheduledInstructions))) then
-                   (slot-insert$ ?agObj ScheduledInstructions 1 ?nld)))
-         (slot-insert$ ?agObj CompensationPathVectors 1 ?cpvID))
+                 (if (not (member$ ?nld ?sis)) then
+                   (bind ?sis (create$ ?sis ?nld))))
+         (modify-instance ?agObj (CompensationPathVectors $?cpvs ?cpvID)
+                          (InstructionList ?ils)
+                          (ScheduledInstructions ?sis)))
 ;------------------------------------------------------------------------------
-(defrule CPVIsImpossible
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
+(defrule wavefront-scheduling-acquire::CPVIsImpossible
+         "Target CPV is considered to be impossible to schedule. However, we should
+         still schedule the non-local dependencies to make sure that all non-local
+         dependencies are scheduled"
          ?fct <- (Marked ?inst as valid for block ?e)
-         (object (is-a CompensationPathVector) (Parent ?inst) (ID ?cpvID))
-         ?agObj <- (object (is-a PathAggregate) (ID ?ag) (Parent ?e))
-         (object (is-a Instruction) (ID ?inst) (NonLocalDependencies $?nlds)
-                 (DestinationRegisters ?reg) (Class ?class))
-         (test (member$ ?cpvID (send ?agObj 
-                                     get-ImpossibleCompensationPathVectors)))
+         (object (is-a CompensationPathVector) 
+                 (parent ?inst) 
+                 (id ?cpvID))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?e)
+                           (ImpossibleCompensationPathVectors 
+                             $?icpv&:(member$ ?cpvID $?icpv))
+                           (ScheduledInstructions $?si))
+         (object (is-a Instruction) 
+                 (id ?inst) 
+                 (NonLocalDependencies $?nlds))
          =>
+         (retract ?fct)
          ;add the non-local dependencies
-         (progn$ (?nld ?nlds)
-                 (if (not (member$ ?nld (send ?agObj 
-                                              get-ScheduledInstructions))) then
-                   (slot-insert$ ?agObj ScheduledInstructions 1 ?nld)))
-         (retract ?fct))
+         (bind ?sLen (length$ ?si))
+         (if (= 0 (?sLen)) then
+           (modify-instance ?agObj (ScheduledInstructions ?nlds))
+           else
+           (bind ?sis $?si)
+           (progn$ (?nld ?nlds)
+                   (if (not (member$ ?nld $?sis)) then
+                     (bind ?sis (create$ ?sis ?nld))))
+           (modify-instance ?agObj (ScheduledInstructions ?sis))))
 ;------------------------------------------------------------------------------
-(defrule MakeCPV 
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
+(defrule wavefront-scheduling-acquire::MakeCPV 
          ?fct <- (Marked ?inst as valid for block ?e)
-         (not (exists (object (is-a CompensationPathVector) (Parent ?inst))))
-         (object (is-a Instruction) (Class ?class) (ID ?inst) (Parent ?pv) 
-                 (DestinationRegisters ?reg) (NonLocalDependencies $?nlds))
-         (object (is-a BasicBlock) (ID ?pv) (Paths $?paths))
-         ?pa <- (object (is-a PathAggregate) (ID ?ag) (Parent ?e))
+         (not (exists (object (is-a CompensationPathVector)
+                              (parent ?inst))))
+         (object (is-a Instruction) 
+                 (id ?inst) 
+                 (parent ?pv) 
+                 (DestinationRegisters ?reg) 
+                 (NonLocalDependencies $?nlds))
+         (object (is-a BasicBlock) 
+                 (id ?pv) 
+                 (Paths $?paths))
+         ?pa <- (object (is-a PathAggregate) 
+                        (id ?ag) 
+                        (parent ?e)
+                        (CompensationPathVectors $?cpv)
+                        (InstructionList $?il)
+                        (ScheduledInstructions $?si))
          =>
          ; We need to disable the stores from moving when their dependencies
          ; 
          ; YOU DON'T EVEN WANT TO KNOW WHAT I'M GOING TO DO TO YOU
          (retract ?fct)
-         (bind ?name (gensym*))
-         (slot-insert$ ?pa CompensationPathVectors 1 ?name)
-         (make-instance ?name of CompensationPathVector (Parent ?inst) 
-                        (Paths $?paths) (OriginalBlock ?pv))
-         (if (not (member$ ?inst (send ?pa get-InstructionList))) then 
-           (slot-insert$ ?pa InstructionList 1 ?inst))
-         (if (not (member$ ?reg (send ?pa get-InstructionList))) then
-           (slot-insert$ ?pa InstructionList 1 ?reg))
-         (progn$ (?nld ?nlds)
-                 (if (not (member$ ?nld (send ?pa get-ScheduledInstructions))) 
-                   then (slot-insert$ ?pa ScheduledInstructions 1 ?nld))))
+         (bind ?ilLen (length$ ?il))
+         (bind ?siLen (length$ ?si))
+         (bind ?ils $?il)
+         (bind ?sis $?si)
+         (if (= 0 ?ilLen) then
+           (if (neq ?inst ?reg) then
+             (bind ?ils ?inst ?reg)
+             else
+             (bind ?ils ?inst)) 
+           else
+           (if (not (member$ ?inst ?ils)) then
+             (bind ?ils (create$ ?ils ?inst)))
+           (if (and (neq ?inst ?reg)
+                    (not (member$ ?reg ?ils))) then
+             (bind ?ils (create$ ?ils ?reg))))
+         (if (= 0 ?siLen) then
+           (bind ?sis $?nlds)
+           else
+           (progn$ (?nld ?nlds) 
+                   (if (not (member$ ?nld ?sis)) then
+                     (bind ?sis (create$ ?sis ?nld)))))
+         (modify-instance ?pa 
+                          (ScheduledInstructions ?sis)
+                          (InstructionList ?ils)
+                          (CompensationPathVectors 
+                            $?cpv (instance-name-to-symbol 
+                                    (make-instance of CompensationPathVector
+                                                   (parent ?inst)
+                                                   (Paths $?paths)
+                                                   (OriginalBlock ?pv))))))
 ;------------------------------------------------------------------------------
 ; Now we go through and attempt to schedule the instruction represented by 
 ; each CPV into the block on the wavefront. I call this stage merge. I had some
