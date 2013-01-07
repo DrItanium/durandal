@@ -23,53 +23,62 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defrule AssertReopenBlocksOnWavefront
-			(Stage WavefrontSchedule $?)
-			(Substage ReopenBlocks $?)
-			?fct <- (Reopen blocks from ?cpv)
-			?obj <- (object (is-a CompensationPathVector) (ID ?cpv) 
-								 (Failures $?failures))
-			=>
-			(retract ?fct)
-			(modify-instance ?obj (Failures))
-			(assert (From ?cpv reopen $?failures)))
+(defrule wavefront-scheduling-reopen-blocks::AssertReopenBlocksOnWavefront
+         ?fct <- (message (to wavefront-scheduling)
+                          (action reopen-blocks)
+                          (arguments ?cpv))
+         ?obj <- (object (is-a CompensationPathVector) 
+                         (id ?cpv) 
+                         (Failures $?failures))
+         =>
+         (modify-instance ?obj (Failures))
+         (modify ?fct (action reopen)
+                 (arguments ?cpv => $?failures)))
 ;------------------------------------------------------------------------------
-(defrule ReopenBlockOnWavefront
-			(Stage WavefrontSchedule $?)
-			(Substage ReopenBlocks $?)
-			?fct <- (From ?cpv reopen ?fail $?failures)
-			?wave <- (object (is-a Wavefront) (ID ?w) (Closed $?a ?fail $?b)
-								  (Contents $?cnts))
-			?bb <- (object (is-a BasicBlock) (ID ?fail) (IsOpen FALSE))
-			?pa <- (object (is-a PathAggregate) (Parent ?fail)
-								(ImpossibleCompensationPathVectors $?icpv))
-			=>
-			(modify-instance ?bb (IsOpen TRUE))
-			(modify-instance ?pa (ImpossibleCompensationPathVectors)
-								  (TargetCompensationPathVectors $?icpv))
-			(progn$ (?q ?icpv)
-					  (slot-insert$ ?pa InstructionList 1 
-										 (send (symbol-to-instance-name ?q) get-Parent)))
-			(modify-instance ?wave (Contents $?cnts ?fail) (Closed ?a ?b))
-			(retract ?fct)
-			(assert (From ?cpv reopen $?failures)))
+(defrule wavefront-scheduling-reopen::ReopenBlockOnWavefront
+         ?fct <- (message (to wavefront-scheduling)
+                          (action reopen)
+                          (arguments ?cpv => ?fail $?failures))
+         ?wave <- (object (is-a Wavefront) 
+                          (Closed $?a ?fail $?b)
+                          (contents $?cnts))
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?fail) 
+                        (IsOpen FALSE))
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?fail)
+                        (InstructionList $?il)
+                        (ImpossibleCompensationPathVectors $?icpv))
+         =>
+         (modify-instance ?bb (IsOpen TRUE))
+         (bind ?qs (create$))
+         (progn$ (?q ?icpv)
+                 (bind ?qObj (instance-address (symbol-to-instance-name ?q)))
+                 (bind ?qs (create$ ?qs (send ?qObj get-parent))))
+         (modify-instance ?pa (ImpossibleCompensationPathVectors)
+                          (InstructionList $?il ?qs)
+                          (TargetCompensationPathVectors $?icpv))
+         (modify-instance ?wave (contents $?cnts ?fail) 
+                          (Closed ?a ?b))
+         (modify ?fct (arguments ?cpv => $?failures)))
 ;------------------------------------------------------------------------------
-(defrule ReaddFailureToCPV
-			(Stage WavefrontSchedule $?)
-			(Substage ReopenBlocks $?)
-			?fct <- (From ?cpv reopen ?fail $?failures)
-			?wave <- (object (is-a Wavefront) (ID ?w) (Closed $?c))
-			(test (not (member$ ?fail $?c)))
-			?obj <- (object (is-a CompensationPathVector) (ID ?cpv))
-			=>
-			(slot-insert$ ?obj Failures 1 ?fail)
-			(retract ?fct)
-			(assert (From ?cpv reopen $?failures)))
+(defrule wavefront-scheduling-reopen-blocks::ReaddFailureToCPV
+         ?fct <- (message (to wavefront-scheduling)
+                          (action reopen)
+                          (arguments ?cpv => ?fail $?failures))
+         ?wave <- (object (is-a Wavefront) 
+           (Closed $?c&:(not (member$ ?fail $?c))))
+         ?obj <- (object (is-a CompensationPathVector) 
+           (id ?cpv)
+           (Failures $?z))
+         =>
+         (modify ?fct (arguments ?cpv => $?failures))
+         (modify-instance ?obj (Failures $?z ?fail)))
 ;------------------------------------------------------------------------------
-(defrule RetractEmptyReopenFact
-			(Stage WavefrontSchedule $?)
-			(Substage ReopenBlocks $?)
-			?fct <- (From ? reopen)
-			=>
-			(retract ?fct))
+(defrule wavefront-scheduling-reopen-blocks::RetractEmptyReopenFact
+         ?fct <- (message (to wavefront-scheduling)
+                          (action reopen)
+                          (arguments ? =>))
+         =>
+         (retract ?fct))
 ;------------------------------------------------------------------------------
