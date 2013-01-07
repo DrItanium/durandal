@@ -23,192 +23,238 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defrule PropagateAggregateInformation
-			"Pulls instruction propagation information from all elements on paths 
-			that immediately precede this element on the wavefront and merges it 
-			into the path aggregate itself"
-			(Stage WavefrontSchedule $?)
-			(Substage Identify $?)
-			(Propagate aggregates of ?e)
-			;if this element is on the wavefront then we can be certain that all 
-			;of it's predecessors are above it. That is the definition of being on
-			;the wavefront
-			?pa <- (object (is-a PathAggregate) (Parent ?e) (ID ?pp))
-			(object (is-a Diplomat) (ID ?e) (PreviousPathElements $? ?z $?))
-			(object (is-a PathAggregate) (Parent ?z) 
-					  (InstructionPropagation $? ?targ ?alias ? ! $?))
-			=>
-			;replace parent blocks of previous path elements with the name of the
-			;element this was acquired from
-			;(printout t "Put (" ?targ " " ?alias " " ?z "! ) into " ?pp crlf)
-			(slot-insert$ ?pa InstructionPropagation 1 ?targ ?alias ?z !))
+(defrule wavefront-scheduling-identify::PropagateAggregateInformation
+         "Pulls instruction propagation information from all elements on paths 
+         that immediately precede this element on the wavefront and merges it 
+         into the path aggregate itself"
+         (message (to wavefront-scheduling)
+                  (action propagate-aggregates)
+                  (arguments ?e))
+         ;if this element is on the wavefront then we can be certain that all 
+         ;of it's predecessors are above it. That is the definition of being on
+         ;the wavefront
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?e)
+                        (InstructionPropagation $?ip))
+         (object (is-a Diplomat) 
+                 (id ?e) 
+                 (PreviousPathElements $? ?z $?))
+         (object (is-a PathAggregate) 
+                 (parent ?z) 
+                 (InstructionPropagation $? ?targ ?alias ? ! $?))
+         =>
+         ;replace parent blocks of previous path elements with the name of the
+         ;element this was acquired from
+         ;(printout t "Put (" ?targ " " ?alias " " ?z "! ) into " ?pp crlf)
+         (modify-instance ?pa (InstructionPropagation $?ip ?targ ?alias ?z !)))
 ;------------------------------------------------------------------------------
-(defrule RetractAggregationInformation
-			(declare (salience -50))
-			(Stage WavefrontSchedule $?)
-			(Substage Identify $?)
-			?fct <- (Propagate aggregates of ?)
-			=>
-			(retract ?fct))
+(defrule wavefront-scheduling-identify::RetractAggregationInformation
+         (declare (salience -50))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action propagate-aggregates)
+                          (arguments ?))
+         =>
+         (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule AssertPhiNodePropagationPredicateIsBlock
-			(declare (salience 1))
-			(Stage WavefrontSchedule $?)
-			(Substage PhiIdentify $?)
-			(object (is-a Wavefront) (Parent ?r) (Contents $? ?e $?))
-			?pa <- (object (is-a PathAggregate) (Parent ?e) 
-								(InstructionPropagation ?targ ?alias ?pred ! $?rest))
-			=>
-			(modify-instance ?pa (InstructionPropagation $?rest))
-			(assert (Propagation target ?targ with alias ?alias
-										from block ?pred for block ?e)))
+(defrule wavefront-scheduling-phi-identify::AssertPhiNodePropagationPredicateIsBlock
+         (declare (salience 1))
+         (object (is-a Wavefront) 
+                 (parent ?r) 
+                 (contents $? ?e $?))
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?e) 
+                        (InstructionPropagation ?targ ?alias ?pred ! $?rest))
+         =>
+         (modify-instance ?pa (InstructionPropagation $?rest))
+         (assert (message (to wavefront-scheduling)
+                          (action propagation-target)
+                          (arguments target ?targ 
+                                     alias ?alias 
+                                     from ?pred 
+                                     for ?e))))
 ;------------------------------------------------------------------------------
-(defrule RemoveDuplicateElements 
-			(Stage WavefrontSchedule $?)
-			(Substage PhiNode $?)
-			?f0 <- (Propagation target ?t with alias ?a from block ?p0 
-									  for block ?b)
-			?f1 <- (Propagation target ?t with alias ?a from block ?p1 
-									  for block ?b)
-			(test (and (neq ?f0 ?f1) (neq ?p0 ?p1)))
-			?pa <- (object (is-a PathAggregate) (Parent ?b))
-			=>
-			(retract ?f0 ?f1)
-			(slot-insert$ ?pa InstructionPropagation 1 ?t ?a ?b !))
+(defrule wavefront-scheduling-phi-node::RemoveDuplicateElements 
+         "Removes propagation targets that represent the same value but come from
+         different previous blocks/regions. When this is seen it's not necessary to
+         create a phi node. This is evident because the aliases are the same across
+         multiple paths of execution."
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action propagation-target)
+                         (arguments target ?t 
+                                    alias ?a 
+                                    from ?p0 
+                                    for ?b))
+         ?f1 <- (message (to wavefront-scheduling)
+                         (action propagation-target)
+                         (arguments target ?t 
+                                    alias ?a 
+                                    from ?p1&~?p0 
+                                    for ?b))
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?b) 
+                        (InstructionPropagation $?ip))
+         =>
+         (retract ?f0 ?f1)
+         (modify-instance ?pa (InstructionPropagation $?ip ?t ?a ?b !)))
 ;------------------------------------------------------------------------------
-(defrule MergePhiNodePropagationWithOtherPropagation
-			(Stage WavefrontSchedule $?)
-			(Substage PhiNode $?)
-			?f0 <- (Propagation target ?t with alias ?a0 from block ?p0 
-									  for block ?b)
-			?f1 <- (Propagation target ?t with alias ?a1 from block ?p1 
-									  for block ?b)
-			(test (neq ?f0 ?f1))
-			=>
-			(retract ?f0 ?f1)
-			(assert (Create phinode targeting instruction ?t for block ?b 
-								 consisting of ?a0 ?p0 ?a1 ?p1 )))
+(defrule wavefront-scheduling-phi-node::MergePhiNodePropagationWithOtherPropagation
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action propagation-target)
+                         (arguments target ?t 
+                                    alias ?a0
+                                    from ?p0
+                                    for ?b))
+         ?f1 <- (message (to wavefront-scheduling)
+                         (action propagation-target)
+                         (arguments target ?t 
+                                    alias ?a1&~?a0
+                                    from ?p1&~?p0 
+                                    for ?b))
+         =>
+         (retract ?f0 ?f1)
+         (assert (message (to wavefront-scheduling)
+                          (action create-phi-node)
+                          (arguments target-instruction ?t
+                                     block ?b => ?a0 ?p0 ?a1 ?p1))))
 ;------------------------------------------------------------------------------
-(defrule MergePhiNodePropagationWithCreateStatement
-			(Stage WavefrontSchedule $?)
-			(Substage PhiNode $?)
-			?f0 <- (Propagation target ?t with alias ?a0 from block ?p0 
-									  for block ?b)
-			?f1 <- (Create phinode targeting instruction ?t for block ?b 
-								consisting of $?targets)
-			=>
-			(retract ?f0 ?f1)
-			(assert (Create phinode targeting instruction ?t for block ?b 
-								 consisting of $?targets ?a0 ?p0 )))
+(defrule wavefront-scheduling-phi-node::MergePhiNodePropagationWithCreateStatement
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action propagation-target)
+                         (arguments target ?t 
+                                    alias ?a0
+                                    from ?p0
+                                    for ?b))
+         ?f1 <- (message (to wavefront-scheduling)
+                         (action create-phi-node)
+                         (arguments target-instruction ?t 
+                                    block ?b => $?targets))
+         =>
+         (retract ?f0)
+         (modify ?f1 (arguments target-instruction ?t
+                                block ?b => $?targets ?a0 ?p0)))
 ;------------------------------------------------------------------------------
-(defrule PutUnfulfilledItemsBackIntoPropagationList
-			(declare (salience -10))
-			(Stage WavefrontSchedule $?)
-			(Substage PhiNode $?)
-			?f0 <- (Propagation target ?t with alias ?a0 from block ?p0 for 
-									  block ?b)
-			?pa <- (object (is-a PathAggregate) (Parent ?b))
-			=>
-			(retract ?f0)
-			(slot-insert$ ?pa InstructionPropagation 1 ?t ?a0 ?b !))
+(defrule wavefront-scheduling-phi-node::PutUnfulfilledItemsBackIntoPropagationList
+         (declare (salience -10))
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action propagation-target)
+                         (arguments target ?t 
+                                    alias ?a0
+                                    from ?p0
+                                    for ?b))
+         ?pa <- (object (is-a PathAggregate) 
+                        (Parent ?b)
+                        (InstructionPropagation $?ip))
+         =>
+         (retract ?f0)
+         (modify-instance ?pa (InstructionPropagation $?ip ?t ?a0 ?b !)))
 ;------------------------------------------------------------------------------
-(defrule NamePhiNodeFromCreateStatement-NotOriginalBlock
-			(declare (salience -12))
-			(Stage WavefrontSchedule $?)
-			(Substage PhiNode $?)
-			?fct <- (Create phinode targeting instruction ?t for block ?b
-								 consisting of $?elements)
-			?agObj <- (object (is-a PathAggregate) 
-									(Parent ?b))
-			?bb <- (object (is-a BasicBlock) 
-								(ID ?b) 
-								(Contents ?first $?rest)
-								(UnlinkedInstructions $?ui))
-			(test (not (member$ ?t $?ui)))
-			(object (is-a Instruction) 
-					  (ID ?first) 
-					  (Pointer ?bPtr))
-			(object (is-a Instruction) 
-					  (ID ?t) 
-					  (Type ?ty))
-			(object (is-a LLVMType) 
-					  (ID ?ty) 
-					  (Pointer ?dataType))
-			=>
-			(retract ?fct)
-			(bind ?name (sym-cat phi. (gensym*) . ?t))
-			(bind ?count (/ (length$ $?elements) 2))
-			(bind ?pointers (symbol-to-pointer-list ?elements))
-			(make-instance ?name of PhiNode 
-								(Parent ?b)
-								(TimeIndex 0)
-								(Pointer (llvm-make-phi-node ?name ?dataType ?count 
-																	  ?bPtr ?pointers))
-								(IncomingValueCount ?count)
-								(Operands $?elements))
-			;we've scheduled the given original instruction into this block
-			; although it's just a ruse
-			(slot-insert$ ?agObj ScheduledInstructions 1 ?t)
-			(slot-insert$ ?agObj InstructionPropagation 1 ?t ?name ?b !)
-			(slot-insert$ ?agObj ReplacementActions 1 ?t ?name !)
-			(slot-insert$ ?bb Contents 1 ?name)
-			(assert (Update duration for block ?b)))
+(defrule wavefront-scheduling-phi-node::NamePhiNodeFromCreateStatement-NotOriginalBlock
+         (declare (salience -12))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action create-phi-node)
+                          (arguments target-instruction ?t 
+                                     block ?b => $?targets))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?b)
+                           (ScheduledInstructions $?si)
+                           (InstructionPropagation $?ip)
+                           (ReplacementActions $?ra))
+
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?b) 
+                        (contents ?first $?rest)
+                        (UnlinkedInstructions 
+                          $?ui&:(not (member$ ?t $?ui))))
+         (object (is-a Instruction) 
+                 (id ?first) 
+                 (pointer ?bPtr))
+         (object (is-a Instruction) 
+                 (id ?t) 
+                 (Type ?ty))
+         (object (is-a LLVMType) 
+                 (id ?ty) 
+                 (pointer ?typePtr))
+         =>
+         (modify ?fct (action update-block-duration)
+                 (arguments ?b))
+         (bind ?name (sym-cat phi. (gensym*) . ?t))
+         ;make the phinode in LLVM and get it's address back
+         (bind ?phiPtr 
+               (llvm-make-phi-node ?name
+                                   ?typePtr 
+                                   (/ (length$ $?elements) 2) 
+                                   ?bPtr 
+                                   (symbol-to-pointer-list $?elements)))
+         ;build a CLIPS representation of it
+         (make-instance ?name of PhiNode 
+                        (parent ?b)
+                        (TimeIndex 0)
+                        (pointer ?phiPtr)
+                        (IncomingValueCount ?count)
+                        (Operands $?elements))
+         ;we've scheduled the given original instruction into this block
+         ; although it's just a ruse
+         (modify-instance ?agObj (ScheduledInstructions $?si ?t)
+                          (InstructionPropagation $?ip ?t ?name ?b !)
+                          (ReplacementActions $?ra ?t ?name !))
+         (modify-instance ?bb (contents ?name ?first $?rest)))
 ;------------------------------------------------------------------------------
-(defrule NamePhiNodeFromCreateStatement-OriginalBlock
-			(declare (salience -12))
-			(Stage WavefrontSchedule $?)
-			(Substage PhiNode $?)
-			?fct <- (Create phinode targeting instruction ?t for block ?b
-								 consisting of $?elements)
-			?agObj <- (object (is-a PathAggregate) 
-									(Parent ?b))
-			?bb <- (object (is-a BasicBlock) 
-								(ID ?b) 
-								(Contents ?first $?rest) 
-								(UnlinkedInstructions $?ui))
-			(test (not (member$ ?t ?ui)))
-			(object (is-a Instruction) 
-					  (ID ?first) 
-					  (Pointer ?bPtr))
-			?tObj <- (object (is-a Instruction) 
-								  (ID ?t) 
-								  (Type ?ty) 
-								  (Pointer ?tPtr))
-			(object (is-a LLVMType) 
-					  (ID ?ty) 
-					  (Pointer ?dataType))
-			=>
-			(retract ?fct)
-			(bind ?name (sym-cat phi. (gensym*) . ?t))
-			(bind ?count (/ (length$ $?elements) 2))
-			(bind ?pointers (symbol-to-pointer-list ?elements))
-			(bind ?phiPointer 
-					(llvm-make-phi-node ?name ?dataType ?count ?bPtr ?pointers))
-			(bind ?phiObj (make-instance ?name of PhiNode 
-												  (Parent ?b)
-												  (TimeIndex 0)
-												  (Pointer ?phiPointer)
-												  (IncomingValueCount ?count)
-												  (Operands $?elements)))
-			(llvm-replace-all-uses ?tPtr ?phiPointer)
-			(llvm-unlink-and-delete-instruction ?tPtr)
-			(unmake-instance ?tObj)
-			(slot-insert$ ?agObj ScheduledInstructions 1 ?t)
-			(slot-insert$ ?bb Contents 1 ?name)
-			(assert (Update duration for block ?b)))
+(defrule wavefront-scheduling-phi-node::NamePhiNodeFromCreateStatement-OriginalBlock
+         (declare (salience -12))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action create-phi-node)
+                          (arguments target-instruction ?t 
+                                     block ?b => $?elements))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (Parent ?b)
+                           (ScheduledInstructions $?si))
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?b) 
+                        (contents ?first $?rest) 
+                        (UnlinkedInstructions 
+                          $?ui&:(not (member$ ?t $?ui))))
+         (object (is-a Instruction) 
+                 (id ?first) 
+                 (pointer ?bPtr))
+         ?tObj <- (object (is-a Instruction) 
+                          (id ?t) 
+                          (Type ?ty) 
+                          (pointer ?tPtr))
+         (object (is-a LLVMType) 
+                 (id ?ty) 
+                 (pointer ?dataType))
+         =>
+         (modify ?fct (action update-block-duration)
+                 (arguments ?b))
+         (bind ?name (sym-cat phi. (gensym*) . ?t))
+         (bind ?count (/ (length$ $?elements) 2))
+         (bind ?pointers (symbol-to-pointer-list ?elements))
+         (bind ?phiPointer 
+               (llvm-make-phi-node ?name ?dataType ?count ?bPtr ?pointers))
+         (bind ?phiObj (make-instance ?name of PhiNode 
+                                      (parent ?b)
+                                      (TimeIndex 0)
+                                      (pointer ?phiPointer)
+                                      (IncomingValueCount ?count)
+                                      (Operands $?elements)))
+         (llvm-replace-all-uses ?tPtr ?phiPointer)
+         (llvm-unlink-and-delete-instruction ?tPtr)
+         (unmake-instance ?tObj)
+         (modify-instance ?agObj (ScheduledInstructions $?si ?t))
+         (modify-instance ?bb (contents ?name ?first $?rest)))
 ;------------------------------------------------------------------------------
-(defrule ReindexBasicBlock 
-			(Stage WavefrontSchedule $?)
-			(Substage PhiNodeUpdate $?)
-			?fct <- (Update duration for block ?b)
-			(object (is-a BasicBlock) (ID ?b) (Contents $?c))
-			=>
-			;this is very much procedural but I frankly don't care
-			;anymore. 
-			(bind ?index 0)
-			(progn$ (?t ?c)
-					  (bind ?obj (instance-address (symbol-to-instance-name ?t)))
-					  (modify-instance ?obj (TimeIndex ?index))
-					  (bind ?index (+ ?index 1)))
-			(retract ?fct))
+(defrule wavefront-scheduling-phi-node-update::ReindexBasicBlock 
+         ?fct <- (message (to wavefront-scheduling)
+                          (action update-block-duration)
+                          (arguments ?b))
+         (object (is-a BasicBlock) 
+                 (id ?b) 
+                 (contents $?c))
+         =>
+         ;this is very much procedural but I frankly don't care
+         ;anymore. 
+         (progn$ (?t ?c)
+                 (bind ?obj (instance-address (symbol-to-instance-name ?t)))
+                 (modify-instance ?obj (TimeIndex (- ?t-index 1))))
+         (retract ?fct))
 ;------------------------------------------------------------------------------
