@@ -26,7 +26,6 @@
 (load* "Stages/Wavefront/WavefrontInitialization.clp")
 (load* "Stages/Wavefront/ValidBlockIdentification.clp")
 (load* "Stages/Wavefront/WavefrontScheduling.clp")
-(load* "Stages/Wavefront/LLVMScheduleConstruction.clp")
 (load* "Stages/Wavefront/WavefrontPropagation.clp")
 (load* "Stages/Wavefront/WavefrontAdvancement.clp")
 (load* "Stages/Wavefront/WavefrontDependencyUpdate.clp")
