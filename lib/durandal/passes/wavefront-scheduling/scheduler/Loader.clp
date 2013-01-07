@@ -23,6 +23,27 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-init
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import pipeline ?ALL)
+			  (import indirect ?ALL)
+			  (import rampancy ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defrule wavefront-scheduling-code::macro-expand
+         ?msg <- (message (from pipeline) 
+                          (to wavefront-scheduling-code)
+                          (action initial-fact))
+         ?p <- (object (is-a pass-description) (passes $?passes))
+         =>
+         (retract ?msg)
+         (modify-instance ?p (passes 
+                               wavefront-scheduling-init
+                               ;TODO: add more modules
+                               $?passes)))
+;------------------------------------------------------------------------------
 (load* "Stages/Wavefront/WavefrontInitialization.clp")
 (load* "Stages/Wavefront/ValidBlockIdentification.clp")
 (load* "Stages/Wavefront/WavefrontScheduling.clp")
