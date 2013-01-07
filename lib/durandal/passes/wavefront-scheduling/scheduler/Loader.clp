@@ -50,6 +50,231 @@
            (import rampancy ?ALL)
            (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-phi-identify
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-phi-node
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-phi-node-update
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-strip
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-acquire
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-inject
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-acquire
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-slice
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-analyze-init
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-pre-generate-analyze
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-generate-analyze
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-analyze
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-slice-analyze
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-merge-init
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-merge
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-merge-update
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-reopen-blocks
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-ponder
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-rename
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-dependency-analysis
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-advance-init
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-advance-identify
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-advance
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-advance-end
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-update
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-code::macro-expand
          ?msg <- (message (from pipeline) 
                           (to wavefront-scheduling-code)
@@ -60,7 +285,31 @@
          (modify-instance ?p (passes 
                                wavefront-scheduling-init
                                wavefront-scheduling-identify
+                               wavefront-scheduling-phi-identify
+                               wavefront-scheduling-phi-node 
+                               wavefront-scheduling-phi-node-update
                                wavefront-scheduling-pathing
+                               wavefront-scheduling-strip 
+                               wavefront-scheduling-inject 
+                               wavefront-scheduling-acquire 
+                               wavefront-scheduling-slice 
+                               wavefront-scheduling-analyze-init 
+                               wavefront-scheduling-pre-generate-Analyze
+                               wavefront-scheduling-generate-analyze
+                               wavefront-scheduling-analyze 
+                               wavefront-scheduling-slice-analyze
+                               wavefront-scheduling-merge-init 
+                               wavefront-scheduling-merge 
+                               wavefront-scheduling-merge-update 
+                               wavefront-scheduling-reopen-blocks
+                               wavefront-scheduling-ponder
+                               wavefront-scheduling-rename 
+                               wavefront-scheduling-dependency-analysis 
+                               wavefront-scheduling-advance-init
+                               wavefront-scheduling-advance-identify
+                               wavefront-scheduling-advance
+                               wavefront-scheduling-advance-end
+                               wavefront-scheduling-update
                                ;TODO: add more modules
                                $?passes)))
 ;------------------------------------------------------------------------------
