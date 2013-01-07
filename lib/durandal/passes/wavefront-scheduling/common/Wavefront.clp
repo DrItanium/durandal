@@ -31,5 +31,5 @@
   (multislot Closed (visibility public)))
 ;------------------------------------------------------------------------------
 (defmessage-handler types::Wavefront init after ()
-                    (bind ?self:Type Wavefront))
+                    (bind ?self:type Wavefront))
 ;------------------------------------------------------------------------------
