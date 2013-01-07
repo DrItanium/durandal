@@ -28,146 +28,177 @@
 ; relinquish control over instructions and move them up and out of the given
 ; block and into blocks on the wavefront.
 ;------------------------------------------------------------------------------
-(defrule MergePotentiallyValidBlocks
+(defrule wavefront-scheduling-strip::MergePotentiallyValidBlocks
          (declare (salience 2))
-         (Stage WavefrontSchedule $?)
-         (Substage Strip $?)
-         ?pv0 <- (PotentiallyValid blocks for ?e are $?t)
-         ?pv1 <- (PotentiallyValid blocks for ?e are $?q)
+         ?pv0 <- (message (to wavefront-scheduling)
+                          (action potentially-valid-blocks)
+                          (arguments ?e => $?t))
+         ?pv1 <- (message (to wavefront-scheduling)
+                          (action potentially-valid-blocks)
+                          (arguments ?e => $?q))
          (test (and (neq ?pv0 ?pv1) (subsetp ?t ?q)))
          =>
-         (retract ?pv0 ?pv1)
+         (retract ?pv1)
          ;make sure that we get matches again!
-         (assert (PotentiallyValid blocks for ?e are $?q)))
+         (modify ?pv0 (arguments ?e => ?q)))
 ;------------------------------------------------------------------------------
-(defrule MergeMemoryPotentiallyValidBlocks
-         (Stage WavefrontSchedule $?)
-         (Substage Strip $?)
-         ?pv0 <- (MemoryPotentiallyValid blocks for ?e are $?t)
-         ?pv1 <- (MemoryPotentiallyValid blocks for ?e are $?q)
+(defrule wavefront-scheduling-strip::MergeMemoryPotentiallyValidBlocks
+         ?pv0 <- (message (to wavefront-scheduling)
+                          (action memory-potentially-valid-blocks)
+                          (arguments ?e => $?t))
+         ?pv1 <- (message (to wavefront-scheduling)
+                          (action memory-potentially-valid-blocks)
+                          (arguments ?e => $?q))
          (test (and (neq ?pv0 ?pv1) (subsetp ?t ?q)))
          =>
-         (retract ?pv0 ?pv1)
+         (retract ?pv1)
          ;make sure that we get matches again!
-         (assert (MemoryPotentiallyValid blocks for ?e are $?q)))
+         (modify ?pv0 (arguments ?e => $?q)))
 ;------------------------------------------------------------------------------
-(defrule MergeCompletelyInvalid
-         (declare (salience 1))
-         (Stage WavefrontSchedule $?)
-         (Substage Strip $?)
-         ?pv0 <- (CompletelyInvalid blocks for ?e are $?t)
-         ?pv1 <- (CompletelyInvalid blocks for ?e are $?q)
-         (test (and (neq ?pv0 ?pv1) (subsetp ?t ?q)))
+(defrule wavefront-scheduling-strip::MergeCompletelyInvalid
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action completely-invalid-blocks)
+                         (arguments ?e => $?t))
+         ?f1 <- (message (to wavefront-scheduling)
+                         (action completely-invalid-blocks)
+                         (arguments ?e => $?q))
+         (test (and (neq ?f0 ?f1) (subsetp ?t ?q)))
          =>
-         (retract ?pv0 ?pv1)
-         (assert (CompletelyInvalid blocks for ?e are $?q)))
+         (retract ?f1)
+         (modify ?f0 (arguments ?e => $?q)))
 ;------------------------------------------------------------------------------
-(defrule RetractPotentiallyValidBlocksThatAreCompletelyEnclosed
-         (Stage WavefrontSchedule $?)
-         (Substage Strip $?)
-         (CompletelyInvalid blocks for ?e are $?t)
-         ?pv1 <- (PotentiallyValid blocks for ?e are $?q)
-         (test (subsetp ?q ?t))
+(defrule wavefront-scheduling-strip::RetractPotentiallyValidBlocksThatAreCompletelyEnclosed
+         (message (to wavefront-scheduling)
+                  (action completely-invalid-blocks)
+                  (arguments ?e => $?t))
+         ?f <- (message (to wavefront-scheduling)
+                        (action potentially-valid-blocks)
+                        (arguments ?e => $?q&:(subsetp ?q ?t)))
          =>
-         (retract ?pv1))
+         (retract ?f))
 ;------------------------------------------------------------------------------
-(defrule StripoutIndividualElementsFromPotentiallyValid
+(defrule wavefront-scheduling-strip::StripoutIndividualElementsFromPotentiallyValid
          (declare (salience -1))
-         (Stage WavefrontSchedule $?)
-         (Substage Strip $?)
-         ?f0 <- (PotentiallyValid blocks for ?e are $?before ?car $?rest)
-         (CompletelyInvalid blocks for ?e are $? ?car $?)
+         ?f <- (message (to wavefront-scheduling)
+                        (action potentially-valid-blocks)
+                        (arguments ?e => $?before ?car $?rest))
+         (message (to wavefront-scheduling)
+                  (action completely-invalid-blocks)
+                  (arguments ?e => $? ?car $?))
          =>
-         (retract ?f0)
-         (assert (PotentiallyValid blocks for ?e are $?before $?rest)))
+         (modify ?f (arguments ?e => $?before $?rest)))
 ;------------------------------------------------------------------------------
-(defrule RetractEmptyPotentiallyValid
+(defrule wavefront-scheduling-strip::RetractEmptyPotentiallyValid
          (declare (salience -100))
-         (Stage WavefrontSchedule $?)
-         (Substage Strip $?)
-         ?f0 <- (PotentiallyValid blocks for ? are)
+         ?f <- (message (to wavefront-scheduling)
+                        (action potentially-valid-blocks)
+                        (arguments ? => ))
          =>
-         (retract ?f0))
+         (retract ?f))
 ;------------------------------------------------------------------------------
-(defrule InjectPotentiallyValidBlocks-Complete
-         (Stage WavefrontSchedule $?)
-         (Substage Inject $?)
-         ?fct <- (PotentiallyValid blocks for ?e are $?blocks)
-         ?pa <- (object (is-a PathAggregate) (Parent ?e) 
+(defrule wavefront-scheduling-inject::InjectPotentiallyValidBlocks-Complete
+         ?fct <- (message (to wavefront-scheduling)
+                          (action potentially-valid-blocks)
+                          (arguments ?e => $?blocks))
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?e) 
                         (PotentiallyValid $?pv))
          =>
          (retract ?fct)
-         (bind ?pvs $?pv)
-         (bind ?newIndex (+ (length$ ?pv) 1))
-         (progn$ (?block ?blocks)
-                 (if (not (member$ ?block ?pvs)) then 
-                   (bind ?pvs (insert$ ?pvs ?newIndex ?block))
-                   (bind ?newIndex (+ ?newIndex 1))))
-         (modify-instance ?pa (PotentiallyValid ?pvs)))
+         (bind ?pvLen (length$ ?pv))
+         (if (= 0 ?pvLen) then
+           (modify-instance ?pa (PotentiallyValid $?blocks))
+           else 
+           (bind ?pvs $?pv)
+           (bind ?newIndex (+ ?pvLen 1))
+           (progn$ (?block ?blocks)
+                   (if (not (member$ ?block ?pvs)) then 
+                     (bind ?pvs (insert$ ?pvs ?newIndex ?block))
+                     (bind ?newIndex (+ ?newIndex 1))))
+           (modify-instance ?pa (PotentiallyValid ?pvs))))
 ;------------------------------------------------------------------------------
-(defrule InjectCompletelyInvalidBlocks-Complete
-         (Stage WavefrontSchedule $?)
-         (Substage Inject $?)
-         ?fct <- (CompletelyInvalid blocks for ?e are $?blocks)
-         ?pa <- (object (is-a PathAggregate) (Parent ?e) 
+(defrule wavefront-scheduling-inject::InjectCompletelyInvalidBlocks-Complete
+         ?fct <- (message (to wavefront-scheduling)
+                          (action completely-invalid-blocks)
+                          (arguments ?e => $?blocks))
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?e) 
                         (CompletelyInvalid $?ci))
          =>
          (retract ?fct)
-         (bind ?cis $?ci)
-         (bind ?newIndex (+ 1 (length$ ?ci)))
-         (progn$ (?block ?blocks)
-                 (if (not (member$ ?block ?cis)) then 
-                   (bind ?cis (insert$ ?cis ?newIndex ?block))
-                   (bind ?newIndex (+ 1 ?newIndex))))
-         (modify-instance ?pa (CompletelyInvalid ?cis)))
+         (bind ?ciLen (length$ ?ci))
+         (if (= 0 ?ciLen) then
+           (modify-instance ?pa (CompletelyInvalid $?blocks))
+           else
+           (bind ?cis $?ci)
+           (bind ?newIndex (+ 1 (length$ ?ci)))
+           (progn$ (?block ?blocks)
+                   (if (not (member$ ?block ?cis)) then 
+                     (bind ?cis (insert$ ?cis ?newIndex ?block))
+                     (bind ?newIndex (+ 1 ?newIndex))))
+           (modify-instance ?pa (CompletelyInvalid ?cis))))
 ;------------------------------------------------------------------------------
-(defrule InterleavedInjectCompletelyInvalid-AndPotentiallyInvalidBlocks
+(defrule wavefront-scheduling-inject::InterleavedInjectCompletelyInvalid-AndPotentiallyInvalidBlocks
          (declare (salience 1))
-         (Stage WavefrontSchedule $?)
-         (Substage Inject $?)
-         ?f0 <- (CompletelyInvalid blocks for ?e are $?b0)
-         ?f1 <- (PotentiallyValid blocks for ?e are $?b1)
-         ?pa <- (object (is-a PathAggregate) (Parent ?e)
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action completely-invalid-blocks)
+                         (arguments ?e => $?b0))
+         ?f1 <- (message (to wavefront-scheduling)
+                         (action potentially-valid-blocks)
+                         (arguments ?e => $?b1))
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?e)
                         (CompletelyInvalid $?ci)
                         (PotentiallyValid $?pv))
          =>
          (retract ?f0 ?f1)
+         (bind ?ciLen (length$ $?ci))
+         (bind ?pvLen (length$ $?pv))
          (bind ?cis $?ci)
          (bind ?pvs $?pv)
-         (bind ?i0 (+ 1 (length$ ?ci)))
-         (bind ?i1 (+ 1 (length$ ?pv)))
-         (progn$ (?b ?b0)
-                 (if (not (member$ ?b ?cis)) then
-                   (bind ?cis (insert$ ?cis ?i0 ?b))
-                   (bind ?i0 (+ ?i0 1))))
-         (progn$ (?b ?b1)
-                 (if (not (member$ ?b ?pvs)) then
-                   (bind ?pvs (insert$ ?pvs ?i1 ?b))
-                   (bind ?i1 (+ ?i1 1))))
+         (if (= 0 ?ciLen) then 
+           (bind ?cis $?b0)
+           else
+           (bind ?i0 (+ 1 ?ciLen))
+           (progn$ (?b ?b0)
+                   (if (not (member$ ?b ?cis)) then
+                     (bind ?cis (insert$ ?cis ?i0 ?b))
+                     (bind ?i0 (+ ?i0 1)))))
+         (if (= 0 ?pvLen) then
+           (bind ?pvs $?b1)
+           else
+           (bind ?i1 (+ 1 ?pvLen))
+           (progn$ (?b ?b1)
+                   (if (not (member$ ?b ?pvs)) then
+                     (bind ?pvs (insert$ ?pvs ?i1 ?b))
+                     (bind ?i1 (+ ?i1 1)))))
          (modify-instance ?pa (CompletelyInvalid ?cis) 
                           (PotentiallyValid ?pvs)))
 ;------------------------------------------------------------------------------
-(defrule InjectMemoryBarrierBlocks 
-         (Stage WavefrontSchedule $?)
-         (Substage Inject $?)
-         ;get the Mrs. Hitler birth certificate
-         ?fct <- (Element ?t has a MemoryBarrier for ?e)
-         ?pa <- (object (is-a PathAggregate) (Parent ?e))
+(defrule wavefront-scheduling-inject::InjectMemoryBarrierBlocks 
+         ?fct <- (message (to wavefront-scheduling)
+                          (action element-has-memory-barrier)
+                          (arguments ?t => ?e))
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?e)
+                        (MemoryBarriers $?mb))
          =>
          (retract ?fct)
-         (if (not (member$ ?t (send ?pa get-MemoryBarriers))) then
-           (slot-insert$ ?pa MemoryBarriers 1 ?t)))
+         (if (not (member$ ?t $?mb)) then
+           (modify-instance ?pa (MemoryBarriers $?mb ?t))))
 ;------------------------------------------------------------------------------
-(defrule InjectCallBarrierBlocks 
-         (Stage WavefrontSchedule $?)
-         (Substage Inject $?)
+(defrule wavefront-scheduling-inject::InjectCallBarrierBlocks 
          ;get the Mrs. Hitler birth certificate
-         ?fct <- (Element ?t has a CallBarrier for ?e)
-         ?pa <- (object (is-a PathAggregate) (Parent ?e))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action element-has-call-barrier)
+                          (argument ?t => ?e))
+         ?pa <- (object (is-a PathAggregate) 
+                        (parent ?e) 
+                        (CallBarriers $?cb))
          =>
          (retract ?fct)
-         (if (not (member$ ?t (send ?pa get-CallBarriers))) then
-           (slot-insert$ ?pa CallBarriers 1 ?t)))
+         (if (not (member$ ?t $?cb)) then
+           (modify-instance ?pa (CallBarriers $?cb ?t))))
 ;------------------------------------------------------------------------------
 ; now that we have a path aggregate we need to get the list of instruction
 ; CPV's that represent valid movable instructions for the given block on the
