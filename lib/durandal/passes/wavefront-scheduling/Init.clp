@@ -34,6 +34,15 @@
 			  (import rampancy ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-pre-init
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import pipeline ?ALL)
+			  (import indirect ?ALL)
+			  (import rampancy ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
 (defmodule wavefront-scheduling-code
 			  (import core ?ALL)
 			  (import llvm ?ALL)
@@ -56,6 +65,7 @@
 										dependency-analysis
 										wavefront-determinant
 										paths-conditional
+                    wavefront-scheduling-pre-init
 										wavefront-scheduling-code
 										$?passes)))
 ;------------------------------------------------------------------------------
