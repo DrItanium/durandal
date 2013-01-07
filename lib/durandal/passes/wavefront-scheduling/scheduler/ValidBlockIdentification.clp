@@ -23,143 +23,145 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defrule AssertIdentifySpansInitial
-			(declare (salience 100))
-			(Stage WavefrontSchedule $?)
-			(Substage Identify $?)
-			(object (is-a Hint) (Type Wavefront) (Parent ?r) (Contents $? ?e $?))
-			;select only BasicBlocks
-			(object (is-a BasicBlock) (ID ?e))
-			=>
-			(assert (Picked ?e for ?r)))
+;defmodule is wavefront-scheduling-identify
+(defrule wavefront-scheduling-identify::AssertIdentifySpansInitial
+         (declare (salience 5))
+         (object (is-a Wavefront) (parent ?r) (contents $? ?e $?))
+         ;select only BasicBlocks
+         (object (is-a BasicBlock) (ID ?e))
+         =>
+         (assert (Picked ?e for ?r)))
 ;------------------------------------------------------------------------------
-(defrule IdentifySpanSkips-SplitBlock
-			(declare (salience 50))
-			(Stage WavefrontSchedule $?)
-			(Substage Identify $?)
-			?fct <- (Picked ?e for ?r)
-			?bb <- (object (is-a BasicBlock) (ID ?e))
-			(test (send ?bb .IsSplitBlock))
-			=>
-			(retract ?fct)
-			(assert (Schedule ?e for ?r)))
+(defrule wavefront-scheduling-identify::IdentifySpanSkips-InvalidBlock
+         (declare (salience 4))
+         ?fct <- (Picked ?e for ?r)
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?e) 
+                        (Successors $?a&:(not (eq (length$ $?a) 1))))
+         =>
+         ;we don't need to assert anything since the block isn't going to get
+         ;scheduled
+         (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule IdentifySpans
-			(declare (salience 50))
-			(Stage WavefrontSchedule $?)
-			(Substage Identify $?)
-			?fct <- (Picked ?e for ?r)
-			?bb <- (object (is-a BasicBlock) (ID ?e) (Paths $?paths))
-			(test (not (send ?bb .IsSplitBlock)))
-			=>
-			(retract ?fct)
-			(modify-instance ?bb (IsOpen TRUE))
-			(assert (Build paths for ?e from $?paths)))
+(defrule wavefront-scheduling-identify::IdentifySpans
+         (declare (salience 4))
+         ?fct <- (Picked ?block for ?)
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?block) 
+                        (Successors ?) ; we only have one successor
+                        (Paths $?paths))
+         =>
+         (retract ?fct)
+         (modify-instance ?bb (IsOpen TRUE))
+         ; originally I had a rule here that took a fact asserted in the form
+         ; ?e => $?paths which would be inverted individually by separate rule
+         ; fires. While this is more like an expert system, it is extremely
+         ; inefficient because the agenda has to be updated after each rule
+         ; fire. Using this technique allows me to minimize the number of rule
+         ; fires to one yet do the same amount of work.
+         (progn$ (?path $?paths)
+                 (assert (message (to wavefront-scheduling)
+                                  (action check-path)
+                                  (arguments ?path for block ?block)))))
 ;------------------------------------------------------------------------------
-(defrule BuildUpPaths
-			(declare (salience 25))
-			(Stage WavefrontSchedule $?)
-			(Substage Identify $?)
-			?fct <- (Build paths for ?e from ?path $?paths)
-			=>
-			(retract ?fct)
-			(assert (Build paths for ?e from $?paths)
-					  (Check path ?path for block ?e)))
+; defmodule is wavefront-scheduling-pathing
+(defrule wavefront-scheduling-pathing::GetFactsBeforePathing
+         (declare (salience 10000))
+         (message (action Debug))
+         (message (action Facts))
+         =>
+         (printout t "BEFORE: Wavefront Pathing " crlf crlf)
+         (facts)
+         (printout t crlf crlf))
 ;------------------------------------------------------------------------------
-(defrule RetractPathBuildUp
-			(Stage WavefrontSchedule $?)
-			(Substage Identify $?)
-			?fct <- (Build paths for ? from)
-			=>
-			(retract ?fct))
+(defrule wavefront-scheduling-pathing::DispatchDivideBlock
+         (declare (salience 200))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action check-path)
+                          (arguments ?path for block ?block))
+         (object (is-a Path) (id ?path) (contents $? ?block $?rest))
+         ;we don't need to explicitly match for ?block
+         =>
+         (retract ?fct)
+         (assert (message (to wavefront-scheduling-pathing)
+                          (action scan-path)
+                          (arguments ?p ?e => $?rest))))
 ;------------------------------------------------------------------------------
-(defrule GetFactsBeforePathing
-			(declare (salience 10000))
-			(Debug)
-			(Facts)
-			(Stage WavefrontSchedule $?)
-			(Substage Pathing $?)
-			=>
-			(printout t "BEFORE: Wavefront Pathing " crlf crlf)
-			(facts)
-			(printout t crlf crlf))
+(defrule wavefront-scheduling-pathing::AnalyzePathElements
+         ?fct <- (message (to wavefront-scheduling-pathing)
+                          (action scan-path)
+                          (arguments ?p ?e => ?curr $?rest))
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?curr) 
+                        (Successors $?succ)
+                        (HasCallBarrier ?hcb)
+                        (HasMemoryBarrier ?hmb))
+         =>
+         (bind ?sLen (length$ $?succ))
+         (if (= 0 ?sLen) then
+           (assert (message (to wavefront-scheduling)
+                            (action completely-invalid-blocks)
+                            (arguments ?e => ?curr)))
+           (retract ?fct)
+           else
+           (if (or (> ?sLen 1) ?hcb) then
+             (assert (message (to wavefront-scheduling)
+                              (action completely-invalid-blocks)
+                              (arguments ?e => $?rest))
+                     (message (to wavefront-scheduling)
+                              (action potentially-valid-blocks)
+                              (arguments ?e => ?curr)))
+             (retract ?fct)
+             else 
+             (if ?hmb then
+               (assert (message (to wavefront-scheduling)
+                                (action element-has-memory-barrier)
+                                (arguments ?curr => ?e))))
+             (modify ?fct (arguments ?p ?e => $?rest))
+             (assert (message (to wavefront-scheduling)
+                              (action potentially-valid-blocks)
+                              (arguments ?e => ?curr))))))
 ;------------------------------------------------------------------------------
-(defrule DispatchDivideBlock
-			(declare (salience 200))
-			(Stage WavefrontSchedule $?)
-			(Substage Pathing $?)
-			?fct <- (Check path ?p for block ?e)
-			(object (is-a Path) (ID ?p) (Contents $? ?e $?rest))
-			(object (is-a BasicBlock) (ID ?e))
-			=>
-			(retract ?fct)
-			(assert (Scan path ?p for block ?e with contents $?rest)))
+(defrule wavefront-scheduling-pathing::AnalyzePathElements-Region
+         ?fct <- (message (to wavefront-scheduling-pathing)
+                          (action scan-path)
+                          (arguments ?p ?e => ?curr $?rest))
+         ?bb <- (object (is-a Region)
+                        (id ?curr)
+                        (HasCallBarier ?hcb)
+                        (HasMemoryBarrier ?hmb))
+         =>
+         (if ?hcb then
+           (assert (message (to wavefront-scheduling)
+                            (action completely-invalid-blocks)
+                            (arguments ?e => $?rest))
+                   (message (to wavefront-scheduling)
+                            (action potentially-valid-blocks)
+                            (arguments ?e => ?curr)))
+           (retract ?fct)
+           else
+           (if ?hmb then
+             (assert (message (to wavefront-scheduling)
+                              (action element-has-memory-barrier)
+                              (arguments ?curr => ?e))))
+           (modify ?fct (arguments ?p ?e => $?rest))
+           (assert (message (to wavefront-scheduling)
+                            (action potentially-valid-blocks)
+                            (arguments ?e => ?curr)))))
 ;------------------------------------------------------------------------------
-(defrule AnalyzePathElements
-			(Stage WavefrontSchedule $?)
-			(Substage Pathing $?)
-			?fct <- (Scan path ?p for block ?e with contents ?curr $?rest)
-			?bb <- (object (is-a BasicBlock) (ID ?curr))
-			=>
-			(retract ?fct)
-			(if (= 0 (length$ (send ?bb get-Successors))) then
-			  (assert (CompletelyInvalid blocks for ?e are ?curr))
-			  (return))
-			(if (send ?bb .IsSplitBlock) then
-			  (assert (CompletelyInvalid blocks for ?e are $?rest)
-						 (PotentiallyValid blocks for ?e are ?curr))
-			  (return))
-			(if (send ?bb get-HasCallBarrier) then
-			  (assert (CompletelyInvalid blocks for ?e are $?rest)
-						 (PotentiallyValid blocks for ?e are ?curr))
-			  (return))
-			(if (send ?bb get-HasMemoryBarrier) then
-			  (assert (Element ?curr has a MemoryBarrier for ?e)))
-			(assert (PotentiallyValid blocks for ?e are ?curr)
-					  (Scan path ?p for block ?e with contents $?rest)))
+(defrule wavefront-scheduling-pathing::RetractCompletedFact
+         ?fct <- (message (to wavefront-scheduling)
+                          (action scan-path)
+                          (arguments ? ? =>))
+         =>
+         (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule AnalyzePathElements-Region
-			(Stage WavefrontSchedule $?)
-			(Substage Pathing $?)
-			?fct <- (Scan path ?p for block ?e with contents ?curr $?rest)
-			?bb <- (object (is-a Region) (ID ?curr))
-			=>
-			(retract ?fct)
-			(if (send ?bb get-HasCallBarrier) then
-			  (assert (CompletelyInvalid blocks for ?e are $?rest)
-						 (PotentiallyValid blocks for ?e are ?curr))
-			  (return))
-			(if (send ?bb get-HasMemoryBarrier) then
-			  (assert (Element ?curr has a MemoryBarrier for ?e)))
-			(assert (PotentiallyValid blocks for ?e are ?curr)
-					  (Scan path ?p for block ?e with contents $?rest)))
-;------------------------------------------------------------------------------
-(defrule RetractCompletedFact
-			(Stage WavefrontSchedule $?)
-			(Substage Strip $?)
-			?fct <- (Scan path ? for block ? with contents)
-			=>
-			(retract ?fct))
-;------------------------------------------------------------------------------
-(defrule PrintoutCompletedFacts 
-			(declare (salience -999))
-			(Debug)
-			(Facts)
-			(Stage WavefrontSchedule $?)
-			(Substage Pathing $?)
-			=>
-			(printout t "AFTER: Wavefront Pathing" crlf crlf)
-			(facts)
-			(printout t crlf crlf))
-;------------------------------------------------------------------------------
-(defrule FAIL-PATHS-EXIST
-			(declare (salience -2500))
-			(Stage WavefrontSchedule $?)
-			(Substage Strip $?)
-			(Check path ?p for block ?e)
-			=>
-			(printout t "ERROR: DIDN'T RETRACT COMPLETED FACT: (Check path " ?p 
-						 " for block " ?e ")" crlf)
-			(facts)
-			(exit))
+(defrule wavefront-scheduling-pathing::PrintoutCompletedFacts 
+         (declare (salience -999))
+         (message (action Debug))
+         (message (action Facts))
+         =>
+         (printout t "AFTER: Wavefront Pathing" crlf crlf)
+         (facts)
+         (printout t crlf crlf))
 ;------------------------------------------------------------------------------
