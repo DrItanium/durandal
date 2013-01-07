@@ -30,21 +30,21 @@
          ?wave <- (object (is-a Wavefront) 
                           (id ?z) 
                           (parent ?r) 
-                          (contents $?c) 
+                          (values $?c) 
                           (Closed $?cl))
          (test (or (> (length$ ?c) 0) 
                    (> (length$ ?cl) 0)))
          =>
          (slot-insert$ ?wave DeleteNodes 1 ?c ?cl))
 ;------------------------------------------------------------------------------
-(defrule wavefront-schedule-advance-identify::MarkShouldStayOnWavefront
+(defrule wavefront-scheduling-advance-identify::MarkShouldStayOnWavefront
          (declare (salience 343))
          ?wave <- (object (is-a Wavefront) 
                           (id ?q) 
                           (parent ?r) 
                           (DeleteNodes $?a ?b $?c)
                           (Closed $?clos)
-                          (contents $?contents))
+                          (values $?contents))
 
          ?bb <- (object (is-a Diplomat) 
                         (id ?b) 
@@ -65,7 +65,7 @@
              else
              (modify-instance ?wave (DeleteNodes $?a $?c)))))
 ;------------------------------------------------------------------------------
-(defrule wavefront-schedule-advance::DeleteElementFromWavefront
+(defrule wavefront-scheduling-advance::DeleteElementFromWavefront
          (declare (salience 180))
          ?wave <- (object (is-a Wavefront) 
                           (id ?id) 
@@ -92,7 +92,7 @@
                           (arguments ?id => ?next $?rest))
          ?wave <- (object (is-a Wavefront) 
                           (id ?id) 
-                          (contents $?contents))
+                          (values $?contents))
          =>
          (modify ?fct (arguments ?id => $?rest))
          (if (not (member$ ?next $?contents)) then
@@ -114,7 +114,7 @@
          =>
          (retract ?fct)
          (bind ?instances (find-all-instances ((?wave Wavefront)) 
-                                              (> (length$ ?wave:contents) 0)))
+                                              (> (length$ ?wave:values) 0)))
          (if (> (length$ ?instances) 0) then
            (modify-instance ?obj 
                             (passes wavefront-scheduling-init
