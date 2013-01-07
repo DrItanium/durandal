@@ -1,0 +1,13 @@
+Since the wavefront scheduler is some complex code, it is a smart idea to
+discuss the layout of it first. 
+
+The first thing that has to happen is that we need to define a shorthand word
+for this code. This will allow me to compartmentalize the code so that any
+changes I make do not require changes to Init.clp. Because of this, I am
+defining wavefront-scheduling-proper to be a module which adds the target
+stages into the pass-description. 
+
+The target stages that wavefront scheduling consists of are defined in
+WavefrontInitialization.clp. The prefix of these modules will be
+wavefront-scheduling- instead of wavefront-scheduling-proper-. I believe that
+the latter will not only be overly verbose but also a pain in the ass to edit.
