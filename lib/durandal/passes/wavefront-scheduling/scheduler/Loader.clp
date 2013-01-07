@@ -275,6 +275,15 @@
            (import rampancy ?ALL)
            (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-post-ponder
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-code::macro-expand
          ?msg <- (message (from pipeline) 
                           (to wavefront-scheduling-code)
@@ -303,6 +312,7 @@
                                wavefront-scheduling-merge-update 
                                wavefront-scheduling-reopen-blocks
                                wavefront-scheduling-ponder
+                               wavefront-scheduling-post-ponder
                                wavefront-scheduling-rename 
                                wavefront-scheduling-dependency-analysis 
                                wavefront-scheduling-advance-init
