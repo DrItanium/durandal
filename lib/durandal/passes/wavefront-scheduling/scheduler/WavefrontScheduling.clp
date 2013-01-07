@@ -433,51 +433,57 @@
 ; I guess the biggest question would be why? And my answer would be why not?
 ; These terms just popped into my head.
 ;------------------------------------------------------------------------------
-(defrule SetifyInstructionList
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
-         ?pa <- (object (is-a PathAggregate) (InstructionList $?a ?b $?c ?b $?d))
+(defrule wavefront-scheduling-slice::SetifyInstructionList
+         ?pa <- (object (is-a PathAggregate) 
+                        (InstructionList $?a ?b $?c ?b $?d))
          =>
-         (modify-instance ?pa (InstructionList $?a ?b $?c $?d)))
+         ;we found a single duplicate, let's setify the whole InstructionList
+         ;now to make sure.
+         (bind ?ils (create$ ?b))
+         (progn$ (?i (create$ ?a ?c ?d))
+                 (if (not (member$ ?i ?ils)) then
+                   (bind ?ils (create$ ?ils ?i))))
+         (modify-instance ?pa (InstructionList ?ils)))
 ;------------------------------------------------------------------------------
-(defrule GenerateInitialSliceFactsForElementsOnTheWavefront 
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
-         (object (is-a Wavefront) (Parent ?r) (Contents $? ?e $?))
-         (object (is-a BasicBlock) (ID ?e) (IsOpen TRUE))
-         (object (is-a PathAggregate) (Parent ?e) 
-                 (CompensationPathVectors $?cpv))
-         (test (> (length$ ?cpv) 0))
+(defrule wavefront-scheduling-slice::GenerateInitialSliceFactsForElementsOnTheWavefront 
+         (object (is-a Wavefront) 
+                 (parent ?r) 
+                 (contents $? ?e $?))
+         (object (is-a BasicBlock) 
+                 (id ?e) 
+                 (IsOpen TRUE))
+         (object (is-a PathAggregate) 
+                 (parent ?e) 
+                 (CompensationPathVectors $?cpv&:(> (length$ ?cpv) 0)))
          =>
          (assert (Generate slices for block ?e in ?r using $?cpv)))
 ;------------------------------------------------------------------------------
-(defrule GenerateFactForSlicesFromCPV
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
+(defrule wavefront-scheduling-slice::GenerateFactForSlicesFromCPV
          ?fct <- (Generate slices for block ?e in ?r using ?cpv $?cpvs)
-         (object (is-a CompensationPathVector) (ID ?cpv) (Parent ?i)
+         (object (is-a CompensationPathVector) 
+                 (id ?cpv) 
+                 (parent ?i)
                  (Paths $?paths))
-         (object (is-a Instruction) (ID ?i) (Parent ?b))
+         (object (is-a Instruction) 
+                 (id ?i) 
+                 (parent ?b))
          =>
          (retract ?fct)
          (assert (Generate slices for block ?e in ?r using $?cpvs)
                  (Generate slices for block ?e in ?r with cpv ?cpv with stop 
                            block ?b using paths $?paths)))
 ;------------------------------------------------------------------------------
-(defrule RetractEmptySlicesCreationFact
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
+(defrule wavefront-scheduling-slice::RetractEmptySlicesCreationFact
          ?fct <- (Generate slices for block ? in ? using)
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule QueryCanCreateSliceForPath
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
-         ?fct <- (Generate slices for block ?e in ?r with cpv ?cpv with stop 
-                           block ?b using paths ?path $?paths)
-         (object (is-a Path) (ID ?path) (Contents $? ?e $?))
-         ;(test (member$ ?e ?z))
+(defrule wavefront-scheduling-slice::QueryCanCreateSliceForPath
+         ?fct <- (Generate slices for block ?e in ?r with cpv ?cpv 
+                           with stop block ?b using paths ?path $?paths)
+         (object (is-a Path) 
+                 (id ?path) 
+                 (contents $? ?e $?))
          =>
          (retract ?fct)
          (assert (Generate slice for block ?e in ?r with cpv ?cpv with stop 
@@ -485,44 +491,49 @@
                  (Generate slices for block ?e in ?r with cpv ?cpv with stop 
                            block ?b using paths $?paths)))
 ;------------------------------------------------------------------------------
-(defrule QueryCantCreateSliceForPath
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
+(defrule wavefront-scheduling-slice::QueryCantCreateSliceForPath
          ?fct <- (Generate slices for block ?e in ?r with cpv ?cpv with stop 
                            block ?b using paths ?path $?paths)
-         (object (is-a Path) (ID ?path) (Contents $?z))
-         (test (not (member$ ?e ?z)))
+         (object (is-a Path) 
+                 (id ?path) 
+                 (contents $?z&:(not (member$ ?e ?z))))
          =>
          (retract ?fct)
          (assert (Generate slices for block ?e in ?r with cpv ?cpv with stop 
                            block ?b using paths $?paths)))
 ;------------------------------------------------------------------------------
-(defrule TryConstructNewSlice
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
+(defrule wavefront-scheduling-slice::TryConstructNewSlice
          ?fct <- (Generate slice for block ?e in ?r with cpv ?cpv with stop 
                            block ?b using path ?path)
-         (not (exists (object (is-a Slice) (Parent ?b) (TargetPath ?path) 
+         (not (exists (object (is-a Slice) 
+                              (parent ?b) 
+                              (TargetPath ?path) 
                               (TargetBlock ?e))))
-         (object (is-a Path) (ID ?path) (Contents $? ?e $?slice ?b $?))
+         (object (is-a Path) 
+                 (id ?path) 
+                 ; we want the elements between the last block and the block on
+                 ; the wavefront. With multifield pattern matching, this is
+                 ; really easy
+                 (contents $? ?e $?slice ?b $?))
          =>
          (retract ?fct)
-         (make-instance (gensym*) of Slice (Parent ?b) (TargetPath ?path)
-                        (TargetBlock ?e) (Contents $?slice)))
+         (make-instance of Slice 
+                        (parent ?b) 
+                        (TargetPath ?path)
+                        (TargetBlock ?e) 
+                        (contents $?slice)))
 ;------------------------------------------------------------------------------
-(defrule SliceAlreadyExists
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
+(defrule wavefront-scheduling-slice::SliceAlreadyExists
          ?fct <- (Generate slice for block ?e in ?r with cpv ?cpv with stop 
                            block ?b using path ?path)
-         (exists (object (is-a Slice) (Parent ?b) (TargetPath ?path) 
+         (exists (object (is-a Slice) 
+                         (parent ?b) 
+                         (TargetPath ?path) 
                          (TargetBlock ?e)))
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule RemoveSliceAnalysisFact
-         (Stage WavefrontSchedule $?)
-         (Substage Slice $?)
+(defrule wavefront-scheduling-slice::RemoveSliceAnalysisFact
          ?fct <- (Generate slices for block ? in ? with cpv ? with stop block ? 
                            using paths)
          =>
