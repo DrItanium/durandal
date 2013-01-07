@@ -1,3 +1,4 @@
+;------------------------------------------------------------------------------
 ;Copyright (c) 2012, Joshua Scoggins 
 ;All rights reserved.
 ;
@@ -1073,17 +1074,16 @@
          ?obj <- (object (is-a pass-description) (passes $?passes))
          =>
          (retract ?f)
-         (modify-instance (passes 
-                            wavefront-scheduling-pre-generate-analyze
-                            wavefront-scheduling-generate-analyze
-                            wavefront-scheduling-analyze 
-                            wavefront-scheduling-slice-analyze
-                            wavefront-scheduling-merge-init 
-                            wavefront-scheduling-merge 
-                            wavefront-scheduling-merge-update 
-                            wavefront-scheduling-reopen-blocks
-                            wavefront-scheduling-ponder
-                            $?passes)))
+         (modify-instance (passes wavefront-scheduling-pre-generate-analyze
+                                  wavefront-scheduling-generate-analyze
+                                  wavefront-scheduling-analyze 
+                                  wavefront-scheduling-slice-analyze
+                                  wavefront-scheduling-merge-init 
+                                  wavefront-scheduling-merge 
+                                  wavefront-scheduling-merge-update 
+                                  wavefront-scheduling-reopen-blocks
+                                  wavefront-scheduling-ponder
+                                  $?passes)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-post-ponder::FinishSchedulingIntoBlock
          ?fct <- (message (from pipeline)
