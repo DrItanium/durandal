@@ -70,7 +70,7 @@
          ?wave <- (object (is-a Wavefront) 
                           (id ?id) 
                           (parent ?r) 
-                          (DeleteNodes ?a $?))
+                          (DeleteNodes ?a $?rest))
          (object (is-a Diplomat) 
                  (id ?a) 
                  (NextPathElements $?npe))
@@ -79,29 +79,29 @@
          (object-pattern-match-delay
            (bind ?ind (member$ ?a (send ?wave get-Contents)))
            (bind ?ind2 (member$ ?a (send ?wave get-Closed)))
-           (slot-delete$ ?wave DeleteNodes 1 1)
+           (modify-instance ?wave (DeleteNodes $?rest))
            (if ?ind then (slot-delete$ ?wave Contents ?ind ?ind))
            (if ?ind2 then (slot-delete$ ?wave Closed ?ind2 ?ind2))
-           (assert (Add into ?id blocks $?npe))))
+           (assert (message (to wavefront-scheduling)
+                            (action add-blocks-into)
+                            (arguments ?id => $?npe)))))
 ;------------------------------------------------------------------------------
-(defrule PutSuccessorsOntoWavefront-Match
-         (declare (salience 100))
-         (Stage WavefrontSchedule $?)
-         (Substage AdvanceEnd $?)
-         ?fct <- (Add into ?id blocks ?next $?rest)
-         ?wave <- (object (is-a Wavefront) (ID ?id))
+(defrule wavefront-scheduling-advance-end::PutSuccessorsOntoWavefront-Match
+         ?fct <- (message (to wavefront-scheduling)
+                          (action add-blocks-into)
+                          (arguments ?id => ?next $?rest))
+         ?wave <- (object (is-a Wavefront) 
+                          (id ?id) 
+                          (contents $?contents))
          =>
-         (retract ?fct)
-         ;I know that this is procedural but I really want to get this done
-         (assert (Add into ?id blocks $?rest))
-         (if (not (member$ ?next (send ?wave get-Contents))) then
-           (slot-insert$ ?wave Contents 1 ?next)))
+         (modify ?fct (arguments ?id => $?rest))
+         (if (not (member$ ?next $?contents)) then
+           (modify-instance ?wave (contents $?contents ?next))))
 ;------------------------------------------------------------------------------
-(defrule PutSuccessorsOntoWavefront-NoMoreElements
-         (declare (salience 100))
-         (Stage WavefrontSchedule $?)
-         (Substage AdvanceEnd $?)
-         ?fct <- (Add into ? blocks)
+(defrule wavefront-scheduling-advance-end::PutSuccessorsOntoWavefront-NoMoreElements
+         ?fct <- (message (to wavefront-scheduling)
+                          (action add-blocks-into)
+                          (arguments ?id =>))
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
