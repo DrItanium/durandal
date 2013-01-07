@@ -26,196 +26,218 @@
 ; Now we need to rename operands as need be within the blocks that these
 ; instructions have been scheduled into
 ;------------------------------------------------------------------------------
-(defrule AssertReplacementActions
-			"Iterates through the replacement actions multifield and asserts facts 
-			related to the replacement of given values with another value"
-			(declare (salience 100))
-			(Stage WavefrontSchedule $?)
-			(Substage Rename $?)
-			(object (is-a PathAggregate) (Parent ?e) 
-					  (ReplacementActions $? ?orig ?new ! $?))
-			=>
-			; I have turned you into a cheese sandwich, what do you say to that?
-			(assert (Replace uses of ?orig with ?new for block ?e)))
+(defrule wavefront-scheduling-rename::AssertReplacementActions
+         "Iterates through the replacement actions multifield and asserts facts 
+         related to the replacement of given values with another value"
+         (declare (salience 100))
+         (object (is-a PathAggregate) 
+                 (parent ?e) 
+                 (ReplacementActions $? ?orig ?new ! $?))
+         =>
+         ; I have turned you into a cheese sandwich, what do you say to that?
+         (assert (message (to wavefront-scheduling)
+                          (action replace-uses)
+                          (arguments of ?orig 
+                                     with ?new 
+                                     block ?e))))
 ;------------------------------------------------------------------------------
-(defrule ReplaceUses
-			(declare (salience 20))
-			(Stage WavefrontSchedule $?)
-			(Substage Rename $?)
-			?fct <- (Replace uses of ?orig with ?new for block ?e)
-			(object (is-a Instruction) (ID ?orig) (Pointer ?oPtr))
-			(object (is-a Instruction) (ID ?new) (Pointer ?nPtr))
-			(object (is-a BasicBlock) (ID ?e) (Contents $? ?new $?rest))
-			=>
-			(retract ?fct)
-			(bind ?ptrList (create$))
-			(bind ?symList (create$))
-      (bind ?i0 1)
-			(progn$ (?var $?rest)
-					  (bind ?obj (symbol-to-instance-name ?var))
-            (if (member$ ?orig (send ?obj get-Operands)) then
-             (bind ?ptrList (insert$ ?ptrList ?i0 (send ?obj get-Pointer)))
-             (bind ?symList (insert$ ?symList ?i0 ?var))
-            (bind ?i0 (+ ?i0 1))))
-      (assert ({ clips ! ?orig => ?new for ?symList })
-              ({ llvm ! ?oPtr => ?nPtr for ?ptrList })))
+(defrule wavefront-scheduling-rename::ReplaceUses
+         (declare (salience 20))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-uses)
+                          (arguments of ?orig
+                                     with ?new
+                                     block ?e))
+         (object (is-a Instruction) 
+                 (id ?orig) 
+                 (pointer ?oPtr))
+         (object (is-a Instruction) 
+                 (id ?new) 
+                 (pointer ?nPtr))
+         (object (is-a BasicBlock) 
+                 (id ?e) 
+                 (Contents $? ?new $?rest))
+         =>
+         (bind ?ptrList (create$))
+         (bind ?symList (create$))
+         (bind ?i0 1)
+         (progn$ (?var $?rest)
+                 (bind ?obj (instance-name (symbol-to-instance-name ?var)))
+                 (bind ?oOps (send ?obj get-Operands))
+                 (if (member$ ?orig ?oOps) then
+                   (bind ?ptrTmp (send ?obj get-Pointer))
+                   (bind ?ptrList (insert$ ?ptrList ?i0 ?ptrTmp))
+                   (bind ?symList (insert$ ?symList ?i0 ?var))
+                   (bind ?i0 (+ ?i0 1))))
+         ;reuse ?fct's memory
+         (modify ?fct (action replace-uses-clips)
+                 (arguments ?orig => ?new for ?symList))
+         (assert (message (to wavefront-scheduling)
+                          (action replace-uses-llvm)
+                          (arguments ?oPtr => ?nPtr for ?ptrList))))
 ;------------------------------------------------------------------------------
-(defrule ReplaceUsesInLLVM
-			(declare (salience -1))
-			(Stage WavefrontSchedule $?)
-			(Substage Rename $?)
-      ?fct <- ({ llvm ! ?from => ?to for $?p2 })
-			=>
-			(if (llvm-replace-uses ?from ?to ?p2) then 
-			  (retract ?fct) 
-			  else
-			  (printout t
-							"Some kind of error occured when trying to replace uses. " 
-							crlf "Make sure that you've done arguments correctly. " 
-							crlf "The failing rule is ReplaceUsesInLLVM." crlf
-							"?from = " ?from crlf
-							"?to = " ?to crlf
-							"?p2 = " ?p2 crlf
-							"Now I'm exiting" crlf)
-			  (exit)))
+(defrule wavefront-scheduling-rename::ReplaceUsesInLLVM
+         (declare (salience -1))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-uses-llvm)
+                          (arguments ?from => ?to for $?p2))
+         =>
+         (if (llvm-replace-uses ?from ?to ?p2) then 
+           (retract ?fct) 
+           else
+           (printout t
+                     "Some kind of error occured when trying to replace uses. " 
+                     crlf "Make sure that you've done arguments correctly. " 
+                     crlf "The failing rule is ReplaceUsesInLLVM." crlf
+                     "?from = " ?from crlf
+                     "?to = " ?to crlf
+                     "?p2 = " ?p2 crlf
+                     "Now I'm halting execution" crlf)
+           (halt)))
 ;------------------------------------------------------------------------------
-(defrule ReplaceUsesInCLIPS
-			(declare (salience -1))
-			(Stage WavefrontSchedule $?)
-			(Substage Rename $?)
-      ?fct <- ({ clips ! ?from => ?to for ?symbol $?rest })
-			?inst <- (object (is-a Instruction) (ID ?symbol) 
-								  (Operands $?operands) (LocalDependencies $?locDep)
-								  (NonLocalDependencies $?nLocDep))
-			=>
-			(modify-instance ?inst (Operands) (LocalDependencies) 
-			 (NonLocalDependencies))
-			(retract ?fct)
-      (assert ({ clips ! ?from => ?to for $?rest })
-              ({ clips ! ?from => ?to replacement ?symbol 
-               operands $?operands })
-				  ({ env: clips translation: ?from => ?to action: replacement
-					  in: ?symbol type: local-dependencies
-					  contents: $?locDep })
-				  ({ env: clips translation: ?from => ?to action: replacement
-						in: ?symbol type: non-local-dependencies
-						contents: $?nLocDep })))
+(defrule wavefront-scheduling-rename::ReplaceUsesInCLIPS
+         (declare (salience -1))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-uses-clips)
+                          (arguments ?from => ?to for ?symbol $?rest))
+         ?inst <- (object (is-a Instruction) 
+                          (id ?symbol) 
+                          (Operands $?operands) 
+                          (LocalDependencies $?locDep)
+                          (NonLocalDependencies $?nLocDep))
+         =>
+         (modify-instance ?inst (Operands) 
+                          (LocalDependencies) 
+                          (NonLocalDependencies))
+         (modify ?fct (arguments ?from => ?to for $?rest))
+         (assert (message (to wavefront-scheduling)
+                          (action replace-operands)
+                          (arguments ?from => ?to
+                                     replacement ?symbol
+                                     operands $?operands))
+                 (message (to wavefront-scheduling)
+                          (action replace-local-dependencies)
+                          (arguments ?from => ?to 
+                                     in ?symbol
+                                     contents $?locDep))
+                 (message (to wavefront-scheduling)
+                          (action replace-non-local-dependencies)
+                          (arguments ?from => ?to 
+                                     in ?symbol
+                                     contents $?nLocDep))))
 ;------------------------------------------------------------------------------
-(defrule ReplaceUsesInCLIPS-End
-			(declare (salience -1))
-			(Stage WavefrontSchedule $?)
-			(Substage Rename $?)
-      ?fct <- ({ clips ! ?from => ?to for })
-			=>
-			(retract ?fct))
+(defrule wavefront-scheduling-rename::ReplaceUsesInCLIPS-End
+         (declare (salience -1))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-uses-clips)
+                          (arguments ? => ? for))
+         =>
+         (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule ReplaceIndividualLocalDependencyEntries-NoMatch
- (declare (salience -2))
-  (Stage WavefrontSchedule $?)
-  (Substage Rename $?)
-  ?fct <- ({
-	  	env: clips
-		translation: ?from => ?to 
-		action: replacement
-		in: ?symbol 
-		type: local-dependencies
-		contents: ?curr&~?from $?rest
-	  })
-  ?inst <- (object (is-a Instruction) (ID ?symbol))
-  =>
-  (object-pattern-match-delay
-  (slot-insert$ ?inst LocalDependencies 1 ?curr)
-  (retract ?fct)
-  (assert ({ env: clips translation: ?from => ?to action: replacement in:
-			  ?symbol type: local-dependencies contents: $?rest }))))
+(defrule wavefront-scheduling-rename::ReplaceIndividualLocalDependencyEntries-NoMatch
+         (declare (salience -2))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-local-dependencies)
+                          (arguments ?from => ?to
+                                     in ?symbol
+                                     contents ?curr&~?from $?rest))
+         ?inst <- (object (is-a Instruction) 
+                          (id ?symbol)
+                          (LocalDependencies $?locDep))
+         =>
+         (modify-instance ?inst (LocalDependencies $?locDep ?curr))
+         (modify ?fct (arguments ?from => ?to 
+                                 in ?symbol 
+                                 contents $?rest)))
 ;------------------------------------------------------------------------------
-(defrule ReplaceIndividualLocalDependencyEntries-Match
- (declare (salience -2))
-  (Stage WavefrontSchedule $?)
-  (Substage Rename $?)
-  ?fct <- ({
-	  	env: clips
-		translation: ?from => ?to 
-		action: replacement
-		in: ?symbol 
-		type: local-dependencies
-		contents: ?from $?rest
-	  })
-  ?inst <- (object (is-a Instruction) (ID ?symbol))
-  =>
-  (object-pattern-match-delay
-  (slot-insert$ ?inst LocalDependencies 1 ?to)
-  (retract ?fct)
-  (assert ({ env: clips translation: ?from => ?to action: replacement in:
-			  ?symbol type: local-dependencies contents: $?rest }))))
+(defrule wavefront-scheduling-rename::ReplaceIndividualLocalDependencyEntries-Match
+         (declare (salience -2))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-local-dependencies)
+                          (arguments ?from => ?to
+                                     in ?symbol
+                                     contents ?from $?rest))
+         ?inst <- (object (is-a Instruction) 
+                          (id ?symbol)
+                          (LocalDependencies $?locDep))
+         =>
+         (object-pattern-match-delay
+           (modify-instance ?inst (LocalDependencies $?locDep ?to))
+           (modify ?fct (arguments ?from => ?to 
+                                   in ?symbol 
+                                   contents $?rest))))
 ;------------------------------------------------------------------------------
-(defrule ReplaceIndividualNonLocalDependencyEntries-NoMatch
- (declare (salience -2))
-  (Stage WavefrontSchedule $?)
-  (Substage Rename $?)
-  ?fct <- ({
-	  	env: clips
-		translation: ?from => ?to 
-		action: replacement
-		in: ?symbol 
-		type: non-local-dependencies
-		contents: ?curr&~?from $?rest
-	  })
-  ?inst <- (object (is-a Instruction) (ID ?symbol))
-  =>
-  (object-pattern-match-delay
-  (slot-insert$ ?inst NonLocalDependencies 1 ?curr)
-  (retract ?fct)
-  (assert ({ env: clips translation: ?from => ?to action: replacement in:
-			  ?symbol type: local-dependencies contents: $?rest }))))
+(defrule wavefront-scheduling-rename::ReplaceIndividualNonLocalDependencyEntries-NoMatch
+         (declare (salience -2))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-non-local-dependencies)
+                          (arguments ?from => ?to
+                                     in ?symbol
+                                     contents ?curr&~?from $?rest))
+         ?inst <- (object (is-a Instruction) 
+                          (id ?symbol)
+                          (NonLocalDependencies $?nld))
+         =>
+         (modify-instance ?inst (NonLocalDependencies $?nld ?curr))
+         (modify ?fct (arguments ?from => ?to
+                                 in ?symbol
+                                 contents $?rest)))
 ;------------------------------------------------------------------------------
-(defrule ReplaceIndividualNonLocalDependencyEntries-Match
- (declare (salience -2))
-  (Stage WavefrontSchedule $?)
-  (Substage Rename $?)
-  ?fct <- ({
-	  	env: clips
-		translation: ?from => ?to 
-		action: replacement
-		in: ?symbol 
-		type: non-local-dependencies
-		contents: ?from $?rest
-	  })
-  ?inst <- (object (is-a Instruction) (ID ?symbol))
-  =>
-  (object-pattern-match-delay
-  (slot-insert$ ?inst NonLocalDependencies 1 ?to)
-  (retract ?fct)
-  (assert ({ env: clips translation: ?from => ?to action: replacement in:
-			  ?symbol type: non-local-dependencies contents: $?rest }))))
+(defrule wavefront-scheduling-rename::ReplaceIndividualNonLocalDependencyEntries-Match
+         (declare (salience -2))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-non-local-dependencies)
+                          (arguments ?from => ?to
+                                     in ?symbol
+                                     contents ?from $?rest))
+         ?inst <- (object (is-a Instruction) 
+                          (id ?symbol)
+                          (NonLocalDependencies $?nld))
+         =>
+         (modify-instance ?inst (NonLocalDependencies $?nld ?to))
+         (modify ?fct (arguments ?from => ?to
+                                 in ?symbol
+                                 contents $?rest)))
 ;------------------------------------------------------------------------------
-(defrule ReplaceIndividualInstructionUses-NoMatch
-			(declare (salience -2))
-			(Stage WavefrontSchedule $?)
-			(Substage Rename $?)
-      ?fct <- ({ clips ! ?f => ?t replacement ?s operands ?op&~?f $?ops })
-			?inst <- (object (is-a Instruction) (ID ?s))
-			=>
-			(slot-insert$ ?inst Operands 1 ?op)
-			(retract ?fct)
-      (assert ({ clips ! ?f => ?t replacement ?s operands $?ops })))
+(defrule wavefront-scheduling-rename::ReplaceIndividualInstructionUses-NoMatch
+         (declare (salience -2))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-operands)
+                          (arguments ?f => ?t 
+                                     replacement ?s
+                                     operands ?op&~?f $?ops))
+         ?inst <- (object (is-a Instruction) 
+                          (id ?s)
+                          (Operands $?operands))
+         =>
+         (modify-instance ?inst (Operands $?operands ?op))
+         (modify ?fct (arguments ?f => ?t 
+                                 replacement ?s
+                                 operands $?ops)))
 ;------------------------------------------------------------------------------
-(defrule ReplaceIndividualInstructionUses-Match
-			(declare (salience -2))
-			(Stage WavefrontSchedule $?)
-			(Substage Rename $?)
-      ?fct <- ({ clips ! ?f => ?t replacement ?s operands ?f $?ops })
-			?inst <- (object (is-a Instruction) (ID ?s))
-			=>
-			(slot-insert$ ?inst Operands 1 ?t)
-			(retract ?fct)
-      (assert ({ clips ! ?f => ?t replacement ?s operands $?ops })))
+(defrule wavefront-scheduling-rename::ReplaceIndividualInstructionUses-Match
+         (declare (salience -2))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-operands)
+                          (arguments ?f => ?t 
+                                     replacement ?s
+                                     operands ?f $?ops))
+         ?inst <- (object (is-a Instruction) 
+                          (id ?s)
+                          (Operands $?operands))
+         =>
+         (modify-instance ?inst (Operands $?operands ?t))
+         (modify ?fct (arguments ?f => ?t 
+                                 replacement ?s
+                                 operands $?ops)))
 ;------------------------------------------------------------------------------
-(defrule ReplaceIndividualInstructionUses-Empty
-			(declare (salience -2))
-			(Stage WavefrontSchedule $?)
-			(Substage Rename $?)
-      ?fct <- ({ clips ! ?f => ?t replacement ?s operands })
-			=>
-			(retract ?fct))
+(defrule wavefront-scheduling-rename::ReplaceIndividualInstructionUses-Empty
+         (declare (salience -2))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action replace-operands)
+                          (arguments ? => ? 
+                                     replacement ?
+                                     operands))
+         =>
+         (retract ?fct))
 ;------------------------------------------------------------------------------
