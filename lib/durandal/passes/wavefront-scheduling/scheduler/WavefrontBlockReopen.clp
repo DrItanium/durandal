@@ -35,13 +35,13 @@
          (modify ?fct (action reopen)
                  (arguments ?cpv => $?failures)))
 ;------------------------------------------------------------------------------
-(defrule wavefront-scheduling-reopen::ReopenBlockOnWavefront
+(defrule wavefront-scheduling-reopen-blocks::ReopenBlockOnWavefront
          ?fct <- (message (to wavefront-scheduling)
                           (action reopen)
                           (arguments ?cpv => ?fail $?failures))
          ?wave <- (object (is-a Wavefront) 
                           (Closed $?a ?fail $?b)
-                          (contents $?cnts))
+                          (values $?cnts))
          ?bb <- (object (is-a BasicBlock) 
                         (id ?fail) 
                         (IsOpen FALSE))
