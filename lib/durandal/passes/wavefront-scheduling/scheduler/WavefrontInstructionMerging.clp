@@ -30,7 +30,7 @@
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::AssertScheduleCPVIntoTargetBlock 
          (object (is-a Wavefront) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          (object (is-a Diplomat) 
                  (id ?e) 
                  (IsOpen TRUE))
@@ -62,7 +62,7 @@
          (test (equal$ ?paths ?cpvPaths))
          =>
          ;change the action...nothing more :D
-         (modify ?fct (message (action move-instruction))))
+         (modify ?fct (action move-instruction)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::ScheduleStyleForCPVIsCompensate
          "This rule attempts to determine if the CPV should be copied into the 
@@ -92,6 +92,7 @@
                  (Paths $?paths))
          (object (is-a CompensationPathVector) 
                  (id ?cpv)
+                 (parent ?i)
                  (Paths $?cpvPaths))
          (test (not (subsetp ?paths ?cpvPaths)))
          ?agObj <- (object (is-a PathAggregate) 
@@ -140,11 +141,11 @@
                              (parent ?otherBlock) 
                              (DestinationRegisters ?register) 
                              (Consumers $?niConsumers)
-                             (Class ?class))
+                             (class ?class))
          ?oldBlock <- (object (is-a BasicBlock) 
                               (id ?otherBlock) 
                               (Produces $?pBefore ?inst $?pRest)
-                              (Contents $?before ?inst $?rest))
+                              (contents $?before ?inst $?rest))
          ;TODO: add another rule where we have to update the consumers list as
          ;      well
          =>
@@ -152,7 +153,7 @@
            ;(printout t "Scheduled " ?inst " into " ?e crlf)
            (modify-instance ?terminator (TimeIndex (+ ?ti 1)))
            ;(modify-instance ?newBlock (Produces ?nBProds ?register))
-           (modify-instance ?oldBlock (Contents $?before $?rest) 
+           (modify-instance ?oldBlock (contents $?before $?rest) 
                             (Produces $?pBefore $?pRest))
            ;(modify-instance ?cpvObject (Paths))
            (modify ?fct (action remove-evidence)
@@ -167,7 +168,7 @@
              ;(slot-insert$ ?agObj ScheduledInstructions 1 ?inst ?register)
              (modify-instance ?newBlock 
                               (Produces $?nBProds ?register)
-                              (Contents $?blockBefore ?inst ?last))
+                              (contents $?blockBefore ?inst ?last))
              (modify-instance ?cpvObject 
                               (Paths)
                               (ScheduleTargets ?cpvST ?e ?inst)
@@ -186,7 +187,7 @@
              ;(slot-insert$ ?agObj ReplacementActions 1 ?inst ?newName !)
              (modify-instance ?newBlock 
                               (Produces $?nBProds ?register)
-                              (Contents $?blockBefore ?newName ?last))
+                              (contents $?blockBefore ?newName ?last))
              (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
              ;purge the list of producers and consumers
              (duplicate-instance ?inst to ?newName 
@@ -231,7 +232,7 @@
                              (pointer ?nPtr) 
                              (parent ?otherBlock) 
                              (DestinationRegisters ?register) 
-                             (Class ?class))
+                             (class ?class))
          =>
          ;we also need to update all CPVs within 
          (object-pattern-match-delay
@@ -241,10 +242,10 @@
            (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
            ;purge the list of producers and consumers
            (duplicate-instance ?inst to ?newName 
-                               (ID ?newName) 
+                               (id ?newName) 
                                (Name ?newName)
-                               (Pointer ?newPtr) 
-                               (Parent ?e)
+                               (pointer ?newPtr) 
+                               (parent ?e)
                                (TimeIndex (+ ?ti 1)))
            (llvm-move-instruction-before ?newPtr ?tPtr)
            ;we add the original name so that we don't have to do
@@ -303,21 +304,21 @@
                   (arguments ?cpv => ?e))
          (object (is-a CompensationPathVector) 
                  (id ?cpv) 
-                 (Parent ?p)
+                 (parent ?p)
                  (Aliases $?aliases)
                  (Paths $?cpvPaths))
          ?pa <- (object (is-a PathAggregate) 
                         (parent ?e))
          (object (is-a Instruction) 
                  (id ?p) 
-                 (Parent ?bb))
+                 (parent ?bb))
          (object (is-a BasicBlock) 
                  (id ?e) 
                  (parent ?r) 
                  (Paths $?paths))
          (object (is-a Wavefront) 
                  (parent ?r) 
-                 (contents $?z) 
+                 (values $?z) 
                  (Closed $?y))
          (object (is-a Region) 
                  (id ?r) 
