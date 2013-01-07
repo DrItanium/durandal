@@ -52,7 +52,7 @@
 			  (import rampancy ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule wavefront-scheduling-code
+(defmodule wavefront-scheduling-final
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
