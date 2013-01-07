@@ -548,205 +548,219 @@
 ; up would have already prevented the block from being selected. Thus we should
 ; just check to see if we have a local dependency
 ;------------------------------------------------------------------------------
-(defrule InitialCPVSetupForPathAggregate
+(defrule wavefront-scheduling-analyze-init::InitialCPVSetupForPathAggregate
          "Load all of the compensation path vectors for the given path 
          aggregate into the aggregates TargetCompensationPathVectors 
          multifield"
-         (Stage WavefrontSchedule $?)
-         (Substage AnalyzeInit $?)
-         (object (is-a Wavefront) (Contents $? ?blkID $?))
-         ?agObj <- (object (is-a PathAggregate) (Parent ?blkID) 
-                           (CompensationPathVectors $?cpvIDs))
-         (test (> (length$ ?cpvIDs) 0))
+         (object (is-a Wavefront) 
+                 (contents $? ?blkID $?))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?blkID) 
+                           (CompensationPathVectors 
+                             $?cpvIDs&:(> (length$ ?cpvIDs) 0)))
          =>
-         (modify-instance ?agObj (TargetCompensationPathVectors $?cpvIDs)))
+         (modify-instance ?agObj 
+                          (TargetCompensationPathVectors $?cpvIDs)))
 ;------------------------------------------------------------------------------
-(defrule SetifyTargetCompensationPathVectors
-         (Stage WavefrontSchedule $?)
-         (Substage AnalyzeInit $?)
+(defrule wavefront-scheduling-analyze-init::SetifyTargetCompensationPathVectors
          ?pa <- (object (is-a PathAggregate) 
                         (TargetCompensationPathVectors $?a ?b $?c ?b $?d))
          =>
-         (modify-instance ?pa (TargetCompensationPathVectors $?a ?b $?c $?d)))
+         (bind ?tcpv (create$ ?b))
+         (progn$ (?i (create$ ?a ?c ?d))
+                 (if (not (member$ ?i ?tcpv)) then
+                   (bind ?tcpv (create$ ?tcpv ?i))))
+         (modify-instance ?pa (TargetCompensationPathVectors ?tcpv)))
 ;------------------------------------------------------------------------------
-(defrule SelectCPVForAnalysis
-         (Stage WavefrontSchedule $?)
-         (Substage GenerateAnalyze0 $?)
-         (object (is-a Wavefront) (Parent ?r) (Contents $? ?e $?))
-         ?bb <- (object (is-a BasicBlock) (ID ?e) (IsOpen TRUE))
-         ;(not (exists (Schedule ?e for ?r)))
-         ?agObj <- (object (is-a PathAggregate) (Parent ?e) 
-                           (TargetCompensationPathVectors $?cpvs))
-         (test (> (length$ ?cpvs) 0))
+(defrule wavefront-scheduling-pre-generate-analyze::SelectCPVForAnalysis
+         (object (is-a Wavefront) 
+                 (parent ?r) 
+                 (contents $? ?e $?))
+         ?bb <- (object (is-a BasicBlock) 
+                        (id ?e) 
+                        (IsOpen TRUE))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (Parent ?e) 
+                           (TargetCompensationPathVectors 
+                             $?cpvs&:(> (length$ ?cpvs) 0)))
          =>
          ;clear out the cpvs
-         (modify-instance ?agObj (TargetCompensationPathVectors))
+         (modify-instance ?agObj 
+                          (TargetCompensationPathVectors))
          (bind ?result (create$))
+         ;object of this loop is to figure out if there are any remaining
+         ;paths tied to the target path aggregate that can reach the block on
+         ;the wavefront. 
          (progn$ (?cpv $?cpvs)
                  (bind ?det FALSE)
-                 (progn$ (?p (send (symbol-to-instance-name ?cpv) get-Paths))
+                 (bind ?cpvName (symbol-to-instance-name ?cpv))
+                 (bind ?paths (send ?cpvName get-Paths))
+                 ;we look through the set of paths that the target CPV is on.
+                 ;We try to find one that contains the target block on the
+                 ;wavefront
+                 (progn$ (?p ?paths)
                          (if ?det then 
+                           ;we found a path that contains ?e
                            (break)
                            else 
                            (bind ?o2 (symbol-to-instance-name ?p))
-                           (bind ?det 
-                                 (or ?det 
-                                     (member$ ?e 
-                                              (send ?o2 get-Contents))))))
+                           (bind ?o2C (send ?o2 get-contents))
+                           (bind ?det (or ?det (member$ ?e ?o2C)))))
+                 ;Outer loop
                  (if ?det then 
                    (bind ?result (create$ ?result ?cpv))))
-         (assert (Analyze block ?e for ?r using cpvs $?result)))
+         ; if we didn't find any valid CPVs then this message will be 
+         ; automatically retracted in the next module
+         (assert (message (to wavefront-scheduling)
+                          (action analyze-block-using-cpvs)
+                          (arguments ?e ?r => $?result))))
 ;------------------------------------------------------------------------------
-(defrule SegmentCPVsApart
-         (Stage WavefrontSchedule $?)
-         (Substage GenerateAnalyze $?)
-         ?fct <- (Analyze block ?e for ?r using cpvs ?cpv $?cpvs)
-         (object (is-a BasicBlock) (ID ?e))
-         (object (is-a CompensationPathVector) (ID ?cpv) (Parent ?i))
+(defrule wavefront-scheduling-generate-analyze::SegmentCPVsApart
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-block-using-cpvs)
+                          (arguments ?e ?r => ?cpv $?cpvs))
+         (object (is-a CompensationPathVector) 
+                 (id ?cpv) 
+                 (parent ?i))
          =>
-         ;(printout t "Analyze instruction " ?i " { associated cpv " ?cpv 
-         ; " } for " ?e crlf)
-         (retract ?fct)
-         (assert (Analyze block ?e for ?r using cpvs $?cpvs)
-                 (Analyze instruction ?i { associated cpv ?cpv } for ?e)))
+         (modify ?fct (arguments ?e ?r => $?cpvs))
+         (assert (message (to wavefront-scheduling)
+                          (action analyze-instruction-with-associate-cpv-for)
+                          (arguments ?i ?cpv ?e))))
 ;------------------------------------------------------------------------------
-(defrule RetractCPVSegmentationFact
-         (Stage WavefrontSchedule $?)
-         (Substage GenerateAnalyze $?)
-         ?fct <- (Analyze block ? for ? using cpvs)
+(defrule wavefront-scheduling-generate-analyze::RetractCPVSegmentationFact
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-block-using-cpvs)
+                          (arguments ? ? =>))
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule TargetInstructionDoesNotHaveACorrespondingCPV
+(defrule wavefront-scheduling-generate-analyze::TargetInstructionDoesNotHaveACorrespondingCPV
          "Sometimes it turns out that sometimes store instructions will add 
          certain instructions to the instruction list even though they don't 
          have a valid CPV.  This rule removes those elements from the path 
          aggregate"
-         (Stage WavefrontSchedule $?)
-         (Substage GenerateAnalyze $?)
-         ?pa <- (object (is-a PathAggregate) (Parent ?e) 
+         ?pa <- (object (is-a PathAggregate) 
                         (InstructionList $?b ?a $?c))
-         (not (exists (object (is-a CompensationPathVector) (Parent ?a))))
+         (not (exists (object (is-a CompensationPathVector) 
+                              (parent ?a))))
          =>
-         ;(printout t "NOTE: Removed " ?a " from the path aggregate of " ?e 
-         ;            " because a CPV wasn't tied to the instruction" crlf)
          (modify-instance ?pa (InstructionList $?b $?c)))
 ;------------------------------------------------------------------------------
-(defrule TargetInstructionIsNotRegisteredWithTheTargetPathAggregate
+(defrule wavefront-scheduling-generate-analyze::TargetInstructionIsNotRegisteredWithTheTargetPathAggregate
          "Sometimes it turns out that sometimes store instructions will add 
          certain instructions to the instruction list even though they don't 
          have a valid CPV registered with the path aggregate. This rule removes 
          those elements from the path aggregate"
-         (Stage WavefrontSchedule $?)
-         (Substage GenerateAnalyze $?)
-         ?pa <- (object (is-a PathAggregate) (Parent ?e) 
+         ?pa <- (object (is-a PathAggregate) 
                         (InstructionList $?b ?a $?c)
                         (CompensationPathVectors $?cpvs))
-         (object (is-a CompensationPathVector) (Parent ?a) (ID ?id))
-         (test (not (member$ ?id $?cpvs)))
+         (object (is-a CompensationPathVector) 
+                 (parent ?a) 
+                 (id ?id&:(not (member$ ?id $?cpvs))))
          =>
-         ;(printout t "NOTE: Removed " ?a " from the path aggregate of " ?e 
-         ;" because the corresponding CPV wasn't registered with the path"
-         ;" aggregate" crlf)
          (modify-instance ?pa (InstructionList $?b $?c)))
 ;------------------------------------------------------------------------------
-(defrule TargetCPVIsImpossibleToScheduleIntoTargetBlock
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         ?fct <- (Analyze instruction ?i { associated cpv ?cpv } for ?e)
-         ?agObj <- (object (is-a PathAggregate) (Parent ?e) 
+(defrule wavefront-scheduling-analyze::TargetCPVIsImpossibleToScheduleIntoTargetBlock
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-instruction-with-associate-cpv-for)
+                          (arguments ?i ?cpv ?e))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?e) 
                            (InstructionList $?il)
                            (ScheduledInstructions $?sched))
-         (object (is-a Instruction) (ID ?i) (LocalDependencies $?ld)
+         (object (is-a Instruction) 
+                 (id ?i) 
+                 (LocalDependencies $?ld)
                  (NonLocalDependencies $?nld))
          (test (not (and (subsetp ?ld ?il)
                          (subsetp ?nld ?sched))))
          =>
-         ;(printout t ?i " is impossible to schedule into " ?e crlf)
-         ;(printout t "Local Dependencies = " ?ld crlf)
-         ;(printout t "Non Local Dependencies = " ?nld crlf)
-         ;(printout t "Instruction List = " ?il crlf)
-         ;(printout t "Schedule = " ?sched crlf)
-         (retract ?fct)
+         ;reuse the memory of ?fct for something else
+         (modify ?fct (action cant-schedule)
+                 (arguments ?cpv ?e ever))
          (bind ?ind (member$ ?i ?il))
          (if ?ind then
-           (slot-delete$ ?agObj InstructionList ?ind ?ind))
-         (assert (Cant schedule ?cpv for ?e ever)))
+           (slot-delete$ ?agObj InstructionList ?ind ?ind)))
 ;------------------------------------------------------------------------------
-
-(defrule TargetCPVCantBeScheduledIntoTargetBlockYet
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         ?fct <- (Analyze instruction ?i { associated cpv ?cpv } for ?e)
-         ?paObj <- (object (is-a PathAggregate) (Parent ?e) 
+(defrule wavefront-scheduling-analyze::TargetCPVCantBeScheduledIntoTargetBlockYet
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-instruction-with-associate-cpv-for)
+                          (arguments ?i ?cpv ?e))
+         ?paObj <- (object (is-a PathAggregate) 
+                           (parent ?e) 
                            (InstructionList $?il)
                            (ScheduledInstructions $?sched)
                            (CompensationPathVectors $?cpvs))
-         (object (is-a Instruction) (ID ?i) (LocalDependencies $?ld) 
-                 (NonLocalDependencies $?nld) (Parent ?parent))
+         ;TODO: test to see if putting parts of the test condition into the
+         ;match conditions of the previous CE will work correctly or even allow
+         ;for piecewise evaluation
+         (object (is-a Instruction) 
+                 (id ?i) 
+                 (LocalDependencies $?ld) 
+                 (NonLocalDependencies $?nld))
          (test (and (not (subsetp ?ld ?sched))
                     (subsetp ?ld ?il)
                     (subsetp ?nld ?sched)))
          =>
-         ;(printout t "Can't schedule " ?i " into " ?e " right now!" crlf)
-         ;(printout t "Non Local Dependencies = " ?nld crlf)
-         ;(printout t "Local Dependencies = " ?ld crlf)
-         ;(printout t "Scheduled = " ?sched crlf)
-         ;(printout t "Instruction List = " ?il crlf)
-         ;(printout t "From = " ?parent crlf)
-         ;(printout t "CPVS = " ?cpvs crlf)
-         ;(facts)
-         (retract ?fct)
-         (assert (Cant schedule ?cpv for ?e now)))
+         ;cheaper way to 
+         (modify ?fct (action cant-schedule)
+                 (arguments ?cpv ?e now)))
 ;------------------------------------------------------------------------------
-(defrule TargetCPVNeedsToBeSliceAnalyzed
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         ?fct <- (Analyze instruction ?i { associated cpv ?cpv } for ?e)
-         (object (is-a PathAggregate) (Parent ?e) 
+(defrule wavefront-scheduling-analyze::TargetCPVNeedsToBeSliceAnalyzed
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-instruction-with-associate-cpv-for)
+                          (arguments ?i ?cpv ?e))
+         (object (is-a PathAggregate) 
+                 (parent ?e) 
                  (ScheduledInstructions $?sched))
-         (object (is-a Instruction) (ID ?i) (Parent ?b) 
-                 (LocalDependencies $?ld))
-         (test (subsetp ?ld ?sched))
-         (object (is-a CompensationPathVector) (ID ?cpv) (Paths $?paths))
+         (object (is-a Instruction) 
+                 (id ?i) 
+                 (parent ?b) 
+                 (LocalDependencies $?ld&:(subsetp ?ld ?sched)))
+         (object (is-a CompensationPathVector) 
+                 (id ?cpv) 
+                 (Paths $?paths))
          =>
          (retract ?fct)
          (bind ?validPaths (create$))
-         (foreach ?z ?paths
-                  (bind ?obj (instance-name (symbol-to-instance-name ?z)))
-                  (if (member$ ?e (send ?obj get-Contents)) then
-                    (bind ?validPaths (create$ ?validPaths ?z))))
+         (progn$ (?z ?paths)
+                 (bind ?obj (instance-name (symbol-to-instance-name ?z)))
+                 (bind ?contents (send ?obj get-contents))
+                 (if (member$ ?e ?contents) then
+                   (bind ?validPaths (create$ ?validPaths ?z))))
          (if (> (length$ ?validPaths) 0) then
            (assert (Pull slices for range ?e to ?b for instruction ?i { 
                          associated cpv ?cpv } using paths $?validPaths))))
 ;------------------------------------------------------------------------------
-(defrule CreateSliceSegments
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
+(defrule wavefront-scheduling-analyze::CreateSliceSegments
          ?fct <- (Pull slices for range ?e to ?b for instruction ?i {
                        associated cpv ?cpv } using paths ?path $?paths)
-         (object (is-a Slice) (Parent ?b) (TargetBlock ?e) (TargetPath ?path)
-                 (ID ?s))
+         (object (is-a Slice) 
+                 (parent ?b) 
+                 (TargetBlock ?e) 
+                 (TargetPath ?path)
+                 (id ?s))
          =>
          (retract ?fct)
          (assert (Pull slices for range ?e to ?b for instruction ?i {
                        associated cpv ?cpv } using paths $?paths)
-                 (Analyze slice ?s for ?e and cpv ?cpv)))
+                 (message (to wavefront-scheduling)
+                          (action analyze-slice)
+                          (arguments ?s ?e ?cpv))))
 ;------------------------------------------------------------------------------
-(defrule RetractSliceSegmenterFact
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
+(defrule wavefront-scheduling-analyze::RetractSliceSegmenterFact
          ?fct <- (Pull slices for range ? to ? for instruction ? {
                        associated cpv ? } using paths)
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule FAILURE-MISSING-SLICE 
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
+(defrule wavefront-scheduling-analyze::FAILURE-MISSING-SLICE 
          ?fct <- (Pull slices for range ?e to ?b for instruction ?i {
                        associated cpv ?cpv } using paths ?path $?paths)
-         (not (exists (object (is-a Slice) (Parent ?b) (TargetBlock ?e)
+         (not (exists (object (is-a Slice) 
+                              (parent ?b) 
+                              (TargetBlock ?e)
                               (TargetPath ?path))))
          =>
          (facts)
@@ -755,275 +769,328 @@
                    "Parent = " ?b crlf
                    "TargetPath = " ?path crlf
                    "TargetPath contents = " (send (symbol-to-instance-name
-                                                    ?path) get-Contents) crlf
+                                                    ?path) get-contents) crlf
                    "Rest of paths are = " $?paths crlf)
-         (exit))
-
+         (halt))
 ;------------------------------------------------------------------------------
-(defrule MergeSliceAnalysisFacts-SingleSingle
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         ?f0 <- (Analyze slice ?s0 for ?e and cpv ?cpv)
-         ?f1 <- (Analyze slice ?s1&~?s0 for ?e and cpv ?cpv)
-         ;(test (neq ?f0 ?f1))
+(defrule wavefront-scheduling-analyze::single-single=>multi
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action analyze-slice)
+                         (arguments ?s0 ?e ?cpv))
+         ?f1 <- (message (to wavefront-scheduling)
+                         (action analyze-slice)
+                         (arguments ?s1&~?s1 ?e ?cpv))
          =>
-         (retract ?f0 ?f1)
-         (assert (Analyze in ?e using cpv ?cpv and slices ?s0 ?s1)))
+         (retract ?f1)
+         (modify ?f0 (action analyze-slices)
+                 (arguments ?e ?cpv => ?s0 ?s1)))
 ;------------------------------------------------------------------------------
-(defrule ConvertSingleSliceRule
+(defrule wavefront-scheduling-analyze::single=>multi
          (declare (salience -3))
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         ?f0 <- (Analyze slice ?s0 for ?e and cpv ?cpv)
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action analyze-slice)
+                         (arguments ?s0 ?e ?cpv))
          =>
-         (retract ?f0)
-         (assert (Analyze in ?e using cpv ?cpv and slices ?s0)))
+         (modify ?f0 (action analyze-slices)
+                 (arguments ?e ?cpv => ?s0)))
 ;------------------------------------------------------------------------------
-(defrule MergeSliceAnalysisFacts-MultiMulti
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         ?f0 <- (Analyze in ?e using cpv ?cpv and slices $?q)
-         ?f1 <- (Analyze in ?e using cpv ?cpv and slices $?z)
+(defrule wavefront-scheduling-analyze::multi-multi=>multi
+         ?f0 <- (message (to wavefront-scheduling)
+                         (action analyze-slices)
+                         (arguments ?e ?cpv => $?q))
+         ?f1 <- (message (to wavefront-scheduling)
+                         (action analyze-slices)
+                         (arguments ?e ?cpv => $?z))
          (test (neq ?f0 ?f1)) 
          =>
-         (retract ?f0 ?f1)
-         (assert (Analyze in ?e using cpv ?cpv and slices $?z $?q)))
+         (modify ?f0 (arguments ?e ?cpv => $?q $?z))
+         (retract ?f1))
 ;------------------------------------------------------------------------------
-(defrule SetifyAnalyzeSlicesFact
+(defrule wavefront-scheduling-analyze::SetifyAnalyzeSlicesFact
          (declare (salience -1))
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices $?a ?b $?c ?b $?d)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv => $?a ?b $?c ?b $?d))
          =>
-         (retract ?fct)
-         (assert (Analyze in ?e using cpv ?cpv and slices $?a ?b $?c $?d)))
-;------------------------------------------------------------------------------
-(defrule ERROR-ANALYSIS-FAILURE
-         (declare (salience -900))
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         (Analyze instruction ?i for ?blkID)
-         ?inst <- (object (is-a Instruction) (ID ?i))
-         (object (is-a PathAggregate) (Parent ?blkID) 
-                 (ScheduledInstructions $?si))
-         ?cpv <- (object (is-a CompensationPathVector) (Parent ?i))
-         =>
-         (printout t "ERROR: ANALYZE INSTRUCTION " ?i " WASN'T MATCHED!!!" crlf
-                   "SCHEDULED INSTRUCTIONS: " $?si crlf)
-         (send ?inst print)
-         (printout t crlf)
-         (send ?cpv print)
-         (exit))
+         (bind ?tmp (create$ ?b))
+         (progn$ (?s (create$ ?a ?c ?d))
+                 (if (not (member$ ?s ?tmp)) then
+                   (bind ?tmp (create$ ?tmp ?s))))
+         (modify ?fct (arguments ?e ?cpv => ?tmp)))
 ;------------------------------------------------------------------------------
 ; now that we have a list of slices to look at it's time to check and see if
 ; the given cpv can be moved up based on the slice. If it can't then assert 
 ; a fact that says as much
 ;------------------------------------------------------------------------------
-(defrule RetractSliceAnalysis
+(defrule wavefront-scheduling-slice-analyze::RetractSliceAnalysis
          "Retract all slice analysis if it turns out there is a failure fact"
-         (Stage WavefrontSchedule $?)
-         (Substage SliceAnalyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices $?)
-         (exists (Cant schedule ?cpv for ?e ?))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv => $?))
+         (exists (message (to wavefront-scheduling)
+                          (action cant-schedule)
+                          (arguments ?cpv ?e ?)))
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule AnalyzeSliceContentsForFailure-ProducerLowerThanTargetBlock
+(defrule wavefront-scheduling-slice-analyze::AnalyzeSliceContentsForFailure-ProducerLowerThanTargetBlock
          "Does a check to make sure that non local dependencies prevent an 
          instruction from being moved upward into the target block"
-         (Stage WavefrontSchedule $?)
-         (Substage SliceAnalyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices ?s $?ss)
-         (object (is-a Slice) (ID ?s) (TargetBlock ?e) (Parent ?b)
-                 (Contents $? ?element $?))
-         (object (ID ?element) (Produces $? ?nld $?))
-         (object (is-a CompensationPathVector) (ID ?cpv) (Parent ?i))
-         (object (is-a Instruction) (ID ?i) (DestinationRegisters ?dr)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv => ?s $?ss))
+         (object (is-a Slice) 
+                 (id ?s) 
+                 (TargetBlock ?e) 
+                 (parent ?b)
+                 (contents $? ?element $?))
+         (object (id ?element) 
+                 (Produces $? ?nld $?))
+         (object (is-a CompensationPathVector) 
+                 (id ?cpv) 
+                 (parent ?i))
+         (object (is-a Instruction) (id ?i) 
+                 (DestinationRegisters ?dr)
                  (NonLocalDependencies $? ?nld $?))
-         ?agObj <- (object (is-a PathAggregate) (Parent ?e))
-         =>
-         ; (printout t "Failed Instruction " ?i " because producer is lower "
-         ;             "than block " ?e " on the wavefront" crlf)
-         (retract ?fct)
-         (bind ?ind (member ?i (send ?agObj get-InstructionList)))
-         (if (neq FALSE ?ind) then
-           (slot-delete$ ?agObj InstructionList ?ind ?ind))
-         (assert (Cant schedule ?cpv for ?e ever)))
-;------------------------------------------------------------------------------
-(defrule AnalyzeSliceContentsForFailure-CallBarrier
-         (Stage WavefrontSchedule $?)
-         (Substage SliceAnalyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices ?s $?ss)
-         (object (is-a Slice) (ID ?s) (TargetBlock ?e) (Parent ?b)
-                 (Contents $? ?element $?))
-         (object (ID ?element) (HasCallBarrier TRUE))
-         (object (is-a CompensationPathVector) (ID ?cpv) (Parent ?i))
-         (object (is-a Instruction) (ID ?i) (DestinationRegisters ?dr))
-         ?agObj <- (object (is-a PathAggregate) (Parent ?e))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?e)
+                           (InstructionList $?il))
          =>
          (retract ?fct)
-         ;(printout t "Removed " ?i " from being scheduled - "
-         ;            "Call Barrier" crlf)
-         (bind ?ind (member$ ?i (send ?agObj get-InstructionList)))
-         (if (neq FALSE ?ind) then 
+         (bind ?ind (member$ ?i ?il))
+         (if ?ind then
            (slot-delete$ ?agObj InstructionList ?ind ?ind))
-         (assert (Cant schedule ?cpv for ?e ever)))
+         (assert (message (to wavefront-scheduling)
+                          (action cant-schedule)
+                          (arguments ?cpv ?e ever))))
 ;------------------------------------------------------------------------------
-(defrule SliceTargetHasMemoryBarrier
+(defrule wavefront-scheduling-slice-analyze::AnalyzeSliceContentsForFailure-CallBarrier
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv => ?s $?ss))
+         (object (is-a Slice) 
+                 (id ?s) 
+                 (TargetBlock ?e) 
+                 (parent ?b)
+                 (contents $? ?element $?))
+         (object (id ?element) 
+                 (HasCallBarrier TRUE))
+         (object (is-a CompensationPathVector) 
+                 (id ?cpv) 
+                 (parent ?i))
+         (object (is-a Instruction) 
+                 (id ?i) 
+                 (DestinationRegisters ?dr))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?e)
+                           (InstructionList $?il))
+         =>
+         (retract ?fct)
+         (bind ?ind (member$ ?i $?il))
+         (if ?ind then
+           (slot-delete$ ?agObj InstructionList ?ind ?ind))
+         (assert (message (to wavefront-scheduling)
+                          (action cant-schedule)
+                          (arguments ?cpv ?e ever))))
+;------------------------------------------------------------------------------
+(defrule wavefront-scheduling-slice-analyze::SliceTargetHasMemoryBarrier
          "The given slice has an element that contains a memory barrier. 
          A memory barrier is only created when analysis has failed to ascertain
          what is being read from or written to in memory."
-         (Stage WavefrontSchedule $?)
-         (Substage SliceAnalyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices ?s $?ss)
-         (object (is-a Slice) (ID ?s) (TargetBlock ?e) 
-                 (Parent ?b) (Contents $? ?element $?))
-         (object (is-a CompensationPathVector) (ID ?cpv) (Parent ?i))
-         (object (is-a LoadInstruction|StoreInstruction) (ID ?i)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv => ?s $?ss))
+         (object (is-a Slice) 
+                 (id ?s) 
+                 (TargetBlock ?e) 
+                 (parent ?b) 
+                 (contents $? ?element $?))
+         (object (is-a CompensationPathVector) 
+                 (id ?cpv) 
+                 (parent ?i))
+         (object (is-a LoadInstruction|StoreInstruction) 
+                 (id ?i)
                  (DestinationRegisters ?dr))
-         (object (ID ?element) (HasMemoryBarrier TRUE))
-         ?agObj <- (object (is-a PathAggregate) (Parent ?e))
+         (object (id ?element) 
+                 (HasMemoryBarrier TRUE))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (Parent ?e)
+                           (InstructionList $?il))
          =>
          (retract ?fct)
-         ;(printout t "Removed " ?i " from being scheduled into " ?e 
-         ;            " - MemoryBarrier" crlf)
-         (bind ?ind (member$ ?i (send ?agObj get-InstructionList)))
-         (if (neq FALSE ?ind) then 
+         (bind ?ind (member$ ?i $?il))
+         (if ?ind then
            (slot-delete$ ?agObj InstructionList ?ind ?ind))
-         (assert (Cant schedule ?cpv for ?e ever)))
+         (assert (message (to wavefront-scheduling)
+                          (action cant-schedule)
+                          (arguments ?cpv ?e ever))))
 ;------------------------------------------------------------------------------
-(defrule SliceTargetDoesntHaveMemoryBarrier-ModifiesSameMemory
+(defrule wavefront-scheduling-slice-analyze::SliceTargetDoesntHaveMemoryBarrier-ModifiesSameMemory
          "The given slice has an element that contains a entry in the WritesTo 
          list that is the same thing as the given load or store instruction"
-         (Stage WavefrontSchedule $?)
-         (Substage SliceAnalyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices ?s $?ss)
-         (object (is-a Slice) (ID ?s) (TargetBlock ?e) 
-                 (Parent ?b) (Contents $? ?element $?))
-         (object (is-a CompensationPathVector) (ID ?cpv) (Parent ?i))
-         ?instruction <- (object (is-a LoadInstruction|StoreInstruction) 
-                                 (ID ?i)
-                                 (MemoryTarget ?mt) 
-                                 (DestinationRegisters ?dr))
-         (object (ID ?element) (HasMemoryBarrier FALSE) (HasCallBarrier FALSE)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv => ?s $?ss))
+         (object (is-a Slice) 
+                 (id ?s) 
+                 (TargetBlock ?e) 
+                 (parent ?b) 
+                 (contents $? ?element $?))
+         (object (is-a CompensationPathVector) 
+                 (id ?cpv) 
+                 (parent ?i))
+         (object (is-a LoadInstruction|StoreInstruction) 
+                 (id ?i)
+                 (MemoryTarget ?mt) 
+                 (DestinationRegisters ?dr))
+         (object (id ?element) 
+                 (HasMemoryBarrier FALSE) 
+                 (HasCallBarrier FALSE)
                  (WritesTo $? ?mt $?))
-         ?agObj <- (object (is-a PathAggregate) (Parent ?e))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?e)
+                           (InstructionList $?il))
          =>
          (retract ?fct)
-         (bind ?ind (member$ ?i (send ?agObj get-InstructionList)))
-         (if (neq FALSE ?ind) then 
+         (bind ?ind (member$ ?i $?il))
+         (if ?ind then
            (slot-delete$ ?agObj InstructionList ?ind ?ind))
-         ;(printout t "Removed " ?i " from being scheduled into " 
-         ;					 ?e " because " ?element " - ModifiesSameMemory" crlf)
-         (assert (Cant schedule ?cpv for ?e ever)))
+         (assert (message (to wavefront-scheduling)
+                          (action cant-schedule)
+                          (arguments ?cpv ?e ever))))
 ;------------------------------------------------------------------------------
-(defrule SliceTargetDoesntHaveMemoryBarrier-HasUnknownReference
+(defrule wavefront-scheduling-slice-analyze::SliceTargetDoesntHaveMemoryBarrier-HasUnknownReference
          "Does now allow loads or stores to be moved above the given element
          regardless of if a memory barrier exists or not. This is because there
          is an unknown loader element"
-         (Stage WavefrontSchedule $?)
-         (Substage Analyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices ?s $?ss)
-         (object (is-a Slice) (ID ?s) (TargetBlock ?e) 
-                 (Parent ?cpv) (Contents $? ?element $?))
-         (object (is-a CompensationPathVector) (ID ?cpv) (Parent ?i))
-         (object (is-a LoadInstruction|StoreInstruction) (ID ?i) 
-                 (Parent ?q) (DestinationRegisters ?dr))
-         (object (ID ?element) (WritesTo $? UNKNOWN $?))
-         ?agObj <- (object (is-a PathAggregate) (Parent ?e))
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv => ?s $?ss))
+         (object (is-a Slice) 
+                 (id ?s) 
+                 (TargetBlock ?e) 
+                 (parent ?cpv) 
+                 (contents $? ?element $?))
+         (object (is-a CompensationPathVector) 
+                 (id ?cpv) 
+                 (parent ?i))
+         (object (is-a LoadInstruction|StoreInstruction) 
+                 (id ?i) 
+                 (parent ?q) 
+                 (DestinationRegisters ?dr))
+         (object (id ?element) 
+                 (WritesTo $? UNKNOWN $?))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?e)
+                           (InstructionList $?il))
          =>
          (retract ?fct)
-         ;(printout t "Removed " ?i " from being scheduled from block " ?q 
-         ;					 " unknown reference" crlf)
+         (bind ?ind (member$ ?i $?il))
          (bind ?ind (member$ ?i (send ?agObj get-InstructionList)))
-         (if (neq FALSE ?ind) then 
+         (if ?ind then
            (slot-delete$ ?agObj InstructionList ?ind ?ind))
-         (assert (Cant schedule ?cpv for ?e ever)))
+         (assert (message (to wavefront-scheduling)
+                          (action cant-schedule)
+                          (arguments ?cpv ?e ever))))
 ;------------------------------------------------------------------------------
-(defrule CanScheduleIntoBlockOnSlice
+(defrule wavefront-scheduling-slice-analyze::CanScheduleIntoBlockOnSlice
          (declare (salience -2))
-         (Stage WavefrontSchedule $?)
-         (Substage SliceAnalyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices ?s $?ss)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv => ?s $?ss))
          =>
-         (retract ?fct)
-         (assert (Analyze in ?e using cpv ?cpv and slices $?ss)))
+         (modify ?fct (arguments ?e ?cpv => $?ss)))
 ;------------------------------------------------------------------------------
-(defrule CanScheduleInstructionThisIteration
+(defrule wavefront-scheduling-slice-analyze::CanScheduleInstructionThisIteration
          (declare (salience -3))
-         (Stage WavefrontSchedule $?)
-         (Substage SliceAnalyze $?)
-         ?fct <- (Analyze in ?e using cpv ?cpv and slices)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action analyze-slices)
+                          (arguments ?e ?cpv =>))
+         =>
+         ;modify the template to fit our needs :D
+         (modify ?fct (action can-schedule)
+                 (arguments ?cpv ?e)))
+;------------------------------------------------------------------------------
+(defrule wavefront-scheduling-merge-init::AddCPVToSuccessList
+         ?fct <- (message (to wavefront-schedule)
+                          (action can-schedule)
+                          (arguments ?cpv ?e))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?e)
+                           (MovableCompensationPathVectors $?mcpv))
          =>
          (retract ?fct)
-         (assert (Can schedule ?cpv for ?e)))
+         (modify-instance ?agObj (MovableCompensationPathVectors $?mcpv ?cpv)))
 ;------------------------------------------------------------------------------
-(defrule AddCPVToSuccessList
-         (Stage WavefrontSchedule $?)
-         (Substage MergeInit $?)
-         ?fct <- (Can schedule ?cpvID for ?blkID)
-         ?agObj <- (object (is-a PathAggregate) (Parent ?blkID))
-         =>
-         (retract ?fct)
-         (slot-insert$ ?agObj MovableCompensationPathVectors 1 ?cpvID))
-;------------------------------------------------------------------------------
-(defrule FailCPVForNow
-         (Stage WavefrontSchedule $?)
-         (Substage MergeInit $?)
-         ?fct <- (Cant schedule ?cpvID for ?blkID now)
-         ?agObj <- (object (is-a PathAggregate) (Parent ?blkID))
-         =>
-         (retract ?fct)
-         (slot-insert$ ?agObj StalledCompensationPathVectors 1 ?cpvID))
-;------------------------------------------------------------------------------
-(defrule RemoveCPVFromService
-         (Stage WavefrontSchedule $?)
-         (Substage MergeInit $?)
-         ?fct <- (Cant schedule ?cpvID for ?blkID ever)
-         ?agObj <- (object (is-a PathAggregate) (Parent ?blkID))
-         ?cpvObj <- (object (is-a CompensationPathVector) (ID ?cpvID) 
-                            (Parent ?i))
-         =>
-         (retract ?fct)
-         (slot-insert$ ?cpvObj Failures 1 ?blkID)
-         (slot-insert$ ?agObj ImpossibleCompensationPathVectors 1 ?cpvID))
-;------------------------------------------------------------------------------
-(defrule PonderMovementIteration
-         (declare (salience 100))
-         (Stage WavefrontSchedule $?)
-         (Substage Ponder $?)
-         (object (is-a Wavefront) (ID ?r) (Contents $? ?e $?))
-         ?ag <- (object (is-a PathAggregate) (Parent ?e) (ID ?pa)
+(defrule wavefront-scheduling-merge-init::FailCPVForNow
+         ?fct <- (message (to wavefront-schedule)
+                          (action cant-schedule)
+                          (arguments ?cpv ?b now))
+         ?ag <- (object (is-a PathAggregate) 
+                        (parent ?b)
                         (StalledCompensationPathVectors $?scpv))
-         (test (> (length$ $?scpv) 0))
          =>
+         (retract ?fct)
+         (modify-instance ?ag (StalledCompensationPathVectors $?scpv ?cpv)))
+;------------------------------------------------------------------------------
+(defrule wavefront-scheduling-merge-init::RemoveCPVFromService
+         ?fct <- (message (to wavefront-schedule)
+                          (action cant-schedule)
+                          (arguments ?cpv ?b ever))
+         ?agObj <- (object (is-a PathAggregate) 
+                           (parent ?b)
+                           (ImpossibleCompensationPathVectors $?icpv))
+         ?cpvObj <- (object (is-a CompensationPathVector) 
+                            (id ?cpv) 
+                            (Failures $?fails))
+         =>
+         (retract ?fct)
+         (object-pattern-match-delay
+           (modify-instance ?cpvObj (Failures $?fails ?b))
+           (modify-instance ?agObj (ImpossibleCompensationPathVectors 
+                                     $?icpv ?cpv))))
+;------------------------------------------------------------------------------
+(defrule wavefront-scheduling-ponder::PonderMovementIteration
+         (declare (salience 100))
+         (object (is-a Wavefront) 
+                 (id ?r) 
+                 (contents $? ?e $?))
+         ?ag <- (object (is-a PathAggregate) 
+                        (parent ?e) 
+                        (id ?pa)
+                        (StalledCompensationPathVectors 
+                          $?scpv&:(> (length$ $?scpv) 0)))
+         =>
+         ;we use an explicit fact like this so that it's easy to match against
+         ;and only one version of this fact will exist at any given time within
+         ;the fact pool of the wavefront-scheduling-ponder module
          (assert (Another Movement Required))
          (modify-instance ?ag (StalledCompensationPathVectors)
                           (TargetCompensationPathVectors $?scpv)))
 ;------------------------------------------------------------------------------
-(defrule AnotherMovementIsRequired
-         (Stage WavefrontSchedule $?)
-         ?ponder <- (Substage Ponder $?rest)
+(defrule wavefront-scheduling-ponder::AnotherMovementIsRequired
          ?f <- (Another Movement Required)
+         ?obj <- (object (is-a pass-description) (passes $?passes))
          =>
-         ;this returns a tuple
-         (retract ?ponder ?f)
-         (assert (Substage GenerateAnalyze0 
-                           GenerateAnalyze 
-                           Analyze 
-                           SliceAnalyze 
-                           MergeInit 
-                           Merge 
-                           MergeUpdate
-                           ReopenBlocks 
-                           Ponder 
-                           $?rest)))
+         (retract ?f)
+         (modify-instance (passes 
+                            wavefront-scheduling-pre-generate-analyze
+                            wavefront-scheduling-generate-analyze
+                            wavefront-scheduling-analyze 
+                            wavefront-scheduling-slice-analyze
+                            wavefront-scheduling-merge-init 
+                            wavefront-scheduling-merge 
+                            wavefront-scheduling-merge-update 
+                            wavefront-scheduling-reopen-blocks
+                            wavefront-scheduling-ponder
+                            $?passes)))
 ;------------------------------------------------------------------------------
-(defrule FinishSchedulingIntoBlock
-         (declare (salience -1))
-         (Stage WavefrontSchedule $?)
-         (Substage Ponder $?rest)
+(defrule wavefront-scheduling-post-ponder::FinishSchedulingIntoBlock
+         ?fct <- (message (from pipeline)
+                          (to wavefront-scheduling-post-ponder)
+                          (action initial-fact))
          =>
+         (retract ?fct)
          (progn$ (?instance (find-all-instances ((?wave Wavefront)) TRUE))
                  (progn$ (?child (send ?instance get-Contents))
                          (modify-instance 
