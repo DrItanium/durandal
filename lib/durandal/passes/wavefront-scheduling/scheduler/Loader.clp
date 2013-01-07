@@ -24,13 +24,31 @@
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
 (defmodule wavefront-scheduling-init
-			  (import core ?ALL)
-			  (import llvm ?ALL)
-			  (import types ?ALL)
-			  (import pipeline ?ALL)
-			  (import indirect ?ALL)
-			  (import rampancy ?ALL)
-			  (import MAIN ?ALL))
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-identify
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-pathing
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import pipeline ?ALL)
+           (import indirect ?ALL)
+           (import rampancy ?ALL)
+           (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-code::macro-expand
          ?msg <- (message (from pipeline) 
@@ -41,6 +59,8 @@
          (retract ?msg)
          (modify-instance ?p (passes 
                                wavefront-scheduling-init
+                               wavefront-scheduling-identify
+                               wavefront-scheduling-pathing
                                ;TODO: add more modules
                                $?passes)))
 ;------------------------------------------------------------------------------
