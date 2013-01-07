@@ -35,7 +35,7 @@
          (declare (salience 10))
          (object (is-a Wavefront) 
                  (parent ?r) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          (object (is-a BasicBlock) 
                  (id ?e))
          (object (is-a PathAggregate) 
@@ -57,7 +57,7 @@
                         (id ?t0)
                         (TimeIndex ?ti0)
                         (Operands $? ?c $?))
-         (object (is-a TaggedObject&~ConstantInteger&~ConstantFloatingPoint) 
+         (object (is-a Object&~ConstantInteger&~ConstantFloatingPoint) 
                  (id ?c))
          ?i1 <- (object (is-a Instruction) 
                         (parent ?p) 
@@ -82,7 +82,7 @@
                  (id ?t0)
                  (TimeIndex ?ti0)
                  (DestinationRegisters $? ?c $?))
-         (object (is-a TaggedObject&~ConstantInteger&~ConstantFloatingPoint) 
+         (object (is-a Object&~ConstantInteger&~ConstantFloatingPoint) 
                  (id ?c))
          (object (is-a Instruction) 
                  (parent ?p) 
@@ -107,7 +107,7 @@
                         (id ?t0)
                         (TimeIndex ?ti0)
                         (DestinationRegisters $? ?c $?))
-         (object (is-a TaggedObject&~ConstantInteger&~ConstantFloatingPoint) 
+         (object (is-a Object&~ConstantInteger&~ConstantFloatingPoint) 
                  (id ?c))
          ?i1 <- (object (is-a Instruction) 
                         (parent ?p) 
@@ -336,7 +336,7 @@
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
-(defrule wavefront-scheduling-dependency-merge-update::RemoveInstructionsFromProducers
+(defrule wavefront-scheduling-merge-update::RemoveInstructionsFromProducers
          (declare (salience 768))
          ?fct <- (message (to wavefront-scheduling)
                           (action remove-evidence)
