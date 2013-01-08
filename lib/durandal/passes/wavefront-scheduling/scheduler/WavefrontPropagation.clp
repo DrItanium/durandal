@@ -60,7 +60,7 @@
          (declare (salience 1))
          (object (is-a Wavefront) 
                  (parent ?r) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          ?pa <- (object (is-a PathAggregate) 
                         (parent ?e) 
                         (InstructionPropagation ?targ ?alias ?pred ! $?rest))
@@ -142,7 +142,7 @@
                                     from ?p0
                                     for ?b))
          ?pa <- (object (is-a PathAggregate) 
-                        (Parent ?b)
+                        (parent ?b)
                         (InstructionPropagation $?ip))
          =>
          (retract ?f0)
@@ -206,7 +206,7 @@
                           (arguments target-instruction ?t 
                                      block ?b => $?elements))
          ?agObj <- (object (is-a PathAggregate) 
-                           (Parent ?b)
+                           (parent ?b)
                            (ScheduledInstructions $?si))
          ?bb <- (object (is-a BasicBlock) 
                         (id ?b) 
