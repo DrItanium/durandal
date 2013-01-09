@@ -213,7 +213,8 @@
                  (id ?o) 
                  (parent ~?p))
          =>
-         (modify-instance ?inst (NonLocalDependencies $?nld ?o)))
+         (if (not (member$ ?o $?nld)) then
+         (modify-instance ?inst (NonLocalDependencies $?nld ?o))))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-dependency-analysis::Wavefront-MarkHasCallDependency
          (declare (salience -2))
