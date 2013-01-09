@@ -595,7 +595,8 @@
          ;the wavefront. 
          (progn$ (?cpv $?cpvs)
                  (bind ?det FALSE)
-                 (bind ?cpvName (symbol-to-instance-name ?cpv))
+                 (bind ?cpvName (instance-address * (symbol-to-instance-name
+                                                     ?cpv)))
                  (bind ?paths (send ?cpvName get-Paths))
                  ;we look through the set of paths that the target CPV is on.
                  ;We try to find one that contains the target block on the
@@ -728,7 +729,7 @@
          (retract ?fct)
          (bind ?validPaths (create$))
          (progn$ (?z ?paths)
-                 (bind ?obj (instance-name (symbol-to-instance-name ?z)))
+                 (bind ?obj (instance-address * (symbol-to-instance-name ?z)))
                  (bind ?contents (send ?obj get-contents))
                  (if (member$ ?e ?contents) then
                    (bind ?validPaths (create$ ?validPaths ?z))))
