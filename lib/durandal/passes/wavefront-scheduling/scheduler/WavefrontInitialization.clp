@@ -23,44 +23,11 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-; NOTE: This is the execution order of the wavefront scheduler
-;(defrule InitializeWavefrontSchedulingFacts
-;         (declare (salience 1001))
-;         (Stage WavefrontSchedule $?)
-;         =>
-;         (assert (Substage Init 
-;                           Identify 
-;                           PhiIdentify
-;                           PhiNode 
-;                           PhiNodeUpdate
-;                           Pathing 
-;                           Strip 
-;                           Inject 
-;                           Acquire 
-;                           Slice 
-;                           AnalyzeInit 
-;                           GenerateAnalyze0
-;                           GenerateAnalyze
-;                           Analyze 
-;                           SliceAnalyze
-;                           MergeInit 
-;                           Merge 
-;                           MergeUpdate 
-;                           ReopenBlocks
-;                           Ponder
-;                           Rename 
-;                           DependencyAnalysis 
-;                           AdvanceInit
-;                           AdvanceIdentify
-;                           Advance
-;                           AdvanceEnd
-;                           Update)))
-;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-init::build-path-aggregate-for-block
          (declare (salience 100))
          (object (is-a Wavefront) 
                  (parent ?r) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          (object (is-a BasicBlock) 
                  (id ?e) 
                  (contents $?c))
@@ -75,7 +42,7 @@
          (declare (salience 100))
          (object (is-a Wavefront) 
                  (parent ?r) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          (object (is-a Region) 
                  (id ?e)) 
          =>
