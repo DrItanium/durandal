@@ -595,7 +595,11 @@
          ;the wavefront. 
          (progn$ (?cpv $?cpvs)
                  (bind ?det FALSE)
-                 (bind ?cpvName (symbol-to-instance-name ?cpv))
+                 (bind ?tmp (if (not (str-index types:: ?cpv)) then
+                                (sym-cat types:: ?cpv)
+                                else
+                                ?cpv))
+                 (bind ?cpvName (symbol-to-instance-name ?tmp))
                  (bind ?paths (send ?cpvName get-Paths))
                  ;we look through the set of paths that the target CPV is on.
                  ;We try to find one that contains the target block on the
@@ -611,7 +615,7 @@
                            (bind ?det (or ?det (member$ ?e ?o2C)))))
                  ;Outer loop
                  (if ?det then 
-                   (bind ?result (create$ ?result ?cpv))))
+                   (bind ?result (create$ ?result ?tmp))))
          ; if we didn't find any valid CPVs then this message will be 
          ; automatically retracted in the next module
          (assert (message (to wavefront-scheduling)
@@ -728,10 +732,16 @@
          (retract ?fct)
          (bind ?validPaths (create$))
          (progn$ (?z ?paths)
-                 (bind ?obj (instance-name (symbol-to-instance-name ?z)))
+                 ;TODO: Figure out why some symbols are not being properly
+                 ;      identified and some are.
+                 (bind ?tmp (if (not (str-index types:: ?z)) then
+                                (sym-cat types:: ?z)
+                                else
+                                ?z))
+                 (bind ?obj (instance-name (symbol-to-instance-name ?tmp)))
                  (bind ?contents (send ?obj get-contents))
                  (if (member$ ?e ?contents) then
-                   (bind ?validPaths (create$ ?validPaths ?z))))
+                   (bind ?validPaths (create$ ?validPaths ?tmp))))
          (if (> (length$ ?validPaths) 0) then
            (assert (Pull slices for range ?e to ?b for instruction ?i { 
                          associated cpv ?cpv } using paths $?validPaths))))
