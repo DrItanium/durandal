@@ -72,7 +72,7 @@
 			(modify-instance ?p (passes
 										loop-region-merging
 										dependency-analysis
-										wavefront-determinant
+										wavefront-scheduling-determinant
 										paths-conditional
                     wavefront-scheduling-pre-init
 										wavefront-scheduling-code
