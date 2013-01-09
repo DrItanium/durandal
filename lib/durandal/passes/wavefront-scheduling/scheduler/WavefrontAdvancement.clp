@@ -59,7 +59,7 @@
          (object-pattern-match-delay
            (if (not (member$ ?b $?clos)) then
              (bind ?ind (member$ ?b $?contents))
-             (slot-delete$ ?wave Contents ?ind ?ind)
+             (slot-delete$ ?wave values ?ind ?ind)
              (modify-instance ?wave (Closed $?clos ?b)
                               (DeleteNodes $?a $?c))
              else
@@ -77,10 +77,10 @@
          =>
          ;TODO: Continue to port here
          (object-pattern-match-delay
-           (bind ?ind (member$ ?a (send ?wave get-Contents)))
+           (bind ?ind (member$ ?a (send ?wave get-values)))
            (bind ?ind2 (member$ ?a (send ?wave get-Closed)))
            (modify-instance ?wave (DeleteNodes $?rest))
-           (if ?ind then (slot-delete$ ?wave Contents ?ind ?ind))
+           (if ?ind then (slot-delete$ ?wave values ?ind ?ind))
            (if ?ind2 then (slot-delete$ ?wave Closed ?ind2 ?ind2))
            (assert (message (to wavefront-scheduling)
                             (action add-blocks-into)
