@@ -191,7 +191,7 @@
 (defrule wavefront-scheduling-inject::InjectCallBarrierBlocks 
          ?fct <- (message (to wavefront-scheduling)
                           (action element-has-call-barrier)
-                          (argument ?t => ?e))
+                          (arguments ?t => ?e))
          ?pa <- (object (is-a PathAggregate) 
                         (parent ?e) 
                         (CallBarriers $?cb))
@@ -218,7 +218,9 @@
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-acquire::FindValidCPVsForBlock
          ?fct <- (For ?e find CPVs for ?pv $?pvs)
-         (object (is-a BasicBlock) (ID ?pv) (Contents $?instructions))
+         (object (is-a BasicBlock) 
+          (id ?pv) 
+          (contents $?instructions))
          =>
          (retract ?fct)
          (assert (For ?e find CPVs for $?pvs)
@@ -226,7 +228,8 @@
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-acquire::SkipRegionsForFindingValidCPVsForBlock
          ?fct <- (For ?e find CPVs for ?pv $?pvs)
-         (object (is-a Region) (ID ?pv)) 
+         (object (is-a Region) 
+                 (id ?pv)) 
          =>
          (retract ?fct)
          (assert (For ?e find CPVs for $?pvs)))
@@ -361,7 +364,7 @@
          (retract ?fct)
          ;add the non-local dependencies
          (bind ?sLen (length$ ?si))
-         (if (= 0 (?sLen)) then
+         (if (= 0 ?sLen) then
            (modify-instance ?agObj (ScheduledInstructions ?nlds))
            else
            (bind ?sis $?si)
@@ -482,7 +485,7 @@
                            with stop block ?b using paths ?path $?paths)
          (object (is-a Path) 
                  (id ?path) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          =>
          (retract ?fct)
          (assert (Generate slice for block ?e in ?r with cpv ?cpv with stop 
@@ -495,7 +498,7 @@
                            block ?b using paths ?path $?paths)
          (object (is-a Path) 
                  (id ?path) 
-                 (contents $?z&:(not (member$ ?e ?z))))
+                 (values $?z&:(not (member$ ?e ?z))))
          =>
          (retract ?fct)
          (assert (Generate slices for block ?e in ?r with cpv ?cpv with stop 
@@ -506,20 +509,20 @@
                            block ?b using path ?path)
          (not (exists (object (is-a Slice) 
                               (parent ?b) 
-                              (TargetPath ?path) 
-                              (TargetBlock ?e))))
+                              (target-path ?path) 
+                              (target-block ?e))))
          (object (is-a Path) 
                  (id ?path) 
                  ; we want the elements between the last block and the block on
                  ; the wavefront. With multifield pattern matching, this is
                  ; really easy
-                 (contents $? ?e $?slice ?b $?))
+                 (values $? ?e $?slice ?b $?))
          =>
          (retract ?fct)
          (make-instance of Slice 
                         (parent ?b) 
-                        (TargetPath ?path)
-                        (TargetBlock ?e) 
+                        (target-path ?path)
+                        (target-block ?e) 
                         (contents $?slice)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-slice::SliceAlreadyExists
@@ -527,8 +530,8 @@
                            block ?b using path ?path)
          (exists (object (is-a Slice) 
                          (parent ?b) 
-                         (TargetPath ?path) 
-                         (TargetBlock ?e)))
+                         (target-path ?path) 
+                         (target-block ?e)))
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
@@ -552,7 +555,7 @@
          aggregate into the aggregates TargetCompensationPathVectors 
          multifield"
          (object (is-a Wavefront) 
-                 (contents $? ?blkID $?))
+                 (values $? ?blkID $?))
          ?agObj <- (object (is-a PathAggregate) 
                            (parent ?blkID) 
                            (CompensationPathVectors 
@@ -574,12 +577,12 @@
 (defrule wavefront-scheduling-pre-generate-analyze::SelectCPVForAnalysis
          (object (is-a Wavefront) 
                  (parent ?r) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          ?bb <- (object (is-a BasicBlock) 
                         (id ?e) 
                         (IsOpen TRUE))
          ?agObj <- (object (is-a PathAggregate) 
-                           (Parent ?e) 
+                           (parent ?e) 
                            (TargetCompensationPathVectors 
                              $?cpvs&:(> (length$ ?cpvs) 0)))
          =>
@@ -737,8 +740,8 @@
                        associated cpv ?cpv } using paths ?path $?paths)
          (object (is-a Slice) 
                  (parent ?b) 
-                 (TargetBlock ?e) 
-                 (TargetPath ?path)
+                 (target-block ?e) 
+                 (target-path ?path)
                  (id ?s))
          =>
          (retract ?fct)
@@ -759,8 +762,8 @@
                        associated cpv ?cpv } using paths ?path $?paths)
          (not (exists (object (is-a Slice) 
                               (parent ?b) 
-                              (TargetBlock ?e)
-                              (TargetPath ?path))))
+                              (target-block ?e)
+                              (target-path ?path))))
          =>
          (facts)
          (printout t "ERROR: Couldn't find an associated slice for " crlf
@@ -840,7 +843,7 @@
                           (arguments ?e ?cpv => ?s $?ss))
          (object (is-a Slice) 
                  (id ?s) 
-                 (TargetBlock ?e) 
+                 (target-block ?e) 
                  (parent ?b)
                  (contents $? ?element $?))
          (object (id ?element) 
@@ -869,7 +872,7 @@
                           (arguments ?e ?cpv => ?s $?ss))
          (object (is-a Slice) 
                  (id ?s) 
-                 (TargetBlock ?e) 
+                 (target-block ?e) 
                  (parent ?b)
                  (contents $? ?element $?))
          (object (id ?element) 
@@ -901,7 +904,7 @@
                           (arguments ?e ?cpv => ?s $?ss))
          (object (is-a Slice) 
                  (id ?s) 
-                 (TargetBlock ?e) 
+                 (target-block ?e) 
                  (parent ?b) 
                  (contents $? ?element $?))
          (object (is-a CompensationPathVector) 
@@ -913,7 +916,7 @@
          (object (id ?element) 
                  (HasMemoryBarrier TRUE))
          ?agObj <- (object (is-a PathAggregate) 
-                           (Parent ?e)
+                           (parent ?e)
                            (InstructionList $?il))
          =>
          (retract ?fct)
@@ -932,7 +935,7 @@
                           (arguments ?e ?cpv => ?s $?ss))
          (object (is-a Slice) 
                  (id ?s) 
-                 (TargetBlock ?e) 
+                 (target-block ?e) 
                  (parent ?b) 
                  (contents $? ?element $?))
          (object (is-a CompensationPathVector) 
@@ -967,7 +970,7 @@
                           (arguments ?e ?cpv => ?s $?ss))
          (object (is-a Slice) 
                  (id ?s) 
-                 (TargetBlock ?e) 
+                 (target-block ?e) 
                  (parent ?cpv) 
                  (contents $? ?element $?))
          (object (is-a CompensationPathVector) 
@@ -1073,15 +1076,15 @@
          =>
          (retract ?f)
          (modify-instance ?obj (passes wavefront-scheduling-pre-generate-analyze
-                                  wavefront-scheduling-generate-analyze
-                                  wavefront-scheduling-analyze 
-                                  wavefront-scheduling-slice-analyze
-                                  wavefront-scheduling-merge-init 
-                                  wavefront-scheduling-merge 
-                                  wavefront-scheduling-merge-update 
-                                  wavefront-scheduling-reopen-blocks
-                                  wavefront-scheduling-ponder
-                                  $?passes)))
+                                       wavefront-scheduling-generate-analyze
+                                       wavefront-scheduling-analyze 
+                                       wavefront-scheduling-slice-analyze
+                                       wavefront-scheduling-merge-init 
+                                       wavefront-scheduling-merge 
+                                       wavefront-scheduling-merge-update 
+                                       wavefront-scheduling-reopen-blocks
+                                       wavefront-scheduling-ponder
+                                       $?passes)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-post-ponder::FinishSchedulingIntoBlock
          ?fct <- (message (from pipeline)
