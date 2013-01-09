@@ -206,7 +206,7 @@
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-acquire::SelectValidCPVs 
          (object (is-a Wavefront) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          (object (is-a BasicBlock) 
                  (id ?e) 
                  (IsOpen TRUE))
@@ -225,8 +225,6 @@
                  (Get CPVs out of ?pv for ?e using $?instructions)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-acquire::SkipRegionsForFindingValidCPVsForBlock
-         (Stage WavefrontSchedule $?)
-         (Substage Acquire $?)
          ?fct <- (For ?e find CPVs for ?pv $?pvs)
          (object (is-a Region) (ID ?pv)) 
          =>
@@ -449,7 +447,7 @@
 (defrule wavefront-scheduling-slice::GenerateInitialSliceFactsForElementsOnTheWavefront 
          (object (is-a Wavefront) 
                  (parent ?r) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          (object (is-a BasicBlock) 
                  (id ?e) 
                  (IsOpen TRUE))
@@ -1055,7 +1053,7 @@
          (declare (salience 100))
          (object (is-a Wavefront) 
                  (id ?r) 
-                 (contents $? ?e $?))
+                 (values $? ?e $?))
          ?ag <- (object (is-a PathAggregate) 
                         (parent ?e) 
                         (id ?pa)
@@ -1074,7 +1072,7 @@
          ?obj <- (object (is-a pass-description) (passes $?passes))
          =>
          (retract ?f)
-         (modify-instance (passes wavefront-scheduling-pre-generate-analyze
+         (modify-instance ?obj (passes wavefront-scheduling-pre-generate-analyze
                                   wavefront-scheduling-generate-analyze
                                   wavefront-scheduling-analyze 
                                   wavefront-scheduling-slice-analyze
