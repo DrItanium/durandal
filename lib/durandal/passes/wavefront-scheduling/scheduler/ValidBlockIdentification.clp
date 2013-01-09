@@ -26,9 +26,12 @@
 ;defmodule is wavefront-scheduling-identify
 (defrule wavefront-scheduling-identify::AssertIdentifySpansInitial
          (declare (salience 5))
-         (object (is-a Wavefront) (parent ?r) (contents $? ?e $?))
+         (object (is-a Wavefront) 
+          (parent ?r) 
+          (values $? ?e $?))
          ;select only BasicBlocks
-         (object (is-a BasicBlock) (ID ?e))
+         (object (is-a BasicBlock) 
+          (id ?e))
          =>
          (assert (Picked ?e for ?r)))
 ;------------------------------------------------------------------------------
@@ -79,13 +82,15 @@
          ?fct <- (message (to wavefront-scheduling)
                           (action check-path)
                           (arguments ?path for block ?block))
-         (object (is-a Path) (id ?path) (contents $? ?block $?rest))
+         (object (is-a Path) 
+                 (id ?path) 
+                 (values $? ?block $?rest))
          ;we don't need to explicitly match for ?block
          =>
          (retract ?fct)
          (assert (message (to wavefront-scheduling-pathing)
                           (action scan-path)
-                          (arguments ?p ?e => $?rest))))
+                          (arguments ?path ?block => $?rest))))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-pathing::AnalyzePathElements
          ?fct <- (message (to wavefront-scheduling-pathing)
@@ -128,7 +133,7 @@
                           (arguments ?p ?e => ?curr $?rest))
          ?bb <- (object (is-a Region)
                         (id ?curr)
-                        (HasCallBarier ?hcb)
+                        (HasCallBarrier ?hcb)
                         (HasMemoryBarrier ?hmb))
          =>
          (if ?hcb then
