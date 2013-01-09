@@ -153,7 +153,7 @@
          ?fct <- (message (to wavefront-scheduling)
                           (action create-phi-node)
                           (arguments target-instruction ?t 
-                                     block ?b => $?targets))
+                                     block ?b => $?elements))
          ?agObj <- (object (is-a PathAggregate) 
                            (parent ?b)
                            (ScheduledInstructions $?si)
@@ -178,11 +178,12 @@
          (modify ?fct (action update-block-duration)
                  (arguments ?b))
          (bind ?name (sym-cat phi. (gensym*) . ?t))
+         (bind ?count (/ (length$ $?elements) 2))
          ;make the phinode in LLVM and get it's address back
          (bind ?phiPtr 
                (llvm-make-phi-node ?name
                                    ?typePtr 
-                                   (/ (length$ $?elements) 2) 
+                                   ?count
                                    ?bPtr 
                                    (symbol-to-pointer-list $?elements)))
          ;build a CLIPS representation of it
