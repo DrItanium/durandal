@@ -70,7 +70,7 @@
 			(unmake-instance ?fa)
 			(assert (message (to wavefront-scheduling)
 								  (action can-wavefront-schedule)
-								  (argument ?p))
+								  (arguments ?p))
 					  (message (to path-conditional)
 								  (action valid-pathing-target)
 								  (arguments ?p))))
