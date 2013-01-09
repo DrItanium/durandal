@@ -96,7 +96,7 @@
          =>
          (modify ?fct (arguments ?id => $?rest))
          (if (not (member$ ?next $?contents)) then
-           (modify-instance ?wave (contents $?contents ?next))))
+           (modify-instance ?wave (values $?contents ?next))))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-advance-end::PutSuccessorsOntoWavefront-NoMoreElements
          ?fct <- (message (to wavefront-scheduling)
