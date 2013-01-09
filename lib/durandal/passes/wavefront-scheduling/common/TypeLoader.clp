@@ -28,3 +28,4 @@
 (load* "passes/wavefront-scheduling/common/Wavefront.clp")
 (load* "passes/wavefront-scheduling/common/FrequencyAnalysis.clp")
 (load* "passes/wavefront-scheduling/common/PathAggregate.clp")
+(load* "passes/wavefront-scheduling/common/Functions.clp")
