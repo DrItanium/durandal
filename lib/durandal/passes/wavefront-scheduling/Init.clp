@@ -64,7 +64,7 @@
 (defrule wavefront-scheduling::macro-expand-passes
 			"Pushes the modules that make up this pass into the pass-description"
 			?f <- (message (from pipeline)
-								(to wavefront)
+								(to wavefront-scheduling)
 								(action initial-fact))
 			?p <- (object (is-a pass-description) (passes $?passes))
 			=>
