@@ -605,8 +605,9 @@
                            ;we found a path that contains ?e
                            (break)
                            else 
-                           (bind ?o2 (symbol-to-instance-name ?p))
-                           (bind ?o2C (send ?o2 get-contents))
+                           (bind ?o2 (instance-address *
+                                      (symbol-to-instance-name ?p)))
+                           (bind ?o2C (send ?o2 get-values))
                            (bind ?det (or ?det (member$ ?e ?o2C)))))
                  ;Outer loop
                  (if ?det then 
