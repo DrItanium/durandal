@@ -36,6 +36,6 @@
 (batch* "passes/wavefront-scheduling/common/TypeLoader.clp")
 (load* "passes/wavefront-scheduling/Init.clp")
 (load* "passes/wavefront-scheduling/determinant/WavefrontDeterminantLogic.clp")
-(load* "passes/wavefront-scheduling/constructor/WavefrontInitialization.clp")
+(load* "passes/wavefront-scheduling/pre-init/WavefrontPreInitialization.clp")
 (batch* "passes/wavefront-scheduling/scheduler/Loader.clp")
 ;TODO: More files to include
