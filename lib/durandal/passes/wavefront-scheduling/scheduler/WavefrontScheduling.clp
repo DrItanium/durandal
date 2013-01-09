@@ -1093,7 +1093,7 @@
          =>
          (retract ?fct)
          (progn$ (?instance (find-all-instances ((?wave Wavefront)) TRUE))
-                 (progn$ (?child (send ?instance get-Contents))
+                 (progn$ (?child (send ?instance get-values))
                          (modify-instance 
                            (symbol-to-instance-name ?child)
                            (IsOpen FALSE)))))
