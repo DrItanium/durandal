@@ -86,15 +86,6 @@
            (import rampancy ?ALL)
            (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
-(defmodule wavefront-scheduling-acquire
-           (import core ?ALL)
-           (import llvm ?ALL)
-           (import types ?ALL)
-           (import pipeline ?ALL)
-           (import indirect ?ALL)
-           (import rampancy ?ALL)
-           (import MAIN ?ALL))
-;------------------------------------------------------------------------------
 (defmodule wavefront-scheduling-inject
            (import core ?ALL)
            (import llvm ?ALL)
