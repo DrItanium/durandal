@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-;Copyright (c) 2013, Joshua Scoggins 
+;Copyright (c) 2012, Joshua Scoggins 
 ;All rights reserved.
 ;
 ;Redistribution and use in source and binary forms, with or without
@@ -24,9 +24,9 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(load* "passes/wavefront-scheduling/common/CompensationPathVector.clp")
-(load* "passes/wavefront-scheduling/common/Wavefront.clp")
-(load* "passes/wavefront-scheduling/common/FrequencyAnalysis.clp")
-(load* "passes/wavefront-scheduling/common/PathAggregate.clp")
-(load* "passes/wavefront-scheduling/common/Functions.clp")
-(load* "passes/wavefront-scheduling/common/Slice.clp")
+(defclass types::Slice 
+  (is-a ParentedObject Object)
+  (slot TargetBlock (type SYMBOL) (visibility public))
+  (slot TargetPath (type SYMBOL) (visibility public))
+  (multislot Contents (visibility public)))
+;------------------------------------------------------------------------------
