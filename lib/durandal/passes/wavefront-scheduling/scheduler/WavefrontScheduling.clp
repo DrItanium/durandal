@@ -417,15 +417,17 @@
            (progn$ (?nld ?nlds) 
                    (if (not (member$ ?nld ?sis)) then
                      (bind ?sis (create$ ?sis ?nld)))))
+         (bind ?name (instance-name-to-symbol 
+                       (instance-name
+                         (make-instance of CompensationPathVector
+                                        (parent ?inst)
+                                        (Paths $?paths)
+                                        (OriginalBlock ?pv)))))
          (modify-instance ?pa 
                           (ScheduledInstructions ?sis)
                           (InstructionList ?ils)
                           (CompensationPathVectors 
-                            $?cpv (instance-name-to-symbol 
-                                    (make-instance of CompensationPathVector
-                                                   (parent ?inst)
-                                                   (Paths $?paths)
-                                                   (OriginalBlock ?pv))))))
+                            $?cpv ?name))) 
 ;------------------------------------------------------------------------------
 ; Now we go through and attempt to schedule the instruction represented by 
 ; each CPV into the block on the wavefront. I call this stage merge. I had some
@@ -596,7 +598,7 @@
          (progn$ (?cpv $?cpvs)
                  (bind ?det FALSE)
                  (bind ?cpvName (instance-address * (symbol-to-instance-name
-                                                     ?cpv)))
+                                                      ?cpv)))
                  (bind ?paths (send ?cpvName get-Paths))
                  ;we look through the set of paths that the target CPV is on.
                  ;We try to find one that contains the target block on the
@@ -607,7 +609,7 @@
                            (break)
                            else 
                            (bind ?o2 (instance-address *
-                                      (symbol-to-instance-name ?p)))
+                                                       (symbol-to-instance-name ?p)))
                            (bind ?o2C (send ?o2 get-values))
                            (bind ?det (or ?det (member$ ?e ?o2C)))))
                  ;Outer loop
@@ -730,7 +732,7 @@
          (bind ?validPaths (create$))
          (progn$ (?z ?paths)
                  (bind ?obj (instance-address * (symbol-to-instance-name ?z)))
-                 (bind ?contents (send ?obj get-contents))
+                 (bind ?contents (send ?obj get-values))
                  (if (member$ ?e ?contents) then
                    (bind ?validPaths (create$ ?validPaths ?z))))
          (if (> (length$ ?validPaths) 0) then
