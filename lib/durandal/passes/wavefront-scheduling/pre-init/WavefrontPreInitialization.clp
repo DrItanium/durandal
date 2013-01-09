@@ -28,44 +28,58 @@
          (declare (salience 3))
          ?msg <- (message (to wavefront-scheduling)
                           (action can-wavefront-schedule)
-                          (argument ?p))
-         (not (exists (object (is-a Wavefront) (parent ?p))))
+                          (arguments ?p))
+         (not (exists (object (is-a Wavefront) 
+                              (parent ?p))))
          =>
          (retract ?msg)
-         (make-instance of Wavefront (parent ?p)))
+         (make-instance of Wavefront 
+                        (parent ?p)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-pre-init::retract-wavefront-creation-action
          (declare (salience 3))
          ?msg <- (message (to wavefront-scheduling)
                           (action can-wavefront-schedule)
-                          (argument ?p))
-         (exists (object (is-a Wavefront) (parent ?p)))
+                          (arguments ?p))
+         (exists (object (is-a Wavefront) 
+                         (parent ?p)))
          =>
          (retract ?msg))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-pre-init::assert-add-block-to-wavefront
          (declare (salience 2))
-         (object (is-a Wavefront) (parent ?r))
-         (object (is-a Region) (id ?r) (Entrances $? ?e $?))
-         (object (is-a BasicBlock) (id ?e) (parent ?r))
+         (object (is-a Wavefront) 
+                 (parent ?r))
+         (object (is-a Region) 
+                 (id ?r) 
+                 (Entrances $? ?e $?))
+         (object (is-a BasicBlock) 
+                 (id ?e) 
+                 (parent ?r))
          =>
          (assert (Add ?e to wavefront for ?r)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-pre-init::assert-add-region-to-wavefront
          (declare (salience 2))
-         (object (is-a Wavefront) (parent ?r))
-         (object (is-a Region) (id ?r) (Entrances $? ?e $?))
-         (object (is-a BasicBlock) (id ?e) (parent ~?r))
-         (object (is-a Region) (parent ?r) (Entrances $? ?e $?) (id ?q))
+         (object (is-a Wavefront) 
+                 (parent ?r))
+         (object (is-a Region) 
+                 (id ?r) 
+                 (Entrances $? ?e $?))
+         (object (is-a BasicBlock) 
+                 (id ?e) 
+                 (parent ~?r))
+         (object (is-a Region) 
+                 (parent ?r) 
+                 (Entrances $? ?e $?) 
+                 (id ?q))
          =>
          (assert (Add ?q to wavefront for ?r)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-pre-init::convert-single-single=>multi
          (declare (salience 1))
-         ;(Stage WavefrontInit $?)
          ?f0 <- (Add ?v0 to wavefront for ?r)
          ?f1 <- (Add ?v1&~?v0 to wavefront for ?r)
-         ;(test (neq ?f0 ?f1))
          =>
          (retract ?f0 ?f1)
          (assert (In wavefront ?r add ?v0 ?v1)))
@@ -89,7 +103,8 @@
 (defrule wavefront-scheduling-pre-init::construct-wavefront-for-region
          (declare (salience -1))
          ?f <- (In wavefront ?r add $?w)
-         ?wave <- (object (is-a Wavefront) (parent ?r))
+         ?wave <- (object (is-a Wavefront) 
+                          (parent ?r))
          =>
          (retract ?f)
          (modify-instance ?wave (contents $?w)))
