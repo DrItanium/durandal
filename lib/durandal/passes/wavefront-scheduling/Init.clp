@@ -34,6 +34,15 @@
 			  (import rampancy ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-determinant-cleanup
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import pipeline ?ALL)
+			  (import indirect ?ALL)
+			  (import rampancy ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
 (defmodule wavefront-scheduling-pre-init
 			  (import core ?ALL)
 			  (import llvm ?ALL)
