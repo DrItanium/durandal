@@ -219,8 +219,8 @@
 (defrule wavefront-scheduling-acquire::FindValidCPVsForBlock
          ?fct <- (For ?e find CPVs for ?pv $?pvs)
          (object (is-a BasicBlock) 
-          (id ?pv) 
-          (contents $?instructions))
+                 (id ?pv) 
+                 (contents $?instructions))
          =>
          (retract ?fct)
          (assert (For ?e find CPVs for $?pvs)
@@ -1094,7 +1094,7 @@
          (retract ?fct)
          (progn$ (?instance (find-all-instances ((?wave Wavefront)) TRUE))
                  (progn$ (?child (send ?instance get-values))
-                         (modify-instance 
-                           (symbol-to-instance-name ?child)
-                           (IsOpen FALSE)))))
+                         (bind ?name (instance-address llvm (symbol-to-instance-name ?child)))
+                         (modify-instance ?name 
+                                          (IsOpen FALSE)))))
 ;------------------------------------------------------------------------------
