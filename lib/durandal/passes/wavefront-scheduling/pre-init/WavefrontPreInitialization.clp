@@ -107,5 +107,5 @@
                           (parent ?r))
          =>
          (retract ?f)
-         (modify-instance ?wave (contents $?w)))
+         (modify-instance ?wave (values $?w)))
 ;------------------------------------------------------------------------------
