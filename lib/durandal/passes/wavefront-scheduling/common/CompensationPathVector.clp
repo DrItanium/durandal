@@ -1,4 +1,3 @@
-;------------------------------------------------------------------------------
 ;Copyright (c) 2012, Joshua Scoggins 
 ;All rights reserved.
 ;
@@ -24,18 +23,11 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defmodule wavefront-scheduling
-			  (import core ?ALL)
-			  (import llvm ?ALL)
-			  (import types ?ALL)
-			  (import pipeline ?ALL)
-			  (import indirect ?ALL)
-			  (import rampancy ?ALL)
-			  (import MAIN ?ALL))
-;------------------------------------------------------------------------------
-(batch* "passes/wavefront-scheduling/common/TypeLoader.clp")
-(load* "passes/wavefront-scheduling/Init.clp")
-(load* "passes/wavefront-scheduling/determinant/WavefrontDeterminantLogic.clp")
-(load* "passes/wavefront-scheduling/pre-init/WavefrontPreInitialization.clp")
-(batch* "passes/wavefront-scheduling/scheduler/Loader.clp")
-;TODO: More files to include
+(defclass types::CompensationPathVector 
+  (is-a ParentedObject Object)
+  (multislot Failures (visibility public))
+  (multislot Paths (visibility public))
+  (multislot ScheduleTargets (visibility public))
+  (multislot Slices (visibility public))
+  (multislot Aliases (visibility public))
+  (slot OriginalBlock (visibility public)))

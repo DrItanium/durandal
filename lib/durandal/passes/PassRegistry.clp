@@ -79,7 +79,15 @@
   (need-regions TRUE)
   (passes dependency-analysis)
   (required loops regions))
-
+ ([wavefront-scheduling] of Pass
+  (entry-point "passes/wavefront-scheduling/PassHeader.clp")
+  (pass-name wavefront-scheduling)
+  (pass-description "Performs wavefront scheduling on a target function")
+  (pass-type Function)
+  (need-loops TRUE)
+  (need-regions TRUE)
+  (passes wavefront-scheduling)
+  (required loops regions))
  ;Add more passes here
 )
 ;------------------------------------------------------------------------------

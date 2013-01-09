@@ -1,4 +1,3 @@
-;------------------------------------------------------------------------------
 ;Copyright (c) 2012, Joshua Scoggins 
 ;All rights reserved.
 ;
@@ -24,18 +23,31 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defmodule wavefront-scheduling
-			  (import core ?ALL)
-			  (import llvm ?ALL)
-			  (import types ?ALL)
-			  (import pipeline ?ALL)
-			  (import indirect ?ALL)
-			  (import rampancy ?ALL)
-			  (import MAIN ?ALL))
+(defrule wavefront-scheduling-init::build-path-aggregate-for-block
+         (declare (salience 100))
+         (object (is-a Wavefront) 
+                 (parent ?r) 
+                 (values $? ?e $?))
+         (object (is-a BasicBlock) 
+                 (id ?e) 
+                 (contents $?c))
+         =>
+         (assert (message (to wavefront-schedule) 
+                          (action propagate-aggregates)
+                          (arguments ?e)))
+         (make-instance of PathAggregate (parent ?e) 
+                        (OriginalStopIndex (- (length$ $?c) 1))))
 ;------------------------------------------------------------------------------
-(batch* "passes/wavefront-scheduling/common/TypeLoader.clp")
-(load* "passes/wavefront-scheduling/Init.clp")
-(load* "passes/wavefront-scheduling/determinant/WavefrontDeterminantLogic.clp")
-(load* "passes/wavefront-scheduling/pre-init/WavefrontPreInitialization.clp")
-(batch* "passes/wavefront-scheduling/scheduler/Loader.clp")
-;TODO: More files to include
+(defrule wavefront-scheduling-init::build-path-aggregate-for-region
+         (declare (salience 100))
+         (object (is-a Wavefront) 
+                 (parent ?r) 
+                 (values $? ?e $?))
+         (object (is-a Region) 
+                 (id ?e)) 
+         =>
+         (assert (message (to wavefront-schedule)
+                          (action propagate-aggregates)
+                          (arguments ?e)))
+         (make-instance of PathAggregate (parent ?e)))
+;------------------------------------------------------------------------------

@@ -34,7 +34,34 @@
 			  (import rampancy ?ALL)
 			  (import MAIN ?ALL))
 ;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-determinant-cleanup
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import pipeline ?ALL)
+			  (import indirect ?ALL)
+			  (import rampancy ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-pre-init
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import pipeline ?ALL)
+			  (import indirect ?ALL)
+			  (import rampancy ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
 (defmodule wavefront-scheduling-code
+			  (import core ?ALL)
+			  (import llvm ?ALL)
+			  (import types ?ALL)
+			  (import pipeline ?ALL)
+			  (import indirect ?ALL)
+			  (import rampancy ?ALL)
+			  (import MAIN ?ALL))
+;------------------------------------------------------------------------------
+(defmodule wavefront-scheduling-final
 			  (import core ?ALL)
 			  (import llvm ?ALL)
 			  (import types ?ALL)
@@ -46,7 +73,7 @@
 (defrule wavefront-scheduling::macro-expand-passes
 			"Pushes the modules that make up this pass into the pass-description"
 			?f <- (message (from pipeline)
-								(to wavefront)
+								(to wavefront-scheduling)
 								(action initial-fact))
 			?p <- (object (is-a pass-description) (passes $?passes))
 			=>
@@ -54,8 +81,10 @@
 			(modify-instance ?p (passes
 										loop-region-merging
 										dependency-analysis
-										wavefront-determinant
+										wavefront-scheduling-determinant
 										paths-conditional
+                    wavefront-scheduling-pre-init
 										wavefront-scheduling-code
+                    wavefront-scheduling-final
 										$?passes)))
 ;------------------------------------------------------------------------------

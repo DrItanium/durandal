@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-;Copyright (c) 2012, Joshua Scoggins 
+;Copyright (c) 2012-2013, Joshua Scoggins 
 ;All rights reserved.
 ;
 ;Redistribution and use in source and binary forms, with or without
@@ -24,18 +24,9 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defmodule wavefront-scheduling
-			  (import core ?ALL)
-			  (import llvm ?ALL)
-			  (import types ?ALL)
-			  (import pipeline ?ALL)
-			  (import indirect ?ALL)
-			  (import rampancy ?ALL)
-			  (import MAIN ?ALL))
+(defclass types::Slice 
+  (is-a ParentedObject Object)
+  (slot target-block (type SYMBOL) (visibility public))
+  (slot target-path (type SYMBOL) (visibility public))
+  (multislot contents (visibility public)))
 ;------------------------------------------------------------------------------
-(batch* "passes/wavefront-scheduling/common/TypeLoader.clp")
-(load* "passes/wavefront-scheduling/Init.clp")
-(load* "passes/wavefront-scheduling/determinant/WavefrontDeterminantLogic.clp")
-(load* "passes/wavefront-scheduling/pre-init/WavefrontPreInitialization.clp")
-(batch* "passes/wavefront-scheduling/scheduler/Loader.clp")
-;TODO: More files to include

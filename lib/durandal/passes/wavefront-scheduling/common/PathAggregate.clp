@@ -24,18 +24,27 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defmodule wavefront-scheduling
-			  (import core ?ALL)
-			  (import llvm ?ALL)
-			  (import types ?ALL)
-			  (import pipeline ?ALL)
-			  (import indirect ?ALL)
-			  (import rampancy ?ALL)
-			  (import MAIN ?ALL))
+(defclass types::PathAggregate 
+  "The PathAggregate is a very useful data structure that keeps track of all
+  information regarding paths and scheduling for a given block on the wavefront.
+  Like all objects in this project, it is a tagged object so that it can be
+  easily queried without knowing it's name directly. "
+  (is-a ParentedObject Object InteropObject)
+  (slot OriginalStopIndex (type NUMBER))
+  (multislot MemoryInvalid (visibility public))
+  (multislot MemoryValid (visibility public))
+  (multislot PotentiallyValid (visibility public))
+  (multislot MemoryBarriers (visibility public))
+  (multislot CallBarriers (visibility public))
+  (multislot CompletelyInvalid (visibility public))
+  ;compensation path vector aspect of the PathAggregate
+  (multislot InstructionList (visibility public))
+  (multislot ReplacementActions (visibility public))
+  (multislot InstructionPropagation (visibility public))
+  (multislot ScheduledInstructions (visibility public))
+  (multislot CompensationPathVectors (visibility public))
+  (multislot TargetCompensationPathVectors (visibility public))
+  (multislot MovableCompensationPathVectors (visibility public))
+  (multislot ImpossibleCompensationPathVectors (visibility public))
+  (multislot StalledCompensationPathVectors (visibility public)))
 ;------------------------------------------------------------------------------
-(batch* "passes/wavefront-scheduling/common/TypeLoader.clp")
-(load* "passes/wavefront-scheduling/Init.clp")
-(load* "passes/wavefront-scheduling/determinant/WavefrontDeterminantLogic.clp")
-(load* "passes/wavefront-scheduling/pre-init/WavefrontPreInitialization.clp")
-(batch* "passes/wavefront-scheduling/scheduler/Loader.clp")
-;TODO: More files to include

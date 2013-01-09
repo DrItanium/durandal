@@ -24,18 +24,12 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(defmodule wavefront-scheduling
-			  (import core ?ALL)
-			  (import llvm ?ALL)
-			  (import types ?ALL)
-			  (import pipeline ?ALL)
-			  (import indirect ?ALL)
-			  (import rampancy ?ALL)
-			  (import MAIN ?ALL))
+(defclass types::Wavefront 
+  (is-a ParentedHint)
+  (multislot Open (visibility public))
+  (multislot DeleteNodes (visibility public))
+  (multislot Closed (visibility public)))
 ;------------------------------------------------------------------------------
-(batch* "passes/wavefront-scheduling/common/TypeLoader.clp")
-(load* "passes/wavefront-scheduling/Init.clp")
-(load* "passes/wavefront-scheduling/determinant/WavefrontDeterminantLogic.clp")
-(load* "passes/wavefront-scheduling/pre-init/WavefrontPreInitialization.clp")
-(batch* "passes/wavefront-scheduling/scheduler/Loader.clp")
-;TODO: More files to include
+(defmessage-handler types::Wavefront init after ()
+                    (bind ?self:type Wavefront))
+;------------------------------------------------------------------------------
