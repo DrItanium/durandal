@@ -70,7 +70,7 @@
          (assert (message (to wavefront-scheduling)
                           (action can-wavefront-schedule)
                           (arguments ?p))
-                 (message (to path-conditional)
+                 (message (to paths-conditional)
                           (action valid-pathing-target)
                           (arguments ?p))))
 ;------------------------------------------------------------------------------
