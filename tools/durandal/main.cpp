@@ -35,6 +35,7 @@
 #include "rampancy/ClangCompiler.h"
 #include "rampancy/LLVMIRCompiler.h"
 #include "pipeline/clips/CLIPSPipelineFunctions.h"
+#include "JSEdgeRemovalPass.h"
 using namespace llvm;
 extern "C" {
 #include <stdio.h>
@@ -51,6 +52,8 @@ int main(int argc, char** argv) {
    rampancy::Cortex* rampantCortex = rampancy::Cortex::getRampantCortex();
    rampancy::CompilerRegistry* compilerRegistry = 
       rampancy::CompilerRegistry::getCompilerRegistry();
+	durandal::passes::JSEdgeRemovalPass *p = new durandal::passes::JSEdgeRemovalPass();
+	delete p;
    PassRegistry &registry = *PassRegistry::getPassRegistry();
    initializeCore(registry);
    initializeScalarOpts(registry);
