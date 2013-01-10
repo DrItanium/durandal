@@ -10,7 +10,6 @@
 #include "llvm/Analysis/RegionIterator.h"
 #include "llvm/Analysis/RegionInfo.h"
 #include "llvm/Analysis/LoopInfo.h"
-#include "PassDependencies.h"
 
 using namespace llvm;
 namespace {
