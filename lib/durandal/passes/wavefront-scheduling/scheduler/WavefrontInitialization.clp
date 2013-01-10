@@ -32,7 +32,7 @@
                  (id ?e) 
                  (contents $?c))
          =>
-         (assert (message (to wavefront-schedule) 
+         (assert (message (to wavefront-scheduling) 
                           (action propagate-aggregates)
                           (arguments ?e)))
          (make-instance of PathAggregate (parent ?e) 
@@ -46,7 +46,7 @@
          (object (is-a Region) 
                  (id ?e)) 
          =>
-         (assert (message (to wavefront-schedule)
+         (assert (message (to wavefront-scheduling)
                           (action propagate-aggregates)
                           (arguments ?e)))
          (make-instance of PathAggregate (parent ?e)))

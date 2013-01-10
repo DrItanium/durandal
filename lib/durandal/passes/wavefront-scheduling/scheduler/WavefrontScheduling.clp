@@ -1018,7 +1018,7 @@
                  (arguments ?cpv ?e)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge-init::AddCPVToSuccessList
-         ?fct <- (message (to wavefront-schedule)
+         ?fct <- (message (to wavefront-scheduling)
                           (action can-schedule)
                           (arguments ?cpv ?e))
          ?agObj <- (object (is-a PathAggregate) 
@@ -1029,7 +1029,7 @@
          (modify-instance ?agObj (MovableCompensationPathVectors $?mcpv ?cpv)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge-init::FailCPVForNow
-         ?fct <- (message (to wavefront-schedule)
+         ?fct <- (message (to wavefront-scheduling)
                           (action cant-schedule)
                           (arguments ?cpv ?b now))
          ?ag <- (object (is-a PathAggregate) 
@@ -1040,7 +1040,7 @@
          (modify-instance ?ag (StalledCompensationPathVectors $?scpv ?cpv)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge-init::RemoveCPVFromService
-         ?fct <- (message (to wavefront-schedule)
+         ?fct <- (message (to wavefront-scheduling)
                           (action cant-schedule)
                           (arguments ?cpv ?b ever))
          ?agObj <- (object (is-a PathAggregate) 
