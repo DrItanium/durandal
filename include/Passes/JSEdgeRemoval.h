@@ -62,7 +62,7 @@ namespace {
                   elements.push_back(predbb);
                }
             }
-            SplitBlockPredecessors(bb, elements.data(), elements.size(), "Pad", this);
+            SplitBlockPredecessors(bb, elements, "Pad", this);
          }
          //  li.verifyAnalysis();
          for(Loop::iterator q = loop->begin(), qu = loop->end(); q != qu; ++q) {
@@ -104,7 +104,7 @@ namespace {
                count++;
             }
             if(elements.size() > 0 && count != elements.size()) { 
-               BasicBlock* update = SplitBlockPredecessors(exit, elements.data(), elements.size(), "Pad", this);
+               BasicBlock* update = SplitBlockPredecessors(exit, elements, "Pad", this);
                target->replaceExit(update);
             }
             //ri.splitBlock(update, exit);
