@@ -13,7 +13,7 @@
 #include "PassDependencies.h"
 
 using namespace llvm;
-namespace llvm {
+namespace {
    struct JSEdgeRemoval : public FunctionPass {
       static char ID;
       public:
