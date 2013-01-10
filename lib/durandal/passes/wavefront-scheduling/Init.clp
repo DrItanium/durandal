@@ -82,6 +82,7 @@
 										loop-region-merging
 										dependency-analysis
 										wavefront-scheduling-determinant
+										wavefront-scheduling-determinant-cleanup
 										paths-conditional
                     wavefront-scheduling-pre-init
 										wavefront-scheduling-code
