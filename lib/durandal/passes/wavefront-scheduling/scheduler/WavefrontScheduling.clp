@@ -701,7 +701,7 @@
          ;TODO: test to see if putting parts of the test condition into the
          ;match conditions of the previous CE will work correctly or even allow
          ;for piecewise evaluation
-         (object (is-a Instruction) 
+         ?inst <- (object (is-a Instruction) 
                  (id ?i) 
                  (LocalDependencies $?ld) 
                  (NonLocalDependencies $?nld))
@@ -728,7 +728,7 @@
                  (id ?cpv) 
                  (Paths $?paths))
          =>
-         (retract ?fct)
+         ;(retract ?fct)
          (bind ?validPaths (create$))
          (progn$ (?z ?paths)
                  (bind ?obj (instance-address * (symbol-to-instance-name ?z)))
@@ -736,34 +736,53 @@
                  (if (member$ ?e ?contents) then
                    (bind ?validPaths (create$ ?validPaths ?z))))
          (if (> (length$ ?validPaths) 0) then
-           (assert (Pull slices for range ?e to ?b for instruction ?i { 
-                         associated cpv ?cpv } using paths $?validPaths))))
+          (modify ?fct (action pull-slices-for)
+                       (arguments range ?e => ?b
+                                 instruction ?i
+                                 cpv ?cpv
+                                 paths $?validPaths))
+           ;(assert (Pull slices for range ?e to ?b for instruction ?i { 
+           ;              associated cpv ?cpv } using paths $?validPaths))
+           else
+           (retract ?fct)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-analyze::CreateSliceSegments
-         ?fct <- (Pull slices for range ?e to ?b for instruction ?i {
-                       associated cpv ?cpv } using paths ?path $?paths)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action pull-slices-for)
+                          (arguments range ?e => ?b
+                           instruction ?i
+                           cpv ?cpv
+                           paths ?path $?paths))
          (object (is-a Slice) 
                  (parent ?b) 
                  (target-block ?e) 
                  (target-path ?path)
                  (id ?s))
          =>
-         (retract ?fct)
-         (assert (Pull slices for range ?e to ?b for instruction ?i {
-                       associated cpv ?cpv } using paths $?paths)
-                 (message (to wavefront-scheduling)
-                          (action analyze-slice)
-                          (arguments ?s ?e ?cpv))))
+         (duplicate ?fct (action analyze-slice)
+                         (arguments ?s ?e ?cpv))
+         (modify ?fct (arguments range ?e => ?b
+                       instruction ?i
+                       cpv ?cpv
+                       paths $?paths)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-analyze::RetractSliceSegmenterFact
-         ?fct <- (Pull slices for range ? to ? for instruction ? {
-                       associated cpv ? } using paths)
+ ?fct <- (message (to wavefront-scheduling)
+   (action pull-slices-for)
+   (arguments range ? => ?
+    instruction ?
+    cpv ?
+    paths))
          =>
          (retract ?fct))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-analyze::FAILURE-MISSING-SLICE 
-         ?fct <- (Pull slices for range ?e to ?b for instruction ?i {
-                       associated cpv ?cpv } using paths ?path $?paths)
+         ?fct <- (message (to wavefront-scheduling)
+                          (action pull-slices-for)
+                          (arguments range ?e => ?b
+                           instruction ?i
+                           cpv ?cpv
+                           paths ?path $?paths))
          (not (exists (object (is-a Slice) 
                               (parent ?b) 
                               (target-block ?e)
@@ -785,7 +804,7 @@
                          (arguments ?s0 ?e ?cpv))
          ?f1 <- (message (to wavefront-scheduling)
                          (action analyze-slice)
-                         (arguments ?s1&~?s1 ?e ?cpv))
+                         (arguments ?s1&~?s0 ?e ?cpv))
          =>
          (retract ?f1)
          (modify ?f0 (action analyze-slices)
