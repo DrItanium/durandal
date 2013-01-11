@@ -155,7 +155,7 @@
                             (arguments ?e => ?curr)))))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-pathing::RetractCompletedFact
-         ?fct <- (message (to wavefront-scheduling)
+         ?fct <- (message (to wavefront-scheduling-pathing)
                           (action scan-path)
                           (arguments ? ? =>))
          =>
