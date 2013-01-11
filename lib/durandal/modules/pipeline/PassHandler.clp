@@ -27,28 +27,28 @@
 ; PassHandler.clp - Contains the logic necessary to handle pass execution
 ;------------------------------------------------------------------------------
 (defrule pipeline::build-pass-descriptor
-			?fct <- (message (to pipeline) 
-								  (action pass-description) 
-								  (arguments $?passes))
-			=>
-			(retract ?fct)
-			(make-instance of pass-description (passes $?passes)))
+         ?fct <- (message (to pipeline) 
+                          (action pass-description) 
+                          (arguments $?passes))
+         =>
+         (retract ?fct)
+         (make-instance of pass-description (passes $?passes)))
 ;------------------------------------------------------------------------------
 (defrule pipeline::next-pass
-			?obj <- (object (is-a pass-description) 
-								 (passes ?first $?rest))
-			=>
-			(modify-instance ?obj (passes $?rest))
-			;remove what is currently on the focus stack
-			(pop-focus)
-			(assert (message (from pipeline) 
-								  (to ?first) 
-								  (action initial-fact)))
-			(focus ?first pipeline))
+         ?obj <- (object (is-a pass-description) 
+                         (passes ?first $?rest))
+         =>
+         (modify-instance ?obj (passes $?rest))
+         ;remove what is currently on the focus stack
+         ;			(pop-focus)
+         (assert (message (from pipeline) 
+                          (to ?first) 
+                          (action initial-fact)))
+         (focus ?first pipeline))
 ;------------------------------------------------------------------------------
 (defrule pipeline::terminate-pass
-			?obj <- (object (is-a pass-description) 
-								 (passes))
-			=>
-			(unmake-instance ?obj))
+         ?obj <- (object (is-a pass-description) 
+                         (passes))
+         =>
+         (unmake-instance ?obj))
 ;------------------------------------------------------------------------------
