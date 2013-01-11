@@ -190,7 +190,9 @@
                               (contents $?blockBefore ?newName ?last))
              (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
              ;purge the list of producers and consumers
-             (duplicate-instance ?inst to ?newName 
+             (bind ?inst-addr (instance-address * 
+                               (symbol-to-instance-name ?inst)))
+             (duplicate-instance ?inst-addr to ?newName 
                                  (id ?newName) 
                                  (Name ?newName)
                                  (pointer ?newPtr) 

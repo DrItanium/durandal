@@ -62,7 +62,7 @@
          (bind ?symList (create$))
          (bind ?i0 1)
          (progn$ (?var $?rest)
-                 (bind ?obj (instance-name (symbol-to-instance-name ?var)))
+                 (bind ?obj (instance-address * (symbol-to-instance-name ?var)))
                  (bind ?oOps (send ?obj get-Operands))
                  (if (member$ ?orig ?oOps) then
                    (bind ?ptrTmp (send ?obj get-Pointer))
