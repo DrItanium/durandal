@@ -46,6 +46,13 @@
                           (action initial-fact)))
          (focus ?first))
 ;------------------------------------------------------------------------------
+(defrule pipeline::retract-initial-fact
+         ?obj <- (message (to ?)
+                          (from pipeline)
+                          (action initial-fact))
+         =>
+         (retract ?obj))
+;------------------------------------------------------------------------------
 (defrule pipeline::terminate-pass
          ?obj <- (object (is-a pass-description) 
                          (passes))

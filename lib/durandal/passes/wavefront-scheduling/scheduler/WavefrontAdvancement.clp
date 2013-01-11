@@ -171,3 +171,13 @@
            (llvm-unlink-and-delete-instruction ?ptr)
            (unmake-instance ?instruction)))
 ;------------------------------------------------------------------------------
+(defrule wavefront-scheduling-final::DisplayFactsAtEnd 
+ (declare (salience -10000))
+ (message (action DEBUG))
+ ?fct <- (message (to wavefront-scheduling-final)
+    (action initial-fact))
+ =>
+ (retract ?fct)
+ (facts))
+;------------------------------------------------------------------------------
+
