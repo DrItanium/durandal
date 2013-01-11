@@ -34,8 +34,7 @@
          ;of it's predecessors are above it. That is the definition of being on
          ;the wavefront
          ?pa <- (object (is-a PathAggregate) 
-                        (parent ?e)
-                        (InstructionPropagation $?ip))
+                        (parent ?e))
          (object (is-a Diplomat) 
                  (id ?e) 
                  (PreviousPathElements $? ?z $?))
@@ -46,7 +45,7 @@
          ;replace parent blocks of previous path elements with the name of the
          ;element this was acquired from
          ;(printout t "Put (" ?targ " " ?alias " " ?z "! ) into " ?pp crlf)
-         (modify-instance ?pa (InstructionPropagation $?ip ?targ ?alias ?z !)))
+         (slot-insert$ ?pa InstructionPropagation 1 ?targ ?alias ?z !))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-identify::RetractAggregationInformation
          (declare (salience -50))
