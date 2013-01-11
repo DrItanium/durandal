@@ -44,7 +44,7 @@
          (assert (message (from pipeline) 
                           (to ?first) 
                           (action initial-fact)))
-         (focus ?first pipeline))
+         (focus ?first))
 ;------------------------------------------------------------------------------
 (defrule pipeline::terminate-pass
          ?obj <- (object (is-a pass-description) 
