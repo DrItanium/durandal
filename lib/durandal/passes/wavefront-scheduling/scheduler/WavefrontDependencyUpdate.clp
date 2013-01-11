@@ -246,7 +246,7 @@
          "Adds a given producer to the target instruction"
          (declare (salience -5))
          ?fct <- (message (to wavefront-scheduling)
-                          (action instruction-consumes)
+                          (action instruction-produces)
                           (arguments ?target => ?id))
          ?inst <- (object (is-a Instruction) 
                           (id ?id)
