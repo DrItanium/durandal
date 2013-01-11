@@ -44,6 +44,8 @@
          instruction as we don't want to count JS nodes as they don't usually 
          contain code."
          (declare (salience 1))
+         ?wa <- (object (is-a FrequencyAnalysis) 
+                        (parent ?p))
          (object (is-a Region) 
                  (id ?p) 
                  (class Region) 
@@ -52,8 +54,6 @@
                  (id ?t) 
                  (parent ?p) 
                  (contents $?insts&:(> (length$ $?insts) 1)))
-         ?wa <- (object (is-a FrequencyAnalysis) 
-                        (parent ?p))
          =>
          (send ?wa increment-frequency))
 ;------------------------------------------------------------------------------
