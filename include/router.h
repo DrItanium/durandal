@@ -36,12 +36,12 @@
 #include <stdio.h>
 #endif
 
-#define WWARNING "wwarning"
-#define WERROR "werror"
-#define WTRACE "wtrace"
-#define WDIALOG "wdialog"
+#define WWARNING (char*)"wwarning"
+#define WERROR (char*)"werror"
+#define WTRACE (char*)"wtrace"
+#define WDIALOG (char*)"wdialog"
 #define WPROMPT  WPROMPT_STRING
-#define WDISPLAY "wdisplay"
+#define WDISPLAY (char*)"wdisplay"
 
 #define ROUTER_DATA 46
 
