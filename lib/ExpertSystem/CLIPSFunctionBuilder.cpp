@@ -93,57 +93,81 @@ void CLIPSFunctionBuilder::addFields(Function* func,
    CLIPSGlobalValueBuilder::addFields(func, kc);
    //this part contains the code for building the function itself
    FunctionNamer& namer = getNamer();
-   addField("ReturnType", kc->route(fn->getReturnType(), namer));
-   addField("FunctionType", kc->route(fn->getFunctionType(), namer));
-   if(fn.isVarArg()) {
+   addField("ReturnType", kc->route(func->getReturnType(), namer));
+   addField("FunctionType", kc->route(func->getFunctionType(), namer));
+   if(func.isVarArg()) {
       addTrueField("IsVarArg");
    }
-   addField("IntrinsicID", fn->getIntrinsicID());
-   if(fn.isIntrinsic()) {
+   addField("IntrinsicID", func->getIntrinsicID());
+   if(func.isIntrinsic()) {
       addTrueField("IsIntrinsic");
    }
    setCallingConvention(func->getCallingConv());
    setAttributes(func->getAttributes());
-   if(fn.hasGC()) {
+   if(func.hasGC()) {
       addTrueField("HasGC");
+      addField("GC", func->getGC());
    }
-   if(fn.doesNotAccessMemory()) {
+   if(func.doesNotAccessMemory()) {
       addTrueField("DoesNotAccessMemory");
    }
-   if(fn.onlyReadsMemory()) {
+   if(func.onlyReadsMemory()) {
       addTrueField("OnlyReadsMemory");
    }
-   if(fn.doesNotReturn()) {
+   if(func.doesNotReturn()) {
       addTrueField("DoesNotReturn");
    }
-   if(fn.cannotDuplicate()) {
+   if(func.cannotDuplicate()) {
       addTrueField("CannotDuplicate");
    }
-   if(fn.hasUWTable()) {
+   if(func.hasUWTable()) {
       addTrueField("HasUWTable");
    }
-   if(fn.needsUnwindTableEntry()) {
+   if(func.needsUnwindTableEntry()) {
       addTrueField("NeedsUnwindTableEntry");
    }
-   if(fn.hasStructRetAttr()) {
+   if(func.hasStructRetAttr()) {
       addTrueField("HasStructRetAttr");
    }
    //TODO: Expose doesNotAlias, doesNotCapture, and getParamAttributes to 
    //CLIPS as functions
-   char* fnName = (char*)fn.getName().data();
+   char* fnName = (char*)func.getName().data();
    FunctionNamer& namer = getNamer();
-   addField("EntryBlock", kc->route(fn.getEntryBlock(), fnName, namer));
-
-   if(traverseFields) {
-
-   }
+   addField("EntryBlock", kc->route(func.getEntryBlock(), fnName, namer));
+   
 }
+/* Begin C functions for allowing CLIPS to interact with LLVM */
 #define msg(x) (char*) x
 #define werror msg(werror)
-#define name_LLVMFunctionDoesNotAlias msg("llvm-function-does-not-alias")
-#define name_LLVMFunctionDoesNotCapture msg("llvm-function-does-not-capture")
-#define name_LLVMFunctionGetParamAlignment \
-   msg("llvm-function-get-param-alignment")
+#define name_LLVMFunctionSetGC \
+   msg("llvm-function-set-gc")
+#define name_LLVMFunctionClearGC \
+   msg("llvm-function-clear-gc")
+#define name_LLVMFunctionDeleteBody \
+   msg("llvm-function-delete-body")
+#define name_LLVMFunctionRemoveFromParent \
+   msg("llvm-function-remove-from-parent")
+#define name_LLVMFunctionEraseFromParent \
+   msg("llvm-function-erase-from-parent")
+#define name_LLVMFunctionSetDoesNotAccessMemory \
+   msg("llvm-function-set-does-not-access-memory")
+#define name_LLVMFunctionSetDoesNotAlias \
+   msg("llvm-function-set-does-not-alias")
+#define name_LLVMFunctionSetDoesNotCapture \
+   msg("llvm-function-set-does-not-capture")
+#define name_LLVMFunctionSetDoesNotThrow \
+   msg("llvm-function-set-does-not-throw")
+#define name_LLVMFunctionSetHasUWTable \
+   msg("llvm-function-set-has-uw-table")
+#define name_LLVMFunctionSetDoesNotReturn \
+   msg("llvm-function-set-does-not-return")
+#define name_LLVMFunctionSetCannotDuplicate \
+   msg("llvm-function-set-cannot-duplicate")
+#define name_LLVMFunctionSetOnlyReadsMemory \
+   msg("llvm-function-set-only-reads-memory")
+/* Getters */
+#define name_LLVMFunctionDoesNotAlias \
+   msg("llvm-function-does-not-alias")
 extern "C" unsigned LLVMFunctionDoesNotAlias(void* theEnv) {
    DATA_OBJECT ptrDO,
                indexDO;
@@ -170,6 +194,8 @@ extern "C" unsigned LLVMFunctionDoesNotAlias(void* theEnv) {
       return fn->doesNotAlias(index);
    }
 }
+#define name_LLVMFunctionDoesNotCapture \
+   msg("llvm-function-does-not-capture")
 extern "C" unsigned LLVMFunctionDoesNotCapture(void* theEnv) {
    DATA_OBJECT ptrDO,
                indexDO;
@@ -196,6 +222,8 @@ extern "C" unsigned LLVMFunctionDoesNotCapture(void* theEnv) {
       return fn->doesNotCapture(index);
    }
 }
+#define name_LLVMFunctionGetParamAlignment \
+   msg("llvm-function-get-param-alignment")
 extern "C" unsigned LLVMFunctionGetParamAlignment(void* theEnv) {
    DATA_OBJECT ptrDO,
                indexDO;
@@ -237,4 +265,18 @@ extern "C" void RegisterLLVMFunctionManipulationFunctions(void *theEnv) {
 #undef name_LLVMFunctionDoesNotCapture
 #undef name_LLVMFunctionDoesNotAlias
 #undef name_LLVMFunctionGetParamAlignment
+#undef name_LLVMFunctionSetOnlyReadsMemory
+#undef name_LLVMFunctionSetGC
+#undef name_LLVMFunctionClearGC
+#undef name_LLVMFunctionDeleteBody
+#undef name_LLVMFunctionRemoveFromParent
+#undef name_LLVMFunctionEraseFromParent
+#undef name_LLVMFunctionSetDoesNotAccessMemory
+#undef name_LLVMFunctionSetDoesNotAlias
+#undef name_LLVMFunctionSetDoesNotCapture
+#undef name_LLVMFunctionSetDoesNotThrow
+#undef name_LLVMFunctionSetHasUWTable
+#undef name_LLVMFunctionSetDoesNotReturn
+#undef name_LLVMFunctionSetCannotDuplicate
 #undef msg
+/* End C Interaction Functions */
