@@ -35,46 +35,48 @@
   (slot type (visibility public) (type SYMBOL))
   (slot point (visibility public) (type SYMBOL)))
 ;------------------------------------------------------------------------------
-(defmessage-handler core::Hint increment-reference-count primary ($?by)
+(defmessage-handler core::Hint increment-reference-count primary 
 "Incrementes the reference count of the given hint.  If no parameters are given 
 then the default is one. If a parameter is given then that is the value 
 incremented by. If more than one parameter is given then those numbers are 
 added together and then added to the current reference count"
-						  (bind ?len (length$ ?by))
-						  (switch (length$ ?by)
-									 (case 0 then 
-										(bind ?self:reference-count 
-												(+ 1 ?self:reference-count)))
-									 (case 1 then 
-										(bind ?self:reference-count 
-										      (eval (format nil "(+ %i %i)", (first$ ?by)
-														 ?self:reference-count))))
-									 (default 
-										(bind ?v (eval (format nil "(+ %s)" 
-																	  (implode$ ?by))))
-										(bind ?self:reference-count 
-												(+ ?self:reference-count ?v)))))
+                    ($?by)
+                    (bind ?len (length$ ?by))
+                    (switch (length$ ?by)
+                            (case 0 then 
+                              (bind ?self:reference-count 
+                                    (+ 1 ?self:reference-count)))
+                            (case 1 then 
+                              (bind ?self:reference-count 
+                                    (eval (format nil "(+ %i %i)", (first$ ?by)
+                                                  ?self:reference-count))))
+                            (default 
+                              (bind ?v (eval (format nil "(+ %s)" 
+                                                     (implode$ ?by))))
+                              (bind ?self:reference-count 
+                                    (+ ?self:reference-count ?v)))))
 ;------------------------------------------------------------------------------
-(defmessage-handler core::Hint decrement-reference-count 
+(defmessage-handler core::Hint decrement-reference-count primary
 "Decrements the reference count of the given hint.  If no parameters are given 
 then the default is one. If a parameter is given then that is the value 
 decremented by. If more than one parameter is given then those numbers are 
 added together and then subtracted from the current reference count"
-						  ($?by)
-						  (bind ?len (length$ ?by))
-						  (switch (length$ ?by)
-									 (case 0 then 
-										(bind ?self:reference-count 
-												(- 1 ?self:reference-count)))
-									 (case 1 then 
-										(bind ?self:reference-count 
-										      (eval (format nil "(- %i %i)" (first$ ?by)
-														 ?self:reference-count))))
-									 (default 
-										;add all of the element together so that the
-										;subtraction is correct
-										(bind ?v (eval (format nil "(+ %s)" 
-																	  (implode$ ?by))))
-										(bind ?self:reference-count 
-												(- ?self:reference-count ?v)))))
+                    ($?by)
+                    (bind ?len (length$ ?by))
+                    (switch (length$ ?by)
+                            (case 0 then 
+                              (bind ?self:reference-count 
+                                    (- ?self:reference-count 1)))
+                            (case 1 then 
+                              (bind ?self:reference-count 
+                                    (eval (format nil "(- %i %i)" 
+                                           ?self:reference-count
+                                                  (first$ ?by)))))
+                            (default 
+                              ;add all of the element together so that the
+                              ;subtraction is correct
+                              (bind ?v (eval (format nil "(+ %s)" 
+                                                     (implode$ ?by))))
+                              (bind ?self:reference-count 
+                                    (- ?self:reference-count ?v)))))
 ;------------------------------------------------------------------------------
