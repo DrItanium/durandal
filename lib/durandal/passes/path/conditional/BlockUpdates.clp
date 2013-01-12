@@ -29,6 +29,8 @@
 ; Written by Joshua Scoggins (6/7/2012)
 ;------------------------------------------------------------------------------
 (defrule paths-conditional-update::FAIL-UNFINISHED-PATHS 
+ (message (to paths-conditional-update)
+          (action initial-fact))
 			(test (> (length$ 
 						  (find-all-instances ((?path Path)) (not ?path:closed))) 0))
 			=>
