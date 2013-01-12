@@ -4,9 +4,9 @@ CLIPSFunctionBuilder::CLIPSFunctionBuilder(std::string nm,
       FunctionNamer& namer) : CLIPSGlobalValueBuilder(nm, "Function",  namer) { 
 }
 
-void CLIPSFunctionBuilder::build(Function* fn, KnowledgeConstructor* kc, bool traverseFields) {
+void CLIPSFunctionBuilder::build(Function* fn, KnowledgeConstructor* kc) {
    open();
-   addFields(fn, kc, traverseFields);
+   addFields(fn, kc);
    close();
    std::string str = getCompletedString();
    kc->addToKnowledgeBase((PointerAddress)arg, str);
@@ -81,8 +81,12 @@ void CLIPSFunctionBuilder::setCallingConvention(CallingConv::ID id) {
    }
    addField("CallingConvention", selection);
 }
+void CLIPSFunctionBuilder::setAttributes(const AttributeSet& attr) {
 
-void CLIPSFunctionBuilder::addFields(Function* func, KnowledgeConstructor* kc, bool traverseFields) {
+}
+void CLIPSFunctionBuilder::addFields(Function* func, 
+      KnowledgeConstructor* kc) {
+
    CLIPSGlobalValueBuilder::addFields(func, kc);
    //this part contains the code for building the function itself
    FunctionNamer& namer = getNamer();
@@ -95,7 +99,37 @@ void CLIPSFunctionBuilder::addFields(Function* func, KnowledgeConstructor* kc, b
    if(fn.isIntrinsic()) {
       addTrueField("IsIntrinsic");
    }
-   setCallingConvention(func->getCallingConv(), kc);
+   setCallingConvention(func->getCallingConv());
+   setAttributes(func->getAttributes());
+   if(fn.hasGC()) {
+      addTrueField("HasGC");
+   }
+   if(fn.doesNotAccessMemory()) {
+      addTrueField("DoesNotAccessMemory");
+   }
+   if(fn.onlyReadsMemory()) {
+      addTrueField("OnlyReadsMemory");
+   }
+   if(fn.doesNotReturn()) {
+      addTrueField("DoesNotReturn");
+   }
+   if(fn.cannotDuplicate()) {
+      addTrueField("CannotDuplicate");
+   }
+   if(fn.hasUWTable()) {
+      addTrueField("HasUWTable");
+   }
+   if(fn.needsUnwindTableEntry()) {
+      addTrueField("NeedsUnwindTableEntry");
+   }
+   if(fn.hasStructRetAttr()) {
+      addTrueField("HasStructRetAttr");
+   }
+   //TODO: Expose doesNotAlias, doesNotCapture, and getParamAttributes to 
+   //CLIPS as functions
+   char* fnName = (char*)fn.getName().data();
+   FunctionNamer& namer = getNamer();
+   addField("EntryBlock", kc->route(fn.getEntryBlock(), fnName, namer));
 
    if(traverseFields) {
 
