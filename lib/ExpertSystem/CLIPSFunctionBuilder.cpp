@@ -624,8 +624,25 @@ extern "C" void RegisterLLVMFunctionManipulationFunctions(void *theEnv) {
    EnvDefineFunction(theEnv, name_LLVMFunctionGetParamAlignment, 'i', 
          PTIEF LLVMFunctionGetParamAlignment, 
          msg("LLVMFunctionGetParamAlignment"));
-   SimpleEnvDefineFunction(theEnv, LLVMFunctionSetGC, 'v');
+#define QuickEnvDefineFunction(n) SimpleEnvDefineFunction(theEnv, n, 'v')
+   QuickEnvDefineFunction(LLVMFunctionSetOnlyReadsMemory);
+   QuickEnvDefineFunction(LLVMFunctionSetGC);
+   QuickEnvDefineFunction(LLVMFunctionClearGC);
+   QuickEnvDefineFunction(LLVMFunctionDeleteBody);
+   QuickEnvDefineFunction(LLVMFunctionRemoveFromParent);
+   QuickEnvDefineFunction(LLVMFunctionEraseFromParent);
+   QuickEnvDefineFunction(LLVMFunctionSetDoesNotAccessMemory);
+   QuickEnvDefineFunction(LLVMFunctionSetDoesNotAlias);
+   QuickEnvDefineFunction(LLVMFunctionSetDoesNotCapture);
+   QuickEnvDefineFunction(LLVMFunctionSetDoesNotThrow);
+   QuickEnvDefineFunction(LLVMFunctionSetHasUWTable);
+   QuickEnvDefineFunction(LLVMFunctionSetDoesNotReturn);
+   QuickEnvDefineFunction(LLVMFunctionDropAllReferences);
+#undef QuickEnvDefineFunction
 }
+#undef SimpleEnvDefineFunction
+#undef getClipsName
+#undef str
 #undef werror
 #undef name_LLVMFunctionDoesNotCapture
 #undef name_LLVMFunctionDoesNotAlias
@@ -642,8 +659,7 @@ extern "C" void RegisterLLVMFunctionManipulationFunctions(void *theEnv) {
 #undef name_LLVMFunctionSetDoesNotThrow
 #undef name_LLVMFunctionSetHasUWTable
 #undef name_LLVMFunctionSetDoesNotReturn
-#undef name_LLVMFunctionSetCannotDuplicate
 #undef name_LLVMFunctionDropAllReferences
-#undef name_LLVMFunctionHasAddressTaken
+//#undef name_LLVMFunctionSetCannotDuplicate
 #undef msg
 /* End C Interaction Functions */
