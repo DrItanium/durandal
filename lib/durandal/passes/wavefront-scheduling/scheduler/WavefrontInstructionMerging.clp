@@ -190,9 +190,7 @@
                               (contents $?blockBefore ?newName ?last))
              (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
              ;purge the list of producers and consumers
-             (bind ?inst-addr (instance-address * 
-                               (symbol-to-instance-name ?inst)))
-             (duplicate-instance ?inst-addr to ?newName 
+             (duplicate-instance ?newInst to ?newName 
                                  (id ?newName) 
                                  (Name ?newName)
                                  (pointer ?newPtr) 
@@ -243,7 +241,7 @@
            ;            " as " ?newName crlf)
            (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
            ;purge the list of producers and consumers
-           (duplicate-instance ?inst to ?newName 
+           (duplicate-instance ?newInst to ?newName 
                                (id ?newName) 
                                (Name ?newName)
                                (pointer ?newPtr) 
@@ -270,8 +268,9 @@
                             (arguments ?cpv)))
            (bind ?leftOvers (create$))
            (progn$ (?z ?cpvPaths)
-                   (bind ?cPath (symbol-to-instance-name ?z))
-                   (if (not (member$ ?e (send ?cPath get-contents))) then
+                   (bind ?cPath (instance-address * 
+                                 (symbol-to-instance-name ?z)))
+                   (if (not (member$ ?e (send ?cPath get-values))) then
                      (bind ?leftOvers (insert$ ?leftOvers 1 ?z))))
            (modify-instance ?cpvObject (Paths ?leftOvers))))
 ;------------------------------------------------------------------------------
