@@ -1,4 +1,7 @@
 #include "ExpertSystem/CLIPSFunctionBuilder.h"
+extern "C" {
+#include "clips.h"
+}
 
 CLIPSFunctionBuilder::CLIPSFunctionBuilder(std::string nm, 
       FunctionNamer& namer) : CLIPSGlobalValueBuilder(nm, "Function",  namer) { 
@@ -62,22 +65,22 @@ void CLIPSFunctionBuilder::setCallingConvention(CallingConv::ID id) {
          break;
       case CallingConv::MBLAZE_INTR:
          selection = "mblaze-intr";
-            break;
+         break;
       case CallingConv::MBLAZE_SVOL:
-            selection = "mblaze-svol";
-            break;
+         selection = "mblaze-svol";
+         break;
       case CallingConv::SPIR_FUNC:
-            selection = "spir-func";
-            break;
+         selection = "spir-func";
+         break;
       case CallingConv::SPIR_KERNEL:
-            selection = "spir-kernel";
-            break;
+         selection = "spir-kernel";
+         break;
       case CallingConv::Intel_OCL_BI:
-            selection = "intel-ocl-bi";
-            break;
+         selection = "intel-ocl-bi";
+         break;
       default:
-            selection = "Unknown";
-            break;
+         selection = "Unknown";
+         break;
    }
    addField("CallingConvention", selection);
 }
@@ -135,4 +138,103 @@ void CLIPSFunctionBuilder::addFields(Function* func,
 
    }
 }
-
+#define msg(x) (char*) x
+#define werror msg(werror)
+#define name_LLVMFunctionDoesNotAlias msg("llvm-function-does-not-alias")
+#define name_LLVMFunctionDoesNotCapture msg("llvm-function-does-not-capture")
+#define name_LLVMFunctionGetParamAlignment \
+   msg("llvm-function-get-param-alignment")
+extern "C" unsigned LLVMFunctionDoesNotAlias(void* theEnv) {
+   DATA_OBJECT ptrDO,
+               indexDO;
+   unsigned index; 
+   if(EnvArgCountCheck(theEnv, name_LLVMFunctionDoesNotAlias, 
+            EXACTLY, 2) == -1) {
+      return 0;
+   }
+   if(EnvArgTypeCheck(theEnv, name_LLVMFunctionDoesNotAlias, 1, 
+            INTEGER, &ptrDO) == FALSE) {
+      return 0;
+   }
+   if(EnvArgTypeCheck(theenv, name_LLVMFunctionDoesNotAlias, 1, 
+            INTEGER, &indexDO) == FALSE) {
+      return 0;
+   }
+   Function* fn = (Function*)(PointerAddress)DOToLong(ptrDO);
+   if(!fn) {
+      EnvPrintRouter(theEnv, werror,
+            msg("ERROR: The provided function pointer isn't valid"));
+      return 0;
+   } else {
+      index = (unsigned)DOToInteger(indexDO);
+      return fn->doesNotAlias(index);
+   }
+}
+extern "C" unsigned LLVMFunctionDoesNotCapture(void* theEnv) {
+   DATA_OBJECT ptrDO,
+               indexDO;
+   unsigned index; 
+   if(EnvArgCountCheck(theEnv, name_LLVMFunctionDoesNotCapture, 
+            EXACTLY, 2) == -1) {
+      return 0;
+   }
+   if(EnvArgTypeCheck(theEnv, name_LLVMFunctionDoesNotCapture, 1, 
+            INTEGER, &ptrDO) == FALSE) {
+      return 0;
+   }
+   if(EnvArgTypeCheck(theenv, name_LLVMFunctionDoesNotCapture, 1, 
+            INTEGER, &indexDO) == FALSE) {
+      return 0;
+   }
+   Function* fn = (Function*)(PointerAddress)DOToLong(ptrDO);
+   if(!fn) {
+      EnvPrintRouter(theEnv, werror,
+            msg("ERROR: The provided function pointer isn't valid"));
+      return 0;
+   } else {
+      index = (unsigned)DOToInteger(indexDO);
+      return fn->doesNotCapture(index);
+   }
+}
+extern "C" unsigned LLVMFunctionGetParamAlignment(void* theEnv) {
+   DATA_OBJECT ptrDO,
+               indexDO;
+   unsigned index; 
+   if(EnvArgCountCheck(theEnv, name_LLVMFunctionGetParamAlignment, 
+            EXACTLY, 2) == -1) {
+      return 0;
+   }
+   if(EnvArgTypeCheck(theEnv, name_LLVMFunctionGetParamAlignment, 1, 
+            INTEGER, &ptrDO) == FALSE) {
+      return 0;
+   }
+   if(EnvArgTypeCheck(theenv, name_LLVMFunctionGetParamAlignment, 1, 
+            INTEGER, &indexDO) == FALSE) {
+      return 0;
+   }
+   Function* fn = (Function*)(PointerAddress)DOToLong(ptrDO);
+   if(!fn) {
+      EnvPrintRouter(theEnv, werror,
+            msg("ERROR: The provided function pointer isn't valid"));
+      return 0;
+   } else {
+      index = (unsigned)DOToInteger(indexDO);
+      return fn->getParamAlignment(index);
+   }
+}
+extern "C" void RegisterLLVMFunctionManipulationFunctions(void *theEnv) {
+   EnvDefineFunction(theEnv, name_LLVMFunctionDoesNotCapture, 'i', 
+         PTIEF LLVMFunctionDoesNotCapture, 
+         msg("LLVMFunctionDoesNotCapture"));
+   EnvDefineFunction(theEnv, name_LLVMFunctionDoesNotAlias, 'i', 
+         PTIEF LLVMFunctionDoesNotAlias, 
+         msg("LLVMFunctionDoesNotAlias"));
+   EnvDefineFunction(theEnv, name_LLVMFunctionGetParamAlignment, 'i', 
+         PTIEF LLVMFunctionGetParamAlignment, 
+         msg("LLVMFunctionGetParamAlignment"));
+}
+#undef werror
+#undef name_LLVMFunctionDoesNotCapture
+#undef name_LLVMFunctionDoesNotAlias
+#undef name_LLVMFunctionGetParamAlignment
+#undef msg
