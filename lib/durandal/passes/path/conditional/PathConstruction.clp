@@ -38,7 +38,7 @@
                         (id ?id) 
                         (Entrances $? ?a $?) 
                         (contents $? ?z $?))
-         (object (is-a Region) 
+         (object (is-a Region&~Loop) 
                  (id ?z) 
                  (parent ?id) 
                  (Entrances $? ?a $?))
@@ -48,7 +48,7 @@
          =>
          (retract ?fct)
          (make-instance of Path 
-                        (parent ?n) 
+                        (parent ?id) 
                         (values ?z)))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::initialize-path-construction-basicblock
