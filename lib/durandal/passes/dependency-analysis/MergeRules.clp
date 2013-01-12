@@ -113,10 +113,10 @@
 			(bind ?ps $?p)
 			(bind ?lds $?ld)
 			(object-pattern-match-delay
-			  (progn$ (?target ?t0)
+			  (progn$ (?target ?t1)
 						 (if (not (member$ ?target ?cs)) then
 							(bind ?cs (insert$ ?cs 1 ?target))))
-			  (progn$ (?target ?t1)
+			  (progn$ (?target ?t0)
 						 (if (not (member$ ?target ?lds)) then
 							(bind ?lds (insert$ ?lds 1 ?target)))
 						 (if (not (member$ ?target ?ps)) then
