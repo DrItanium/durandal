@@ -12,4 +12,6 @@ class CLIPSFunctionBuilder : public CLIPSGlobalValueBuilder {
       void build(Function* fn, KnowledgeConstructor* kc);
 };
 
+extern "C" void RegisterLLVMFunctionManipulationFunctions(void* theEnv);
+
 #endif
