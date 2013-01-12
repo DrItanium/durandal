@@ -559,6 +559,10 @@ void KnowledgeConstructor::route(Function& fn) {
    namer.tryRegisterPointerToName(0L, tmp);
    instances->clear();
    updateFunctionContents(fn, namer);
+   CLIPSFunctionBuilder fb(funcName);
+   fb.build(namer, this, true);
+   //we need to add some code here to handle function building when there isn't
+   //a loop or region to do it for us
 }
 void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
    char* funcName;
@@ -571,6 +575,7 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
       sprintf(buf, "fn.%lld", &fn);
       std::string name (buf);
       namer.setFunctionName((char*)name.c_str());
+      free(buf);
    }
    funcName = (char*)fn.getName().data();
    namer.reset();
@@ -580,6 +585,8 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
    updateFunctionContents(fn, namer);
    route(li, namer, funcName);
    route(ri, namer, funcName);
+   CLIPSFunctionBuilder fb(funcName);
+   fb.build(namer, this);
 }
 void KnowledgeConstructor::route(Function& fn, RegionInfo& ri) {
    char* funcName;
@@ -592,6 +599,7 @@ void KnowledgeConstructor::route(Function& fn, RegionInfo& ri) {
       sprintf(buf, "fn.%lld", &fn);
       std::string name (buf);
       namer.setFunctionName((char*)name.c_str());
+      free(buf);
    }
    funcName = (char*)fn.getName().data();
    namer.reset();
@@ -600,6 +608,8 @@ void KnowledgeConstructor::route(Function& fn, RegionInfo& ri) {
    instances->clear();
    updateFunctionContents(fn, namer);
    route(ri, namer, funcName);
+   CLIPSFunctionBuilder fb(funcName);
+   fb.build(namer, this, true);
 }
 void KnowledgeConstructor::route(Function& fn, LoopInfo& li) {
    char* funcName;
@@ -612,6 +622,7 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li) {
       sprintf(buf, "fn.%lld", &fn);
       std::string name (buf);
       namer.setFunctionName((char*)name.c_str());
+      free(buf);
    }
    funcName = (char*)fn.getName().data();
    namer.reset();

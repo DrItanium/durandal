@@ -1,2 +1,10 @@
 This document provides an indepth (and ongoing) representation of my thought
 process while designing the hydra pass. 
+
+The idea behind this pass comes from a point in my thesis where I had to curb
+extended memory analysis due to the fact that it was a thesis in itself with
+the amount of work that would be required. 
+
+However, now that my thesis is finished and I have free time, I have decided to
+start writing the full hydra pass. Like most other passes I've written in
+CLIPS, this pass operates on a full function at a time. 
