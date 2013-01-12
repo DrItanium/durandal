@@ -28,27 +28,45 @@
 ; a given path through a given region. Rewritten to take advantage of modules
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::initialize-path-construction-region
-			(declare (salience 3))
-			?fct <- (message (to paths-conditional)
-				              (action valid-pathing-target)
-								  (arguments ?id))
-			?r0 <- (object (is-a Region) (id ?id) (Entrances $? ?a $?) 
-								(contents $? ?z $?))
-			(object (is-a Region) (id ?z) (parent ?id) (Entrances $? ?a $?))
-			(object (is-a BasicBlock) (id ?a) (parent ?n&~?id))
-			=>
-			(retract ?fct)
-			(make-instance of Path (parent ?n) (values ?z)))
+         (declare (salience 3))
+         ?fct <- (message (to paths-conditional)
+                          (action valid-pathing-target)
+                          (arguments ?id))
+         ?r0 <- (object (is-a Region) 
+                        (id ?id) 
+                        (Entrances $? ?a $?) 
+                        (contents $? ?z $?))
+         (object (is-a Region) 
+                 (id ?z) 
+                 (parent ?id) 
+                 (Entrances $? ?a $?))
+         (object (is-a BasicBlock) 
+                 (id ?a) 
+                 (parent ?n&~?id))
+         =>
+         (bind ?name (gensym*))
+         (modify ?fct (action build-path)
+                 (arguments ?name))
+         (make-instance ?name of Path 
+                        (parent ?n) 
+                        (values ?z)))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::initialize-path-construction-basicblock
-			(declare (salience 3))
-			?fct <- (message (to paths-conditional)
-				              (action valid-pathing-target)
-								  (arguments ?id))
-			?r0 <- (object (is-a Region) (id ?id) (Entrances $? ?a $?) 
-								(contents $? ?z $?))
-			(object (is-a BasicBlock) (id ?a) (parent ?n))
-			=>
-			(retract ?fct)
-			(make-instance of Path (parent ?n) (values ?a)))
+         (declare (salience 3))
+         ?fct <- (message (to paths-conditional)
+                          (action valid-pathing-target)
+                          (arguments ?id))
+         ?r0 <- (object (is-a Region) 
+                        (id ?id) 
+                        (Entrances $? ?a $?))
+         (object (is-a BasicBlock) 
+                 (id ?a) 
+                 (parent ?n))
+         =>
+         (bind ?name (gensym*))
+         (modify ?fct (action build-path)
+                 (arguments ?name))
+         (make-instance ?name of Path 
+                        (parent ?n) 
+                        (values ?a)))
 ;------------------------------------------------------------------------------
