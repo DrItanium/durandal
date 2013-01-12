@@ -65,7 +65,7 @@
                  (bind ?obj (instance-address * (symbol-to-instance-name ?var)))
                  (bind ?oOps (send ?obj get-Operands))
                  (if (member$ ?orig ?oOps) then
-                   (bind ?ptrTmp (send ?obj get-Pointer))
+                   (bind ?ptrTmp (send ?obj get-pointer))
                    (bind ?ptrList (insert$ ?ptrList ?i0 ?ptrTmp))
                    (bind ?symList (insert$ ?symList ?i0 ?var))
                    (bind ?i0 (+ ?i0 1))))
