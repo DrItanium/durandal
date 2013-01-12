@@ -85,7 +85,7 @@ std::string KnowledgeConstructor::route(Value* val, FunctionNamer& namer) {
    if(Instruction* inst = dyn_cast<Instruction>(val)) {
       return route(inst, namer, (char*)inst->getParent()->getName().data());
    } else {
-      return route(val, namer, "nil");
+      return route(val, namer, (char*)"nil");
    }
 }
 
@@ -108,7 +108,7 @@ std::string KnowledgeConstructor::route(User* user, FunctionNamer& namer, char* 
    }
 }
 std::string KnowledgeConstructor::route(Constant* cnst, FunctionNamer& namer) {
-   return route(cnst, namer, "nil");
+   return route(cnst, namer, (char*)"nil");
 }
 std::string KnowledgeConstructor::route(Constant* val, FunctionNamer& namer, char* parent) {
    if(namer.pointerRegistered((PointerAddress)val)) {
@@ -298,7 +298,7 @@ std::string KnowledgeConstructor::route(Type* t, FunctionNamer& namer) {
       } else if(CompositeType* ct = dyn_cast<CompositeType>(t)) {
          if(StructType* st = dyn_cast<StructType>(ct)) {
             CLIPSStructTypeBuilder c(id, namer);
-            c.build(st, this, "nil");
+            c.build(st, this, (char*)"nil");
          } else if(SequentialType* qt = dyn_cast<SequentialType>(ct)) {
             if(ArrayType* at = dyn_cast<ArrayType>(qt)) {
                CLIPSArrayTypeBuilder d(id, namer);
@@ -326,7 +326,7 @@ std::string KnowledgeConstructor::route(Type* t, FunctionNamer& namer) {
 
 }
 std::string KnowledgeConstructor::route(Operator* val, FunctionNamer& namer) {
-   return route(val, namer, "nil");
+   return route(val, namer, (char*)"nil");
 }
 std::string KnowledgeConstructor::route(Operator* val, FunctionNamer& namer, char* parent) {
 
@@ -549,9 +549,10 @@ void KnowledgeConstructor::route(Function& fn) {
       namer.setFunctionName((char*)fn.getName().data());
    } else {
       char* buf = CharBuffer(128);
-      sprintf(buf, "fn.%lld", &fn);
+      sprintf(buf, "fn.%lld", (PointerAddress)&fn);
       std::string name (buf);
       namer.setFunctionName((char*)name.c_str());
+      free(buf);
    }
    funcName = (char*)fn.getName().data();
    namer.reset();
@@ -559,8 +560,8 @@ void KnowledgeConstructor::route(Function& fn) {
    namer.tryRegisterPointerToName(0L, tmp);
    instances->clear();
    updateFunctionContents(fn, namer);
-   CLIPSFunctionBuilder fb(funcName);
-   fb.build(namer, this, true);
+   CLIPSFunctionBuilder fb(funcName, namer);
+   fb.build(&fn, this);
    //we need to add some code here to handle function building when there isn't
    //a loop or region to do it for us
 }
@@ -572,7 +573,7 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
       namer.setFunctionName((char*)fn.getName().data());
    } else {
       char* buf = CharBuffer(128);
-      sprintf(buf, "fn.%lld", &fn);
+      sprintf(buf, "fn.%lld", (PointerAddress)&fn);
       std::string name (buf);
       namer.setFunctionName((char*)name.c_str());
       free(buf);
@@ -585,8 +586,8 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li, RegionInfo& ri) {
    updateFunctionContents(fn, namer);
    route(li, namer, funcName);
    route(ri, namer, funcName);
-   CLIPSFunctionBuilder fb(funcName);
-   fb.build(namer, this);
+   CLIPSFunctionBuilder fb(funcName, namer);
+   fb.build(&fn, this);
 }
 void KnowledgeConstructor::route(Function& fn, RegionInfo& ri) {
    char* funcName;
@@ -596,7 +597,7 @@ void KnowledgeConstructor::route(Function& fn, RegionInfo& ri) {
       namer.setFunctionName((char*)fn.getName().data());
    } else {
       char* buf = CharBuffer(128);
-      sprintf(buf, "fn.%lld", &fn);
+      sprintf(buf, "fn.%lld", (PointerAddress)&fn);
       std::string name (buf);
       namer.setFunctionName((char*)name.c_str());
       free(buf);
@@ -608,8 +609,8 @@ void KnowledgeConstructor::route(Function& fn, RegionInfo& ri) {
    instances->clear();
    updateFunctionContents(fn, namer);
    route(ri, namer, funcName);
-   CLIPSFunctionBuilder fb(funcName);
-   fb.build(namer, this, true);
+   CLIPSFunctionBuilder fb(funcName, namer);
+   fb.build(&fn, this);
 }
 void KnowledgeConstructor::route(Function& fn, LoopInfo& li) {
    char* funcName;
@@ -619,7 +620,7 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li) {
       namer.setFunctionName((char*)fn.getName().data());
    } else {
       char* buf = CharBuffer(128);
-      sprintf(buf, "fn.%lld", &fn);
+      sprintf(buf, "fn.%lld", (PointerAddress)&fn);
       std::string name (buf);
       namer.setFunctionName((char*)name.c_str());
       free(buf);
@@ -631,12 +632,14 @@ void KnowledgeConstructor::route(Function& fn, LoopInfo& li) {
    instances->clear();
    updateFunctionContents(fn, namer);
    route(li, namer, funcName);
+   CLIPSFunctionBuilder fb(funcName, namer);
+   fb.build(&fn, this);
 }
 
 std::string KnowledgeConstructor::route(Module* mod) {
    char* buf;
    buf = CharBuffer(128);
-   sprintf(buf, "mod%lld", mod);
+   sprintf(buf, "mod%lld", (PointerAddress)mod);
    std::string name(buf);
    free(buf);
    CLIPSModuleBuilder mb(name);
