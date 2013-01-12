@@ -129,12 +129,30 @@ void CLIPSFunctionBuilder::addFields(Function* func,
    if(func.hasStructRetAttr()) {
       addTrueField("HasStructRetAttr");
    }
-   //TODO: Expose doesNotAlias, doesNotCapture, and getParamAttributes to 
-   //CLIPS as functions
+   if(func.isDefTriviallyDead()) {
+      addTrueField("IsDefTriviallyDead");
+   }
+   if(func.callsFunctionThatReturnsTwice()) {
+      addTrueField("CallsFunctionThatReturnsTwice");
+   }
    char* fnName = (char*)func.getName().data();
    FunctionNamer& namer = getNamer();
    addField("EntryBlock", kc->route(func.getEntryBlock(), fnName, namer));
-   
+   openField("Arguments"); {
+      for(Function::arg_iterator s = func.arg_begin(), f = func.arg_end(); 
+            s != f; ++s) {
+         Argument* a = s;
+         //build it if we need to :)
+         appendValue(kc->route(a, namer, fnName));
+      }
+   } closeField();
+   openField("contents"); {
+      for(llvm::Function::iterator i = func.begin() , e = func.end(); 
+            i != e; ++i) {
+         BasicBlock* bb = i; 
+         appendValue(kc->route(bb, namer, fnName));
+      }
+   } closeField();
 }
 /* Begin C functions for allowing CLIPS to interact with LLVM */
 #define msg(x) (char*) x
@@ -165,6 +183,12 @@ void CLIPSFunctionBuilder::addFields(Function* func,
    msg("llvm-function-set-cannot-duplicate")
 #define name_LLVMFunctionSetOnlyReadsMemory \
    msg("llvm-function-set-only-reads-memory")
+#define name_LLVMFunctionDropAllReferences \
+   msg("llvm-function-drop-all-references")
+#define name_LLVMFunctionHasAddressTaken \
+   msg("llvm-function-has-address-taken")
+#define name_LLVMFunctionCreate \
+   msg("llvm-function-create")
 /* Getters */
 #define name_LLVMFunctionDoesNotAlias \
    msg("llvm-function-does-not-alias")
@@ -278,5 +302,8 @@ extern "C" void RegisterLLVMFunctionManipulationFunctions(void *theEnv) {
 #undef name_LLVMFunctionSetHasUWTable
 #undef name_LLVMFunctionSetDoesNotReturn
 #undef name_LLVMFunctionSetCannotDuplicate
+#undef name_LLVMFunctionDropAllReferences
+#undef name_LLVMFunctionHasAddressTaken
+#undef name_LLVMFunctionCreate
 #undef msg
 /* End C Interaction Functions */
