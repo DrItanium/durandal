@@ -27,8 +27,24 @@
 ; PathConstruction.clp - Contains rules devoted to starting the construction of
 ; a given path through a given region. Rewritten to take advantage of modules
 ;------------------------------------------------------------------------------
+(defrule paths-conditional::first-rule
+ (declare (salience 10000))
+ ?f <- (message (to paths-conditional)
+  (action initial-fact))
+ =>
+ (modify ?f (action build-path)))
+;------------------------------------------------------------------------------
+(defrule paths-conditional::last-rule
+ (declare (salience -10000))
+ ?f <- (message (to paths-conditional)
+                (action build-path))
+ =>
+ (retract ?f))
+;------------------------------------------------------------------------------
 (defrule paths-conditional::initialize-path-construction-region
          (declare (salience 3))
+         (message (to paths-conditional)
+                  (action build-path))
          ?fct <- (message (to paths-conditional)
                           (action valid-pathing-target)
                           (arguments ?id))
@@ -44,15 +60,15 @@
                  (id ?a) 
                  (parent ?n&~?id))
          =>
-         (bind ?name (gensym*))
-         (modify ?fct (action build-path)
-                 (arguments ?name))
-         (make-instance ?name of Path 
+         (retract ?fct)
+         (make-instance of Path 
                         (parent ?n) 
                         (values ?z)))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::initialize-path-construction-basicblock
          (declare (salience 3))
+         (message (to paths-conditional)
+                  (action build-path))
          ?fct <- (message (to paths-conditional)
                           (action valid-pathing-target)
                           (arguments ?id))
@@ -63,10 +79,8 @@
                  (id ?a) 
                  (parent ?n))
          =>
-         (bind ?name (gensym*))
-         (modify ?fct (action build-path)
-                 (arguments ?name))
-         (make-instance ?name of Path 
+         (retract ?fct)
+         (make-instance of Path 
                         (parent ?n) 
                         (values ?a)))
 ;------------------------------------------------------------------------------

@@ -28,36 +28,67 @@
 ; of
 ; Written by Joshua Scoggins (6/7/2012)
 ;------------------------------------------------------------------------------
+(defrule paths-conditional-update::initial-rule
+         (declare (salience 10000))
+         ?f <- (message (to paths-conditional-update)
+                        (action initial-fact))
+         =>
+         (modify ?f (action update)))
+;------------------------------------------------------------------------------
+(defrule paths-conditional-update::last-rule
+         (declare (salience -10000))
+         ?f <- (message (to paths-conditional-update)
+                        (action update))
+         =>
+         (retract ?f))
+;------------------------------------------------------------------------------
 (defrule paths-conditional-update::FAIL-UNFINISHED-PATHS 
- (message (to paths-conditional-update)
-          (action initial-fact))
-			(test (> (length$ 
-						  (find-all-instances ((?path Path)) (not ?path:closed))) 0))
-			=>
-			(printout t "ERROR: Not all paths were closed!" crlf)
-			(progn$ (?inst (find-all-instances ((?path Path)) 
-									(not ?path:closed)))
-						(send ?inst print))
-			(printout t "Current facts!" crlf)
-			(facts)
-			(printout t "Halting Execution!!!" crlf)
-			(halt))
-
+         (message (to paths-conditional-update)
+                  (action update))
+         (test (> (length$ 
+                    (find-all-instances ((?path Path)) 
+                                        (not ?path:closed))) 0))
+         =>
+         (printout t "ERROR: Not all paths were closed!" crlf)
+         (progn$ (?inst (find-all-instances ((?path Path)) 
+                                            (not ?path:closed)))
+                 (send ?inst print))
+         (printout t "Current facts!" crlf)
+         (facts)
+         (printout t "Halting Execution!!!" crlf)
+         (halt))
+;------------------------------------------------------------------------------
 (defrule paths-conditional::AddPathToDiplomat
-			"Adds the given path name to the target diplomat"
-			(declare (salience 1))
-			(object (is-a Path) (closed TRUE) (id ?i) (values $? ?b $?))
-			?d <- (object (is-a Diplomat) (id ?b))
-			(test (not (member$ ?i (send ?d get-Paths))))
-			=>
-			(slot-insert$ ?d Paths 1 ?i))
-
+         "Adds the given path name to the target diplomat"
+         (declare (salience 1))
+         (message (to paths-conditional)
+                  (action build-path))
+         (object (is-a Path) 
+                 (closed TRUE) 
+                 (id ?i) 
+                 (values $? ?b $?))
+         ?d <- (object (is-a Diplomat) 
+                       (id ?b))
+         (test (not (member$ ?i (send ?d get-Paths))))
+         =>
+         (slot-insert$ ?d Paths 1 ?i))
+;------------------------------------------------------------------------------
 (defrule paths-conditional-update::TraversePathForElementInjection
-			(object (is-a Path) (closed TRUE) (id ?p) (values $? ?a ?b $?))
-			?o0 <- (object (is-a Diplomat) (id ?a))
-			?o1 <- (object (is-a Diplomat) (id ?b))
-			=>
-			(if (not (member$ ?a (send ?o1 get-PreviousPathElements))) then
-			  (slot-insert$ ?o1 PreviousPathElements 1 ?a))
-			(if (not (member$ ?b (send ?o0 get-NextPathElements))) then
-			  (slot-insert$ ?o0 NextPathElements 1 ?b)))
+         (message (to paths-conditional-update)
+                  (action update))
+         (object (is-a Path) 
+                 (closed TRUE) 
+                 (id ?p) 
+                 (values $? ?a ?b $?))
+         ?o0 <- (object (is-a Diplomat) 
+                        (id ?a))
+         ?o1 <- (object (is-a Diplomat) 
+                        (id ?b))
+         =>
+         (bind ?ppe (send ?o1 get-PreviousPathElements))
+         (bind ?npe (send ?o0 get-NextPathElements))
+         (if (not (member$ ?a ?ppe)) then
+           (modify-instance ?o1 (PreviousPathElements ?ppe ?a)))
+         (if (not (member$ ?b ?npe)) then
+           (modify-instance ?o0 (NextPathElements ?npe ?b))))
+;------------------------------------------------------------------------------

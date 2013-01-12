@@ -28,53 +28,80 @@
 ; region 
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::add-to-path-copy
-			"Makes a copy of the current path object and concatenates the symbol 
-			in question to the end of the list. This rule is fired when the 
-			reference count of the given path object is greater than one."
-			(declare (salience 1))
-			?fct <- (Add ?next to ?id)
-			?hint <- (object (is-a Path) (closed FALSE) (id ?id) (parent ?p) 
-								  (reference-count ?rc&:(> ?rc 1))
-								  (values $?contents))
-			=>
-			(send ?hint decrement-reference-count)
-			(retract ?fct)
-			(make-instance of Path (parent ?p) (values $?contents ?next)))
+         "Makes a copy of the current path object and concatenates the symbol 
+         in question to the end of the list. This rule is fired when the 
+         reference count of the given path object is greater than one."
+         (declare (salience 1))
+         ?f <- (message (to paths-conditional)
+                        (action add-to-path)
+                        (arguments ?next => ?id))
+         ?hint <- (object (is-a Path) 
+                          (id ?id)
+                          (parent ?p)
+                          (closed FALSE)
+                          (reference-count ?rc&:(> ?rc 1))
+                          (values $?contents))
+         =>
+         (send ?hint decrement-reference-count)
+         (retract ?f)
+         (make-instance of Path 
+                        (parent ?p) 
+                        (values $?contents ?next)))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::add-to-path-concat
-			"Concatenates the next element of the path directly to the original 
-			path object. This rule fires when the reference count of the path is 
-			equal to one"
-			(declare (salience 1))
-			?fct <- (Add ?next to ?id)
-			?hint <- (object (is-a Path) (closed FALSE) (id ?id) 
-								  (reference-count 1) (values $?values))
-			=>
-			(retract ?fct)
-			(modify-instance ?hint (reference-count 0) (values $?values ?next)))
+         "Concatenates the next element of the path directly to the original 
+         path object. This rule fires when the reference count of the path is 
+         equal to one"
+         (declare (salience 1))
+         ?f <- (message (to paths-conditional)
+                        (action add-to-path)
+                        (arguments ?next => ?id))
+         ?hint <- (object (is-a Path) 
+                          (id ?id)
+                          (closed FALSE) 
+                          (reference-count 1)
+                          (values $?values))
+         =>
+         (retract ?f)
+         (modify-instance ?hint 
+                          (reference-count 0) 
+                          (values $?values ?next)))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::close-path-update
-			"Closes a path via an in-place update"
-			(declare (salience 1))
-			?fct <- (Close ?id with ?bb)
-			?hint <- (object (is-a Path) (closed FALSE) (id ?id) 
-								  (reference-count 1))
-			=>
-			(retract ?fct)
-			(modify-instance ?hint (reference-count 0) (closed TRUE) (exit ?bb)))
+         "Closes a path via an in-place update"
+         (declare (salience 1))
+         ?f <- (message (to paths-conditional)
+                        (action close-path)
+                        (arguments ?id => ?bb))
+         ?hint <- (object (is-a Path) 
+                          (id ?id)
+                          (closed FALSE) 
+                          (reference-count 1))
+         =>
+         (retract ?f)
+         (modify-instance ?hint 
+                          (reference-count 0) 
+                          (closed TRUE) 
+                          (exit ?bb)))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::close-path-copy 
-			"Closes a path by making a copy of the target path"
-			(declare (salience 1))
-			?fct <- (Close ?id with ?bb)
-			?hint <- (object (is-a Path) (id ?id) (closed FALSE) (parent ?p)
-								  (reference-count ?rc&:(> ?rc 1))
-								  (values $?values))
-			=>
-			(send ?hint decrement-reference-count)
-			(retract ?fct)
-			(make-instance of Path (parent ?p) 
-			                       (closed TRUE) 
-										  (exit ?bb) 
-			                       (values $?values)))
+         "Closes a path by making a copy of the target path"
+         (declare (salience 1))
+         ?f <- (message (to paths-conditional)
+                        (action close-path)
+                        (arguments ?id => ?bb))
+         ?hint <- (object (is-a Path) 
+                          (id ?id) 
+                          (closed FALSE) 
+                          (parent ?p)
+                          (reference-count ?rc&:(> ?rc 1))
+                          (values $?values))
+         =>
+         (send ?hint decrement-reference-count)
+         (retract ?f)
+         (make-instance of Path 
+                        (parent ?p) 
+                        (closed TRUE) 
+                        (exit ?bb) 
+                        (values $?values)))
 ;------------------------------------------------------------------------------

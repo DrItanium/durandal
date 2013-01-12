@@ -29,10 +29,10 @@
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-basicblock-to-basicblock
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
-         ?path <- (object (is-a Path) (id ?id) 
+         (message (to paths-conditional)
+                  (action build-path))
+         ?path <- (object (is-a Path) 
+                          (id ?id) 
                           (parent ?p) 
                           (closed FALSE)
                           (values $?before ?curr))
@@ -47,14 +47,14 @@
                     (not (member$ ?next $?before))))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action add-to-path)
-                 (arguments ?next => ?id)))
+         (assert (message (to paths-conditional)
+                          (action add-to-path)
+                          (arguments ?next => ?id))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-region-to-basicblock
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id) 
                           (closed FALSE) 
@@ -71,14 +71,14 @@
                     (not (member$ ?next $?before))))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action add-to-path)
-                 (arguments ?next => ?id)))
+         (assert (message (to paths-conditional)
+                          (action add-to-path)
+                          (arguments ?next => ?id))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-basicblock-to-region
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id)
                           (closed FALSE) 
@@ -96,14 +96,14 @@
                     (not (member$ ?next $?before))))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action add-to-path)
-                 (arguments ?next => ?id)))
+         (assert (message (to paths-conditional)
+                          (action add-to-path)
+                          (arguments ?next => ?id))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-region-to-region
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id) 
                           (closed FALSE) 
@@ -123,16 +123,16 @@
          ; care it will still be accurate thanks to the way llvm does things
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action add-to-path)
-                 (arguments ?next => ?id)))
+         (assert (message (to paths-conditional)
+                          (action add-to-path)
+                          (arguments ?next => ?id))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-region-no-exit
          "We are at a region that doesn't have an exit...Not sure if LLVM 
          allows this but let's handle it."
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id) 
                           (parent ?p) 
@@ -144,16 +144,16 @@
                  (Exits))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action close-path)
-                 (arguments ?id => nil)))
+         (assert (message (action close-path)
+                          (arguments ?id => nil)
+                          (to paths-conditional))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::travseral-basicblock-no-exit
          "We are at a basic block that has no successors...usually the end of a
          function"
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id) 
                           (parent ?p) 
@@ -165,14 +165,14 @@
                  (Successors))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action close-path)
-                 (arguments ?id => nil)))
+         (assert (message (to paths-conditional)
+                          (action close-path)
+                          (arguments ?id => nil))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-basicblock-to-basicblock-cycle
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) (id ?id) 
                           (parent ?p) 
                           (values $?before ?curr) 
@@ -188,14 +188,14 @@
                    (member$ ?next $?before)))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action close-path)
-                 (arguments ?id => ?next)))
+         (assert (message (to paths-conditional)
+                          (action close-path)
+                          (arguments ?id => ?next))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-region-to-basicblock-cycle
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) (id ?id) 
                           (closed FALSE) 
                           (parent ?p) 
@@ -211,14 +211,14 @@
                    (member$ ?next $?before)))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action close-path)
-                 (arguments ?id => ?next)))
+         (assert (message (to paths-conditional)
+                          (action close-path)
+                          (arguments ?id => ?next))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-basicblock-to-region-cycle
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id) 
                           (closed FALSE) 
@@ -236,14 +236,14 @@
                    (member$ ?next $?before)))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action close-path)
-                 (arguments ?id => ?next)))
+         (assert (message (to paths-conditional)
+                          (action close-path)
+                          (arguments ?id => ?next))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-region-to-region-cycle
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id) 
                           (closed FALSE) 
@@ -261,16 +261,16 @@
                    (member$ ?next $?before)))
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action close-path)
-                 (arguments ?next => ?id)))
+         (assert (message (to paths-conditional)
+                          (action close-path)
+                          (arguments ?next => ?id))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-basicblock-to-exit
          "Marks the current path as finished because we've reached an exit to 
          the current region"
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id) 
                           (parent ?p) 
@@ -286,14 +286,14 @@
          ;since the current block has an exit for this region we mark it
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action close-path)
-                 (arguments ?id => ?e)))
+         (assert (message (to paths-conditional)
+                          (action close-path)
+                          (arguments ?id => ?e))))
 ;------------------------------------------------------------------------------
 (defrule paths-conditional::traversal-region-to-exit
          (declare (salience 2))
-         ?f <- (message (to paths-conditional)
-                        (action build-path)
-                        (arguments ?id))
+         (message (to paths-conditional)
+                  (action build-path))
          ?path <- (object (is-a Path) 
                           (id ?id) 
                           (closed FALSE) 
@@ -310,6 +310,7 @@
          ; curent nested region is a terminator for one path
          =>
          (send ?path increment-reference-count)
-         (modify ?f (action close-path)
-                 (arguments ?id => ?e)))
+         (assert (message (to paths-conditional)
+                          (action close-path)
+                          (arguments ?id => ?e))))
 ;------------------------------------------------------------------------------
