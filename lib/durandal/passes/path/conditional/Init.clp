@@ -25,18 +25,27 @@
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
 (defmodule paths-conditional-update
- (import core ?ALL)
- (import llvm ?ALL)
- (import types ?ALL)
- (import indirect ?ALL)
- (import pipeline ?ALL)
- (import rampancy ?ALL))
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (import types ?ALL)
+           (import indirect ?ALL)
+           (import pipeline ?ALL)
+           (import rampancy ?ALL))
 ;------------------------------------------------------------------------------
-(defrule paths-conditional::first-rule
- (declare (salience 10000))
- ?fct <- (message (to paths-conditional) (action initial-fact))
- ?obj <- (object (is-a pass-description) (passes $?passes))
- =>
- (retract ?fct)
- (modify-instance ?obj (passes paths-conditional-update $?passes)))
+(defrule paths-conditional::initialize-next-module
+         (declare (salience 10000))
+         ?fct <- (message (to paths-conditional) 
+                          (action initial-fact))
+         ?obj <- (object (is-a pass-description) 
+                         (passes $?passes))
+         =>
+         (modify ?fct (action build-path))
+         (modify-instance ?obj (passes paths-conditional-update $?passes)))
+;------------------------------------------------------------------------------
+(defrule paths-conditional::last-rule
+         (declare (salience -10000))
+         ?f <- (message (to paths-conditional)
+                        (action build-path))
+         =>
+         (retract ?f))
 ;------------------------------------------------------------------------------

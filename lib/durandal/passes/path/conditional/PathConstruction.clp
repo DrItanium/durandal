@@ -27,20 +27,6 @@
 ; PathConstruction.clp - Contains rules devoted to starting the construction of
 ; a given path through a given region. Rewritten to take advantage of modules
 ;------------------------------------------------------------------------------
-(defrule paths-conditional::first-rule
- (declare (salience 10000))
- ?f <- (message (to paths-conditional)
-  (action initial-fact))
- =>
- (modify ?f (action build-path)))
-;------------------------------------------------------------------------------
-(defrule paths-conditional::last-rule
- (declare (salience -10000))
- ?f <- (message (to paths-conditional)
-                (action build-path))
- =>
- (retract ?f))
-;------------------------------------------------------------------------------
 (defrule paths-conditional::initialize-path-construction-region
          (declare (salience 3))
          (message (to paths-conditional)
