@@ -23,7 +23,7 @@
 
 #if OBJECT_SYSTEM && (! BLOAD_ONLY) && (! RUN_TIME)
 
-#define SELF_STRING     "self"
+#define SELF_STRING     (char*)"self"
 
 #ifndef _H_object
 #include "object.h"

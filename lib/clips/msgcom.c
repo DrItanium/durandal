@@ -123,13 +123,13 @@ static void DeallocateMessageHandlerData(void *);
 globle void SetupMessageHandlers(
   void *theEnv)
   {
-   ENTITY_RECORD handlerGetInfo = { "HANDLER_GET", HANDLER_GET,0,1,1,
+   ENTITY_RECORD handlerGetInfo = { (char*)"HANDLER_GET", HANDLER_GET,0,1,1,
                                         PrintHandlerSlotGetFunction,
                                         PrintHandlerSlotGetFunction,NULL,
                                         HandlerSlotGetFunction,
                                         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL },
 
-                 handlerPutInfo = { "HANDLER_PUT", HANDLER_PUT,0,1,1,
+                 handlerPutInfo = { (char*)"HANDLER_PUT", HANDLER_PUT,0,1,1,
                                         PrintHandlerSlotPutFunction,
                                         PrintHandlerSlotPutFunction,NULL,
                                         HandlerSlotPutFunction,
@@ -139,10 +139,10 @@ globle void SetupMessageHandlers(
    memcpy(&MessageHandlerData(theEnv)->HandlerGetInfo,&handlerGetInfo,sizeof(struct entityRecord));   
    memcpy(&MessageHandlerData(theEnv)->HandlerPutInfo,&handlerPutInfo,sizeof(struct entityRecord));   
 
-   MessageHandlerData(theEnv)->hndquals[0] = "around";
-   MessageHandlerData(theEnv)->hndquals[1] = "before";
-   MessageHandlerData(theEnv)->hndquals[2] = "primary";
-   MessageHandlerData(theEnv)->hndquals[3] = "after";
+   MessageHandlerData(theEnv)->hndquals[0] = (char*)"around";
+   MessageHandlerData(theEnv)->hndquals[1] = (char*)"before";
+   MessageHandlerData(theEnv)->hndquals[2] = (char*)"primary";
+   MessageHandlerData(theEnv)->hndquals[3] = (char*)"after";
 
    InstallPrimitive(theEnv,&MessageHandlerData(theEnv)->HandlerGetInfo,HANDLER_GET);
    InstallPrimitive(theEnv,&MessageHandlerData(theEnv)->HandlerPutInfo,HANDLER_PUT);
@@ -166,7 +166,7 @@ globle void SetupMessageHandlers(
    AddConstruct(theEnv,(char*)"defmessage-handler",(char*)"defmessage-handlers",
                 ParseDefmessageHandler,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
    EnvDefineFunction2(theEnv,(char*)"undefmessage-handler",'v',PTIEF UndefmessageHandlerCommand,
-                  "UndefmessageHandlerCommand",(char*)"23w");
+                  (char*)"UndefmessageHandlerCommand",(char*)"23w");
 
 #endif
 
@@ -176,9 +176,9 @@ globle void SetupMessageHandlers(
    EnvDefineFunction2(theEnv,(char*)"preview-send",'v',PTIEF PreviewSendCommand,(char*)"PreviewSendCommand",(char*)"22w");
 
    EnvDefineFunction2(theEnv,(char*)"ppdefmessage-handler",'v',PTIEF PPDefmessageHandlerCommand,
-                  "PPDefmessageHandlerCommand",(char*)"23w");
+                  (char*)"PPDefmessageHandlerCommand",(char*)"23w");
    EnvDefineFunction2(theEnv,(char*)"list-defmessage-handlers",'v',PTIEF ListDefmessageHandlersCommand,
-                  "ListDefmessageHandlersCommand",(char*)"02w");
+                  (char*)"ListDefmessageHandlersCommand",(char*)"02w");
 #endif
 
    EnvDefineFunction2(theEnv,(char*)"next-handlerp",'b',PTIEF NextHandlerAvailable,(char*)"NextHandlerAvailable",(char*)"00");
