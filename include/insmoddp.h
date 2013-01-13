@@ -24,10 +24,10 @@
 #ifndef _H_insmoddp
 #define _H_insmoddp
 
-#define DIRECT_MODIFY_STRING    "direct-modify"
-#define MSG_MODIFY_STRING       "message-modify"
-#define DIRECT_DUPLICATE_STRING "direct-duplicate"
-#define MSG_DUPLICATE_STRING    "message-duplicate"
+#define DIRECT_MODIFY_STRING    (char*)"direct-modify"
+#define MSG_MODIFY_STRING       (char*)"message-modify"
+#define DIRECT_DUPLICATE_STRING (char*)"direct-duplicate"
+#define MSG_DUPLICATE_STRING    (char*)"message-duplicate"
 
 #ifndef _H_evaluatn
 #include "evaluatn.h"

@@ -64,10 +64,10 @@ struct messageHandlerData
 #define LOCALE extern
 #endif
 
-#define INIT_STRING   "init"
-#define DELETE_STRING "delete"
-#define PRINT_STRING  "print"
-#define CREATE_STRING "create"
+#define INIT_STRING   (char*)"init"
+#define DELETE_STRING (char*)"delete"
+#define PRINT_STRING  (char*)"print"
+#define CREATE_STRING (char*)"create"
 
 #define FindDefmessageHandler(a,b,c) EnvFindDefmessageHandler(GetCurrentEnvironment(),a,b,c)
 #define GetDefmessageHandlerName(a,b) EnvGetDefmessageHandlerName(GetCurrentEnvironment(),a,b)
