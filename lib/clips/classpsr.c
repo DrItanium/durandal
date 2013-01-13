@@ -61,15 +61,15 @@
                    CONSTANTS
    =========================================
    ***************************************** */
-#define ROLE_RLN             "role"
-#define ABSTRACT_RLN         "abstract"
-#define CONCRETE_RLN         "concrete"
+#define ROLE_RLN             (char*)"role"
+#define ABSTRACT_RLN         (char*)"abstract"
+#define CONCRETE_RLN         (char*)"concrete"
 
-#define HANDLER_DECL         "message-handler"
+#define HANDLER_DECL         (char*)"message-handler"
 
-#define SLOT_RLN             "slot"
-#define SGL_SLOT_RLN         "single-slot"
-#define MLT_SLOT_RLN         "multislot"
+#define SLOT_RLN             (char*)"slot"
+#define SGL_SLOT_RLN         (char*)"single-slot"
+#define MLT_SLOT_RLN         (char*)"multislot"
 
 #define DIRECT               0
 #define INHERIT              1
