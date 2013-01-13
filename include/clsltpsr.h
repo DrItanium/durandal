@@ -23,9 +23,9 @@
 
 #if OBJECT_SYSTEM && (! BLOAD_ONLY) && (! RUN_TIME)
 
-#define MATCH_RLN            "pattern-match"
-#define REACTIVE_RLN         "reactive"
-#define NONREACTIVE_RLN      "non-reactive"
+#define MATCH_RLN            (char*)"pattern-match"
+#define REACTIVE_RLN         (char*)"reactive"
+#define NONREACTIVE_RLN      (char*)"non-reactive"
 
 #ifndef _H_object
 #include "object.h"
