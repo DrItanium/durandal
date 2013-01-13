@@ -34,8 +34,8 @@ typedef struct handlerSlotReference
 #endif
 #include "msgpass.h"
 
-#define BEGIN_TRACE ">>"
-#define END_TRACE   "<<"
+#define BEGIN_TRACE (char*)">>"
+#define END_TRACE   (char*)"<<"
 
 /* =================================================================================
    Message-handler types - don't change these values: a string array depends on them
