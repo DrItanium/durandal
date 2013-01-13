@@ -82,7 +82,7 @@ struct instanceQueryData
 #define LOCALE extern
 #endif
 
-#define QUERY_DELIMETER_STRING     "(QDS)"
+#define QUERY_DELIMETER_STRING     (char*)"(QDS)"
 
 LOCALE void SetupQuery(void *);
 LOCALE void *GetQueryInstance(void *);
