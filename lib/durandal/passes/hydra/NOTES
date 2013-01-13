@@ -8,3 +8,22 @@ the amount of work that would be required.
 However, now that my thesis is finished and I have free time, I have decided to
 start writing the full hydra pass. Like most other passes I've written in
 CLIPS, this pass operates on a full function at a time. 
+
+
+Hydra is designed to start at load and store instructions and work its way back
+up through the component pieces to figure out where a piece of data is being
+read from or written to. The actual value does not matter at this point because
+if the memory targets can be discerned then it is an easy manner of using the
+original order to figure out dependencies. 
+
+The first thing to do is define some common terms:
+
+1) A hydra terminator is an operand of an instruction that terminates the
+search. These terminators are usually alloca, argument, constants, or globals.
+2) A hydra node is an operand of an instruction that is not a hydra terminator.
+3) A hydra consumer is a load or store instruction
+4) A hydra path is a set of operands that start at a hydra consumer and end at
+hydra terminator or another hydra consumer (to save space).
+
+This pass just computes the backwards tree from each consumer so that other
+passes can use it to do things. 
