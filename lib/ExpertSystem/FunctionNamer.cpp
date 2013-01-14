@@ -9,13 +9,14 @@ FunctionNamer::FunctionNamer() {
    loopID = 0L;
    names = new llvm::DenseMap<PointerAddress, std::string>();
    instructionIndices = new std::map<std::string, PointerAddress>();
+   fnName = (char*)0;
 }
 void FunctionNamer::setFunctionName(char* functionName) {
    //copy it to be on the safe side
    if(fnName) {
       free(fnName);
    }
-   char* buf = (char*)calloc(strlen(functionName), sizeof(char));
+   char* buf = (char*)calloc(strlen(functionName) + 1, sizeof(char));
    sprintf(buf, "%s", functionName);
    fnName = buf;
 }
@@ -25,7 +26,9 @@ char* FunctionNamer::getFunctionName() {
 FunctionNamer::~FunctionNamer() { 
    delete instructionIndices; 
    delete names;
-   delete fnName;
+   if(fnName) {
+     free(fnName);
+   }
 }
 
 llvm::DenseMap<PointerAddress, std::string>& FunctionNamer::getTranslationTable() { 
