@@ -79,11 +79,13 @@ void EnvUserFunctions(
   extern void SetupRampancyExpertSystemInterfaces(void* theEnv);
   extern void BinaryOperationsFunctionDefinitions(void* theEnv);
   extern void RegisterCLIPSPipelineFunctions(void* theEnv);
+  extern void RegisterLLVMFunctionManipulationFunctions(void* theEnv);
   RegisterExpertSystemFunctions(theEnv);
   SetupLLVMIORouter(theEnv);
   SetupRampancyExpertSystemInterfaces(theEnv);
   BinaryOperationsFunctionDefinitions(theEnv);
   RegisterCLIPSPipelineFunctions(theEnv);
+  RegisterLLVMFunctionManipulationFunctions(theEnv);
   /*
    * Uncomment the two lines below this multiline comment to enable
    * environment manipulation operations from within clips. 
