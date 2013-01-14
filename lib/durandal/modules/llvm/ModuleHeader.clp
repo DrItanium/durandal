@@ -36,10 +36,8 @@
 
 ; Path is modules/llvm/
 (defmodule llvm 
- (import core defclass ?ALL)
- (import core deffunction ?ALL)  
- (export defclass ?ALL)
- (export deffunction ?ALL))
+ (import core ?ALL)
+ (export ?ALL))
 
 ; DO NOT MESS WITH THE ORDER OF THESE COMMANDS
 ; BAD THINGS CAN HAPPEN
@@ -61,5 +59,6 @@
 (load* "modules/llvm/Loop.clp")
 (load* "modules/llvm/LLVMModule.clp")
 (load* "modules/llvm/LLVMInlineAsm.clp")
+(load* "modules/llvm/LLVMFunction.clp")
 
 ; Function loaders
