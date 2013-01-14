@@ -27,7 +27,7 @@
 ; LLVMFunction.clp - Represents the LLVM Function class
 ;------------------------------------------------------------------------------
 (defclass llvm::Function
-  (is-a GlobalValue Diplomat)
+  (is-a GlobalValue Diplomat List)
   (slot ReturnType)
   (slot FunctionType)
   (slot IsVarArg (type SYMBOL) (allowed-values FALSE TRUE))
