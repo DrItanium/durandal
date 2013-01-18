@@ -14,7 +14,7 @@ namespace knowledge {
    template<> \
    struct HasCustomNameGenerationLogic< Type > { \
       static const bool value = true; \
-   };
+   }
    template<bool b> 
       struct CustomNameGenerationLogic {
          template<typename T>
@@ -46,7 +46,7 @@ namespace knowledge {
    template<> \
    struct HasCLIPSTypeNameDefined< Type > { \
       static const bool value = true; \ 
-   };
+   }
 
    template<typename T>
       struct CLIPSTypeNameDefined {
@@ -56,13 +56,13 @@ namespace knowledge {
       };
 
 #define DECLARE_CLIPS_TYPE_NAME(CPPType, CLIPSTypeName) \
-   DECLARE_TYPE_HAS_CLIPS_REPRESENTATION(CPPType) \
+   DECLARE_TYPE_HAS_CLIPS_REPRESENTATION(CPPType); \
    template<> \
    struct CLIPSTypeNameDefined < CPPType > { \
       static const char* getTypeName() { \
          return CLIPSTypeName; \
       } \
-   };
+   }
 
 #define DECLARE_CLIPS_TYPE_NAME_SYMBOL(CPPType, CLIPSTypeName) \
    DECLARE_CLIPS_TYPE_NAME(CPPType, #CLIPSTypeName )
@@ -85,7 +85,8 @@ namespace knowledge {
    template<> \
    struct HasKnowledgeRepresentationPopulationLogic< Type > { \
       static const bool value = true; \
-   };
+   }
+
    template<typename T>
       struct KnowledgeRepresentationPopulationLogic {
          static void populateKnowledgeRepresentation(
@@ -113,6 +114,12 @@ namespace knowledge {
       struct HasCustomRouterLogic {
          static const bool value = false;
       };
+
+#define DECLARE_HAS_CUSTOM_ROUTER_LOGIC(Type) \
+   template<> \
+   struct HasCustomRouterLogic< Type > { \
+      static const bool value = true; \
+   }
 
    template<bool b>
       struct CustomRouterLogic {
