@@ -31,9 +31,7 @@
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Value.h"
-#include "ExpertSystem/Types.h"
-#include "ExpertSystem/FunctionNamer.h"
-#include "ExpertSystem/CLIPSEnvironment.h"
+#include "knowledge/Types.h"
 #include <string>
 
 using namespace llvm;
