@@ -31,6 +31,6 @@ namespace knowledge {
          }
       };
 }
-   extern "C" RegisterArgumentInteractionFunctionsInCLIPS(void* theEnv);
+extern "C" void RegisterArgumentInteractionFunctionsInCLIPS(void* theEnv);
 
 #endif

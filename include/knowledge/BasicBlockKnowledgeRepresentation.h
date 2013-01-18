@@ -72,4 +72,6 @@ namespace knowledge {
       };
 }
 
+extern "C" void DefineBasicBlockInteractionFunctions(void* theEnv);
+
 #endif
