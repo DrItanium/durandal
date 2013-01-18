@@ -37,6 +37,12 @@
 using namespace llvm;
 namespace knowledge {
    class KnowledgeConstructor {
+      bool _isBasicBlockPass,
+           _isRegionPass,
+           _isLoopPass,
+           _isCallGraphSCCPass,
+           _isFunctionPass,
+           _isModulePass;
       llvm::DenseMap<PointerAddress, std::string>* names;
       llvm::raw_string_ostream* instanceStream; 
       std::string* tmp;
@@ -50,6 +56,42 @@ namespace knowledge {
       bool objectAlreadyConvertedToKnowledge(PointerAddress ptr);
       void gensym(char* buffer);
       std::string getObjectKnowledgeName(PointerAddress ptr);
+      bool isBasicBlockPass() { 
+         return _isBasicBlockPass;
+      }
+      void setIsBasicBlockPass(bool isBBPass) {
+         _isBasicBlockPass = isBBPass;
+      }
+      bool isRegionPass() { 
+         return _isRegionPass;
+      } 
+      void setIsRegionPass(bool isRegionPass) {
+         _isRegionPass = isRegionPass;
+      }
+      bool isLoopPass() { 
+         return _isLoopPass; 
+      }
+      void setIsLoopPass(bool isLoopPass) {
+         _isLoopPass = isLoopPass;
+      }
+      bool isCallGraphSCCPass() {
+         return _isCallGraphSCCPass;
+      }
+      void setIsCallGraphSCCPass(bool isSCCPass) {
+         _isCallGraphSCCPass = isSCCPass; 
+      }
+      bool isFunctionPass() {
+         return _isFunctionPass;
+      }
+      void setIsFunctionPass(bool isFunctionPass) {
+         _isFunctionPass = isFunctionPass;
+      }
+      bool isModulePass() {
+         return _isModulePass;
+      }
+      void setIsModulePass(bool isModulePass) {
+         _isModulePass = isModulePass;
+      }
    };
 }
 #endif
