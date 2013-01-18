@@ -22,6 +22,7 @@ namespace knowledge {
       bool isClosed() { return closed; }
       bool inMultifield() { return in_multifield; }
       std::string& getName() { return *name; }
+      std::string& getParent() { return *parent; }
       void addField(const char* n, unsigned v);
       void addField(const char* n, PointerAddress v); 
       void addField(const char* n, int v); 
