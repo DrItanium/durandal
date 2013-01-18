@@ -1,7 +1,7 @@
 #ifndef _traits_h
 #define _traits_h
-#include "KnowledgeConstructor.h"
-#include "KnowledgeRepresentationBuilder.h"
+#include "knowledge/KnowledgeConstructor.h"
+#include "knowledge/KnowledgeRepresentationBuilder.h"
 #define DECLARE_KNOWLEDGE_CONVERSION_LOGIC namespace knowledge
 namespace knowledge {
 
