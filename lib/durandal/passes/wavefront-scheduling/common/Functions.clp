@@ -32,6 +32,6 @@
 				 (progn$ (?e ?list)
 							(bind ?obj (instance-address * 
 																  (symbol-to-instance-name ?e)))
-							(bind ?result (create$ ?result (send ?obj get-Pointer))))
+							(bind ?result (create$ ?result (send ?obj get-pointer))))
 				 (return ?result))
 ;------------------------------------------------------------------------------
