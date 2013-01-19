@@ -26,71 +26,117 @@
 ; MergeRules.clp - Contains all of the merge rules used in the analysis stages
 ; Written by Joshua Scoggins (11/18/2012)
 ;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers
-			?f0 <- (message (to dependency-analysis)
-								 (action instruction-consumes)
+(defrule dependency-analysis-extended-memory-analysis-merge::generate-initial-consumer-list
+         ?f0 <- (message (to dependency-analysis)
+				             (action instruction-consumes)
+								 (arguments ?a => ?id))
+			(not (exists (message (to dependency-analysis)
+							          (action instruction-consume-list)
+										 (arguments ?id => $?))))
+			=>
+			(modify ?f0 (action instruction-consume-list)
+			            (arguments ?id => ?a)))
+;------------------------------------------------------------------------------
+(defrule dependency-analysis-extended-memory-analysis-merge::generate-initial-producer-list
+         ?f0 <- (message (to dependency-analysis)
+				             (action instruction-produces)
+								 (arguments ?a => ?id))
+			(not (exists (message (to dependency-analysis)
+							          (action instruction-produce-list)
+										 (arguments ?id => $?))))
+			=>
+			(modify ?f0 (action instruction-produce-list)
+			            (arguments ?id => ?a)))
+;------------------------------------------------------------------------------
+(defrule dependency-analysis-extended-memory-analysis-merge::add-to-consumer-list
+ (declare (salience 1))
+         ?f0 <- (message (to dependency-analysis)
+				             (action instruction-consumes)
 								 (arguments ?a => ?id))
 			?f1 <- (message (to dependency-analysis)
-								 (action instruction-consumes)
-								 (arguments ?b&~?a => ?id))
+				             (action instruction-consume-list)
+								 (arguments ?id => $?elements))
 			=>
 			(retract ?f0)
-			(modify ?f1 (action instruction-consume-list)
-					  (arguments ?id => ?a ?b)))
+			(modify ?f1 (arguments ?id => $?elements ?a)))
 ;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers
-			?f0 <- (message (to dependency-analysis)
-								 (action instruction-produces)
+(defrule dependency-analysis-extended-memory-analysis-merge::add-to-producer-list
+ (declare (salience 1))
+         ?f0 <- (message (to dependency-analysis)
+				             (action instruction-produces)
 								 (arguments ?a => ?id))
 			?f1 <- (message (to dependency-analysis)
-								 (action instruction-produces)
-								 (arguments ?b&~?a => ?id))
+				             (action instruction-produce-list)
+								 (arguments ?id => $?elements))
 			=>
 			(retract ?f0)
-			(modify ?f1 (action instruction-produce-list)
-					  (arguments ?id => ?a ?b)))
+			(modify ?f1 (arguments ?id => $?elements ?a)))
 ;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers-Multi
-			?f0 <- (message (to dependency-analysis)
-								 (action instruction-consume-list)
-								 (arguments ?id => $?a))
-			?f1 <- (message (to dependency-analysis)
-								 (action instruction-consume-list)
-								 (arguments ?id => $?b))
-			(test (neq ?f0 ?f1))
-			=>
-			(retract ?f0)
-			(modify ?f1 (arguments ?id => $?a $?b)))
-;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers-Multi
-			?f0 <- (message (to dependency-analysis)
-								 (action instruction-produce-list)
-								 (arguments ?id => $?a))
-			?f1 <- (message (to dependency-analysis)
-								 (action instruction-produce-list)
-								 (arguments ?id => $?b))
-			(test (neq ?f0 ?f1))
-			=>
-			(retract ?f0)
-			(modify ?f1 (arguments ?id => $?a $?b)))
-;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers-Only
-			(declare (salience -2))
-			?f <- (message (to dependency-analysis)
-								(action instruction-consumes)
-								(arguments ?a => ?b))
-			=>
-			(modify ?f (action instruction-consume-list)
-					  (arguments ?b => ?a)))
-;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers-Only
-			(declare (salience -2))
-			?f <- (message (to dependency-analysis)
-								(action instruction-produces)
-								(arguments ?a => ?b))
-			=>
-			(modify ?f (action instruction-produce-list)
-					  (arguments ?b => ?a)))
+;(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers
+;			?f0 <- (message (to dependency-analysis)
+;								 (action instruction-consumes)
+;								 (arguments ?a => ?id))
+;			?f1 <- (message (to dependency-analysis)
+;								 (action instruction-consumes)
+;								 (arguments ?b&~?a => ?id))
+;			=>
+;			(retract ?f0)
+;			(modify ?f1 (action instruction-consume-list)
+;					  (arguments ?id => ?a ?b)))
+;;------------------------------------------------------------------------------
+;(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers
+;			?f0 <- (message (to dependency-analysis)
+;								 (action instruction-produces)
+;								 (arguments ?a => ?id))
+;			?f1 <- (message (to dependency-analysis)
+;								 (action instruction-produces)
+;								 (arguments ?b&~?a => ?id))
+;			=>
+;			(retract ?f0)
+;			(modify ?f1 (action instruction-produce-list)
+;					  (arguments ?id => ?a ?b)))
+;;------------------------------------------------------------------------------
+;(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers-Multi
+;			?f0 <- (message (to dependency-analysis)
+;								 (action instruction-consume-list)
+;								 (arguments ?id => $?a))
+;			?f1 <- (message (to dependency-analysis)
+;								 (action instruction-consume-list)
+;								 (arguments ?id => $?b))
+;			(test (neq ?f0 ?f1))
+;			=>
+;			(retract ?f0)
+;			(modify ?f1 (arguments ?id => $?a $?b)))
+;;------------------------------------------------------------------------------
+;(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers-Multi
+;			?f0 <- (message (to dependency-analysis)
+;								 (action instruction-produce-list)
+;								 (arguments ?id => $?a))
+;			?f1 <- (message (to dependency-analysis)
+;								 (action instruction-produce-list)
+;								 (arguments ?id => $?b))
+;			(test (neq ?f0 ?f1))
+;			=>
+;			(retract ?f0)
+;			(modify ?f1 (arguments ?id => $?a $?b)))
+;;------------------------------------------------------------------------------
+;(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers-Only
+;			(declare (salience -2))
+;			?f <- (message (to dependency-analysis)
+;								(action instruction-consumes)
+;								(arguments ?a => ?b))
+;			=>
+;			(modify ?f (action instruction-consume-list)
+;					  (arguments ?b => ?a)))
+;;------------------------------------------------------------------------------
+;(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers-Only
+;			(declare (salience -2))
+;			?f <- (message (to dependency-analysis)
+;								(action instruction-produces)
+;								(arguments ?a => ?b))
+;			=>
+;			(modify ?f (action instruction-produce-list)
+;					  (arguments ?b => ?a)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-inject::InjectConsumers-Producers-And-LocalDependencies
 			"Performs the actions of InjectConsumers and
