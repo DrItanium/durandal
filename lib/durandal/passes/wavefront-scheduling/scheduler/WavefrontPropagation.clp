@@ -254,7 +254,7 @@
          ;this is very much procedural but I frankly don't care
          ;anymore. 
          (progn$ (?t ?c)
-                 (bind ?obj (instance-address (symbol-to-instance-name ?t)))
+                 (bind ?obj (instance-address * (symbol-to-instance-name ?t)))
                  (modify-instance ?obj (TimeIndex (- ?t-index 1))))
          (retract ?fct))
 ;------------------------------------------------------------------------------
