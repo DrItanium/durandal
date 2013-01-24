@@ -8,6 +8,27 @@ using namespace llvm;
 namespace knowledge {
    DECLARE_CLIPS_TYPE_NAME(llvm::BasicBlock, "BasicBlock");
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::BasicBlock);
+   DECLARE_HAS_CUSTOM_NAME_GENERATION_LOGIC(llvm::BasicBlock);
+   template<>
+      struct CustomNameGenerationLogic<true> {
+         template<>
+            static std::string getUniqueName<llvm::BasicBlock>(
+                  llvm::BasicBlock* obj, 
+                  KnowledgeConstructor* kc) {
+               if(obj->hasName()) {
+                  std::string tmp(obj->getName().data());
+                  return tmp;
+               } else {
+                  //save the name in the BasicBlock class
+                  char* tmp = (char*)calloc(128, sizeof(char));
+                  kc->gensym(tmp);
+                  std::string name(tmp);
+                  obj->setName(Twine(tmp));
+                  free(tmp);
+                  return name;
+               }
+            }
+      };
 
    template<>
       struct KnowledgeRepresentationPopulationLogic<llvm::BasicBlock> {

@@ -6,6 +6,27 @@
 namespace knowledge {
    DECLARE_CLIPS_TYPE_NAME(llvm::Function, "LLVMFunction");
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::Function);
+   DECLARE_HAS_CUSTOM_NAME_GENERATION_LOGIC(llvm::Function);
+   template<>
+      struct CustomNameGenerationLogic<true> {
+         template<>
+            static std::string getUniqueName<llvm::Function>(
+                  llvm::Function* obj,
+                  KnowledgeConstructor* kc) {
+               if(obj->hasName()) {
+                  std::string tmp(obj->getName().data());
+                  return tmp;
+               } else {
+                  //name the function
+                  char* tmp = (char*)calloc(128, sizeof(char));
+                  kc->gensym(tmp);
+                  std::string name(tmp);
+                  obj->setName(Twine(tmp));
+                  free(tmp);
+                  return name;
+               }
+            }
+      };
    DECLARE_HAS_CUSTOM_ROUTER_LOGIC(llvm::Function);
    template<>
       struct CustomRouterLogic<true> {
