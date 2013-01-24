@@ -19,7 +19,7 @@ namespace knowledge {
             if(cnst->canTrap()) krb->addTrueField("CanTrap"); 
             if(cnst->isConstantUsed()) krb->addTrueField("IsConstantUsed"); 
          }
-      }
+      };
    template<>
       struct CustomRouterLogic<true> {
          template<>
@@ -55,7 +55,7 @@ namespace knowledge {
                   return CustomRouterLogic<false>::route(obj, kc, parent);
                }
             }
-      }
+      };
 
    extern "C" void RegisterLLVMConstantFunctions(void* theEnv);
 }
