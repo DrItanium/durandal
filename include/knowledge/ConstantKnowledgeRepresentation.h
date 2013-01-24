@@ -77,10 +77,9 @@ namespace knowledge {
                KnowledgeRepresentationBuilder* krb,
                KnowledgeConstructor* kc) {
             PopulateKnowledgeRepresentation((llvm::Constant*)obj, krb, kc);
-            //save them as pointer addresses
-            //that way we don't mess up parents 
-            krb->addField("Target", (PointerAddress)addr->getBasicBlock());
-            krb->addField("Function", (PointerAddress)addr->getFunction());
+            //we don't mess up the routing process by calling GetUniqueName
+            krb->addField("Target", GetUniqueName(addr->getBasicBlock(), kc));
+            krb->addField("Function", GetUniqueName(addr->getFunction(), kc));
          }
       };
    /*
