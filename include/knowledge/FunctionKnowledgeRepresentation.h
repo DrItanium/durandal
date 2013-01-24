@@ -175,4 +175,5 @@ namespace knowledge {
             } krb->closeMultifield();
          }
       };
+}
 #endif
