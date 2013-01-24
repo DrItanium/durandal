@@ -50,20 +50,9 @@ namespace knowledge {
                } else if(llvm::GlobalValue* o = dyn_cast<llvm::GlobalValue>(obj)) {
                   return Route(o, kc, parent);
                } else {
-                  std::string n = GetUniqueName(obj, kc);
-                  std::string& name = n;
-                  kc->registerKnowledgeName((PointerAddress)obj, name);
-                  std::string type = GetTypeName<T>();
-                  KnowledgeRepresentationBuilder* krb = new 
-                     KnowledgeRepresentationBuilder(name, type, 
-                           (PointerAddress)obj, parent);
-                  krb->open();
-                  PopulateKnowledgeRepresentation(obj, krb, kc);
-                  krb->close();
-                  std::string tmp = krb->getCompletedString();
-                  kc->addToInstances(tmp);
-                  delete krb;
-                  return name;
+                  //use the default custom routing logic to prevent code
+                  //duplication
+                  return CustomRouterLogic<false>::route(obj, kc, parent);
                }
             }
       }
