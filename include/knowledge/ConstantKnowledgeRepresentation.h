@@ -58,5 +58,12 @@ namespace knowledge {
       };
 
    extern "C" void RegisterLLVMConstantFunctions(void* theEnv);
+
+   /* 
+    * UndefValue 
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::UndefValue, "UndefValue");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::UndefValue);
+   KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::UndefValue, llvm:Constant);
 }
 #endif
