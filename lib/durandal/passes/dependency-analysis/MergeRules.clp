@@ -26,71 +26,51 @@
 ; MergeRules.clp - Contains all of the merge rules used in the analysis stages
 ; Written by Joshua Scoggins (11/18/2012)
 ;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers
+(defrule dependency-analysis-extended-memory-analysis-merge::generate-initial-consumer-list
+			?f0 <- (message (to dependency-analysis)
+								 (action instruction-consumes)
+								 (arguments ?a => ?id))
+			(not (exists (message (to dependency-analysis)
+										 (action instruction-consume-list)
+										 (arguments ?id => $?))))
+			=>
+			(modify ?f0 (action instruction-consume-list)
+					  (arguments ?id => ?a)))
+;------------------------------------------------------------------------------
+(defrule dependency-analysis-extended-memory-analysis-merge::generate-initial-producer-list
+			?f0 <- (message (to dependency-analysis)
+								 (action instruction-produces)
+								 (arguments ?a => ?id))
+			(not (exists (message (to dependency-analysis)
+										 (action instruction-produce-list)
+										 (arguments ?id => $?))))
+			=>
+			(modify ?f0 (action instruction-produce-list)
+					  (arguments ?id => ?a)))
+;------------------------------------------------------------------------------
+(defrule dependency-analysis-extended-memory-analysis-merge::add-to-consumer-list
+			(declare (salience 1))
 			?f0 <- (message (to dependency-analysis)
 								 (action instruction-consumes)
 								 (arguments ?a => ?id))
 			?f1 <- (message (to dependency-analysis)
-								 (action instruction-consumes)
-								 (arguments ?b&~?a => ?id))
+								 (action instruction-consume-list)
+								 (arguments ?id => $?elements))
 			=>
 			(retract ?f0)
-			(modify ?f1 (action instruction-consume-list)
-					  (arguments ?id => ?a ?b)))
+			(modify ?f1 (arguments ?id => $?elements ?a)))
 ;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers
+(defrule dependency-analysis-extended-memory-analysis-merge::add-to-producer-list
+			(declare (salience 1))
 			?f0 <- (message (to dependency-analysis)
 								 (action instruction-produces)
 								 (arguments ?a => ?id))
 			?f1 <- (message (to dependency-analysis)
-								 (action instruction-produces)
-								 (arguments ?b&~?a => ?id))
-			=>
-			(retract ?f0)
-			(modify ?f1 (action instruction-produce-list)
-					  (arguments ?id => ?a ?b)))
-;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers-Multi
-			?f0 <- (message (to dependency-analysis)
-								 (action instruction-consume-list)
-								 (arguments ?id => $?a))
-			?f1 <- (message (to dependency-analysis)
-								 (action instruction-consume-list)
-								 (arguments ?id => $?b))
-			(test (neq ?f0 ?f1))
-			=>
-			(retract ?f0)
-			(modify ?f1 (arguments ?id => $?a $?b)))
-;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers-Multi
-			?f0 <- (message (to dependency-analysis)
 								 (action instruction-produce-list)
-								 (arguments ?id => $?a))
-			?f1 <- (message (to dependency-analysis)
-								 (action instruction-produce-list)
-								 (arguments ?id => $?b))
-			(test (neq ?f0 ?f1))
+								 (arguments ?id => $?elements))
 			=>
 			(retract ?f0)
-			(modify ?f1 (arguments ?id => $?a $?b)))
-;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeConsumers-Only
-			(declare (salience -2))
-			?f <- (message (to dependency-analysis)
-								(action instruction-consumes)
-								(arguments ?a => ?b))
-			=>
-			(modify ?f (action instruction-consume-list)
-					  (arguments ?b => ?a)))
-;------------------------------------------------------------------------------
-(defrule dependency-analysis-extended-memory-analysis-merge::MergeProducers-Only
-			(declare (salience -2))
-			?f <- (message (to dependency-analysis)
-								(action instruction-produces)
-								(arguments ?a => ?b))
-			=>
-			(modify ?f (action instruction-produce-list)
-					  (arguments ?b => ?a)))
+			(modify ?f1 (arguments ?id => $?elements ?a)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-inject::InjectConsumers-Producers-And-LocalDependencies
 			"Performs the actions of InjectConsumers and
@@ -113,9 +93,12 @@
 			(bind ?ps $?p)
 			(bind ?lds $?ld)
 			(object-pattern-match-delay
-			  (progn$ (?target ?t1)
-						 (if (not (member$ ?target ?cs)) then
-							(bind ?cs (insert$ ?cs 1 ?target))))
+			  (if (= 0 (length$ ?cs)) then
+				 (bind ?cs ?t1)
+				 else
+				 (progn$ (?target ?t1)
+							(if (not (member$ ?target ?cs)) then
+							  (bind ?cs (insert$ ?cs 1 ?target)))))
 			  (progn$ (?target ?t0)
 						 (if (not (member$ ?target ?lds)) then
 							(bind ?lds (insert$ ?lds 1 ?target)))
@@ -136,10 +119,13 @@
 			(retract ?fct)
 			(bind ?cons $?cs)
 			(object-pattern-match-delay
-			  (progn$ (?target ?targets)
-						 (if (not (member$ ?target ?cons)) then
-							(bind ?cons (insert$ ?cons 1 ?target)))))
-			  (modify-instance ?inst (Consumers ?cons)))
+			  (if (= 0 (length$ ?cons)) then
+				 (bind ?cons ?targets)
+				 else
+				 (progn$ (?target ?targets)
+							(if (not (member$ ?target ?cons)) then
+							  (bind ?cons (insert$ ?cons 1 ?target))))))
+			(modify-instance ?inst (Consumers ?cons)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-inject::InjectProducersAndLocalDependencies
 			"Adds a given producer to the target instruction."
@@ -157,10 +143,10 @@
 			(object-pattern-match-delay
 			  (progn$ (?target ?targets)
 						 (if (not (member$ ?target ?lds)) then
-						   (bind ?lds (create$ ?lds ?target)))
+							(bind ?lds (create$ ?lds ?target)))
 						 (if (not (member$ ?target ?prods)) then
-						  (bind ?prods (create$ ?prods ?target)))))
-			  (modify-instance ?inst (Producers ?prods) (LocalDependencies ?lds)))
+							(bind ?prods (create$ ?prods ?target)))))
+			(modify-instance ?inst (Producers ?prods) (LocalDependencies ?lds)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-make-set::SetifyInstructionProducers
 			?inst <- (object (is-a Instruction) 
@@ -171,8 +157,8 @@
 			(bind ?mid (create$ ?b))
 			(bind ?all (create$ ?a ?c ?d))
 			(progn$ (?t ?all)
-			        (if (not (member$ ?t ?mid)) then
-						   (bind ?mid (insert$ ?mid (+ ?t-index 1) ?t))))
+					  (if (not (member$ ?t ?mid)) then
+						 (bind ?mid (insert$ ?mid (+ ?t-index 1) ?t))))
 			(modify-instance ?inst (Producers ?mid)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-make-set::SetifyInstructionConsumers
@@ -182,8 +168,8 @@
 			(bind ?mid (create$ ?b))
 			(bind ?all (create$ ?a ?c ?d))
 			(progn$ (?t ?all)
-			        (if (not (member$ ?t ?mid)) then
-						   (bind ?mid (insert$ ?mid (+ ?t-index 1) ?t))))
+					  (if (not (member$ ?t ?mid)) then
+						 (bind ?mid (insert$ ?mid (+ ?t-index 1) ?t))))
 			(modify-instance ?inst (Consumers ?mid)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-make-set::SetifyLocalDependencies
@@ -193,8 +179,8 @@
 			(bind ?mid (create$ ?b))
 			(bind ?all (create$ ?a ?c ?d))
 			(progn$ (?t ?all)
-			        (if (not (member$ ?t ?mid)) then
-						   (bind ?mid (insert$ ?mid (+ ?t-index 1) ?t))))
+					  (if (not (member$ ?t ?mid)) then
+						 (bind ?mid (insert$ ?mid (+ ?t-index 1) ?t))))
 			(modify-instance ?inst (LocalDependencies ?mid)))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-extended-memory-analysis-make-set::SetifyNonLocalDependencies
@@ -204,7 +190,7 @@
 			(bind ?mid (create$ ?b))
 			(bind ?all (create$ ?a ?c ?d))
 			(progn$ (?t ?all)
-			        (if (not (member$ ?t ?mid)) then
-						   (bind ?mid (insert$ ?mid (+ ?t-index 1) ?t))))
+					  (if (not (member$ ?t ?mid)) then
+						 (bind ?mid (insert$ ?mid (+ ?t-index 1) ?t))))
 			(modify-instance ?inst (NonLocalDependencies ?mid)))
 ;------------------------------------------------------------------------------

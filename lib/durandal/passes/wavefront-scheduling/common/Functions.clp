@@ -24,13 +24,14 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-
 (deffunction types::symbol-to-pointer-list
 				 "Converts a given list of symbols that represent InteropObjects and pulls the
 				 pointer value out of it. This function assumes order is important"
 				 (?list)
 				 (bind ?result (create$))
 				 (progn$ (?e ?list)
-							 (bind ?obj (symbol-to-instance-name ?e))
-							 (bind ?result (create$ ?result (send ?obj get-Pointer))))
+							(bind ?obj (instance-address * 
+																  (symbol-to-instance-name ?e)))
+							(bind ?result (create$ ?result (send ?obj get-pointer))))
 				 (return ?result))
+;------------------------------------------------------------------------------
