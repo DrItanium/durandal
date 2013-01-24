@@ -55,15 +55,7 @@ namespace knowledge {
                } else if(llvm::GlobalVariable* o = dyn_cast<llvm::GlobalVariable>(obj)) {
                   return Route(o, kc, parent);
                } else if(llvm::Function* o = dyn_cast<llvm::Function>(obj)) {
-                  if(kc->isModulePass()) {
-                     return Route(o, kc, parent);
-                  } else {
-                     //we can assume that if we get here through routing of a
-                     //global value, then it's a safe bet that we just want the
-                     //name
-                     std::string tmp(o->getName().data());
-                     return tmp;
-                  }
+                  return Route(o, kc, parent);
                } else {
                   //use the default code for this
                   return CustomRouterLogic<false>::route(obj, kc, parent);
