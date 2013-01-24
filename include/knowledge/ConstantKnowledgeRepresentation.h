@@ -65,5 +65,30 @@ namespace knowledge {
    DECLARE_CLIPS_TYPE_NAME(llvm::UndefValue, "UndefValue");
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::UndefValue);
    KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::UndefValue, llvm:Constant);
+
+   /* 
+    * BlockAddress
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::BlockAddress, "BlockAddress");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::BlockAddress);
+   template<> 
+      struct KnowledgeRepresentationPopulationLogic<llvm::BlockAddress> {
+         static void populateKnowledgeRepresentation(llvm::BlockAddress* obj,
+               KnowledgeRepresentationBuilder* krb,
+               KnowledgeConstructor* kc) {
+            PopulateKnowledgeRepresentation((llvm::Constant*)obj, krb, kc);
+            //save them as pointer addresses
+            //that way we don't mess up parents 
+            krb->addField("Target", (PointerAddress)addr->getBasicBlock());
+            krb->addField("Function", (PointerAddress)addr->getFunction());
+         }
+      };
+   /*
+    * ConstantAggregateZero
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantAggregateZero, "ConstantAggregateZero");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantAggregateZero);
+   KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::ConstantAggregateZero, llvm:Constant);
+
 }
 #endif
