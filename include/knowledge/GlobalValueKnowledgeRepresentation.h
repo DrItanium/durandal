@@ -4,6 +4,9 @@
 #include "knowledge/Types.h"
 #include "llvm/GlobalValue.h"
 namespace knowledge {
+   /*
+    * BEGIN GlobalValue class declaration
+    */
    DECLARE_CLIPS_TYPE_NAME(llvm::GlobalValue, "GlobalValue");
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::GlobalValue);
    DECLARE_HAS_CUSTOM_ROUTER_LOGIC(llvm::GlobalValue);
@@ -57,6 +60,52 @@ namespace knowledge {
                }
             }
       };
+   extern "C" void RegisterLLVMGlobalValueInteractionFunctions(void* theEnv);
+   /* 
+    * END llvm::GlobalValue knowledge conversion logic
+    */
+
+   /* 
+    * BEGIN llvm::GlobalAlias knowledge conversion logic
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::GlobalAlias, "GlobalAlias");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::GlobalAlias);
+   template<>
+      struct KnowledgeRepresentationPopulationLogic<llvm::GlobalAlias> {
+         static void populateKnowledgeRepresentation(llvm::GlobalAlias* obj,
+               KnowledgeRepresentationBuilder* krb,
+               KnowledgeConstructor* kc) {
+            PopulateKnowledgeRepresentation((llvm::GlobalValue*)obj, krb, kc);
+            krb->addField("Aliasee", Route(addr->getAliasee(), kc, (char*)""));
+         }
+      };
+   /* 
+    * END llvm::GlobalAlias knowledge conversion logic
+    */
+
+   /* 
+    * BEGIN llvm::GlobalVariable knowledge conversion logic
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::GlobalVariable, "GlobalVariable");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::GlobalVariable);
+   template<>
+      struct KnowledgeRepresentationPopulationLogic<llvm::GlobalVariable> {
+         static void populateKnowledgeRepresentation(llvm::GlobalVariable* obj,
+               KnowledgeRepresentationBuilder* krb,
+               KnowledgeConstructor* kc) {
+            PopulateKnowledgeRepresentation((llvm::GlobalValue*)obj, krb, kc);
+            if(addr->hasInitializer()) {
+               krb->addTrueField("HasInitializer");
+               krb->addField("Initializer", Route(addr->getInitializer(), kc, (char*)"")); 
+            }
+            if(addr->hasDefinitiveInitializer()) krb->addTrueField("HasDefinitiveInitializer");
+            if(addr->hasUniqueInitializer()) krb->addTrueField("HasUniqueInitializer");
+            if(addr->isConstant()) krb->addTrueField("IsConstant"); 
+         }
+      };
+   /* 
+    * END llvm::GlobalVariable knowledge conversion logic
+    */
 }
 
 #endif
