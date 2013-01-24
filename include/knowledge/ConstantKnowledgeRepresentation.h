@@ -100,7 +100,7 @@ namespace knowledge {
    /*
     * ConstantExpr 
     */
-   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantExpr, "ConstantExpr");
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantExpr, "ConstantExpression");
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantExpr);
    template<>
       struct KnowledgeRepresentationPopulationLogic<llvm::ConstantExpr> {
@@ -118,5 +118,62 @@ namespace knowledge {
             krb->addField("Operation", addr->getOpcodeName());
          }
       };
-}
+
+   /*
+    * ConstantFP 
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantFP, "ConstantFloatingPoint");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantFP);
+   template<>
+      struct KnowledgeRepresentationPopulationLogic<llvm::ConstantFP> {
+         static void populateKnowledgeRepresentation(llvm::ConstantFP* obj,
+               KnowledgeRepresentationBuilder* krb,
+               KnowledgeConstructor* kc) {
+            PopulateKnowledgeRepresentation((llvm::Constant*)obj, krb, kc);
+            if(addr->isZero()) {
+               krb->addTrueField("IsZero");
+               krb->addField("Value", 0.0);
+            } else {
+               if(addr->isNegative()) krb->addTrueField("IsNegative");
+               if(addr->isNaN()) krb->addTrueField("IsNaN");
+               const APFloat& value = addr->getValueAPF();
+               const llvm::fltSemantics* valueSemantics = &(value.getSemantics());
+               if(valueSemantics == (const llvm::fltSemantics*)&APFloat::IEEEdouble) {
+                  krb->addField("Value", value.convertToDouble());
+               } else if(valueSemantics == (const llvm::fltSemantics*)&APFloat::IEEEsingle) {
+                  krb->addField("Value", value.convertToFloat());
+               } else {
+                  krb->addField("Value", "Unknown"); 
+               }
+            }
+         }
+      };
+
+   /*
+    * ConstantInt 
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantInt, "ConstantInteger");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantInt);
+   template<>
+      struct KnowledgeRepresentationPopulationLogic<llvm::ConstantInt> {
+         static void populateKnowledgeRepresentation(llvm::ConstantInt* obj,
+               KnowledgeRepresentationBuilder* krb,
+               KnowledgeConstructor* kc) {
+            PopulateKnowledgeRepresentation((llvm::Constant*)obj, krb, kc);
+            krb->addField("Width", addr->getBitWidth());
+            if(addr->isZero()) {
+               krb->addTrueField("IsZero");
+               krb->addField("Value", 0);
+            } else {
+               if(addr->isNegative()) {
+                  krb->addTrueField("IsNegative");
+                  if(addr->isMinusOne()) krb->addTrueField("IsMinusOne");
+                  krb->addField("Value", addr->getSExtValue());			
+               } else {
+                  if(addr->isOne()) krb->addTrueField("IsOne");
+                  krb->addField("Value", addr->getLimitedValue());
+               }
+            }
+         }
+      };
 #endif
