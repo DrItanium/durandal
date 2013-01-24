@@ -97,5 +97,26 @@ namespace knowledge {
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantArray);
    KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::ConstantArray, llvm:Constant);
 
+   /*
+    * ConstantExpr 
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantExpr, "ConstantExpr");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantExpr);
+   template<>
+      struct KnowledgeRepresentationPopulationLogic<llvm::ConstantExpr> {
+         static void populateKnowledgeRepresentation(llvm::ConstantExpr* obj,
+               KnowledgeRepresentationBuilder* krb,
+               KnowledgeConstructor* kc) {
+            PopulateKnowledgeRepresentation((llvm::Constant*)obj, krb, kc);
+            if(addr->isCast()) krb->addTrueField("IsCast");
+            if(addr->isCompare()) {
+               krb->addTrueField("IsCompare");
+               krb->addField("Predicate", addr->getPredicate());
+            }
+            if(addr->hasIndices()) krb->addTrueField("HasIndices");
+            if(addr->isGEPWithNoNotionalOverIndexing()) krb->addTrueField("IsGEPWithNoNotionalOverIndexing");
+            krb->addField("Operation", addr->getOpcodeName());
+         }
+      };
 }
 #endif
