@@ -4,11 +4,12 @@ extern "C" {
 }
 
 namespace knowledge {
-   KnowledgeConstructor::KnowledgeConstructor(void* env) {
+   KnowledgeConstructor::KnowledgeConstructor(void* env, void* tObj) {
       tmp = new std::string();
       names = new llvm::DenseMap<PointerAddress, std::string>();
       instanceStream = new llvm::raw_string_ostream(*tmp);
       theEnv = env;
+      targetObject = tObj;
    }
    KnowledgeConstructor::~KnowledgeConstructor() {
       delete instances;

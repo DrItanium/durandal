@@ -43,12 +43,13 @@ namespace knowledge {
            _isCallGraphSCCPass,
            _isFunctionPass,
            _isModulePass;
+      void* targetObject;
       llvm::DenseMap<PointerAddress, std::string>* names;
       llvm::raw_string_ostream* instanceStream; 
       std::string* tmp;
       void* theEnv;
       public:
-      KnowledgeConstructor(void* theEnv);
+      KnowledgeConstructor(void* theEnv, void* targetObject);
       ~KnowledgeConstructor();
       std::string getInstancesAsString();
       void addToInstances(std::string &instance);
@@ -91,6 +92,9 @@ namespace knowledge {
       }
       void setIsModulePass(bool isModulePass) {
          _isModulePass = isModulePass;
+      }
+      void* getTargetObject() {
+         return targetObject;
       }
    };
 }
