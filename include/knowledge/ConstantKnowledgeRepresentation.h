@@ -90,5 +90,12 @@ namespace knowledge {
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantAggregateZero);
    KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::ConstantAggregateZero, llvm:Constant);
 
+   /*
+    * ConstantArray
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantArray, "ConstantArray");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantArray);
+   KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::ConstantArray, llvm:Constant);
+
 }
 #endif
