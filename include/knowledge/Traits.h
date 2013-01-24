@@ -96,6 +96,16 @@ namespace knowledge {
             //do nothing
          }
       };
+#define KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(type, super) \
+   template<> \
+   struct KnowledgeRepresentationPopulationLogic< type > { \
+      static void populateKnowledgeRepresentation( type * obj, \
+            KnowledgeRepresentationBuilder* krb, \
+            KnowledgeConstructor* kc) { \
+         PopulateKnowledgeRepresentation(( super *) obj, krb, kc);\
+      }\
+   }
+
    template<typename T>
       void PopulateKnowledgeRepresentation(T* obj, 
             KnowledgeRepresentationBuilder* krb, 
