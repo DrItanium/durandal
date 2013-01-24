@@ -6,7 +6,7 @@
 namespace knowledge {
    DECLARE_CLIPS_TYPE_NAME(llvm::Function, "LLVMFunction");
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::Function);
-   DECLARE_HAS_CUSTOM_ROUTER_LOGIC(llvm::GlobalValue);
+   DECLARE_HAS_CUSTOM_ROUTER_LOGIC(llvm::Function);
    template<>
       struct CustomRouterLogic<true> {
          template<>
