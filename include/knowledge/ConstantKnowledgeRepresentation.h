@@ -176,4 +176,16 @@ namespace knowledge {
             }
          }
       };
+   /*
+    * ConstantPointerNull
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantPointerNull, "ConstantPointerNull");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantPointerNull);
+   KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::ConstantPointerNull, llvm:Constant);
+   /*
+    * ConstantStruct
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantStruct, "ConstantStruct");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantStruct);
+   KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::ConstantStruct, llvm:Constant);
 #endif
