@@ -188,4 +188,19 @@ namespace knowledge {
    DECLARE_CLIPS_TYPE_NAME(llvm::ConstantStruct, "ConstantStruct");
    DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantStruct);
    KNOWLEDGE_REPRESENTATION_POPULATION_ONLY_CALLS_SUPERTYPE(llvm::ConstantStruct, llvm:Constant);
+
+   /*
+    * ConstantVector
+    */
+   DECLARE_CLIPS_TYPE_NAME(llvm::ConstantVector, "ConstantVector");
+   DECLARE_HAS_KNOWLEDGE_REPRESENTATION_POPULATION_LOGIC(llvm::ConstantVector);
+   template<>
+      struct KnowledgeRepresentationPopulationLogic<llvm::ConstantVector> {
+         static void populateKnowledgeRepresentation(llvm::ConstantVector* obj,
+               KnowledgeRepresentationBuilder* krb,
+               KnowledgeConstructor* kc) {
+            PopulateKnowledgeRepresentation((llvm::Constant*)obj, krb, kc);
+            krb->addField("SplatValue", Route(addr->getSplatValue(), kc, (char*)""));
+         }
+      };
 #endif
