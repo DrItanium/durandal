@@ -215,13 +215,13 @@
 (deffunction wavefront-scheduling-merge::RemovePathsContainingBlock
 				 "Creates the new name for a compensation copy of a given instruction"
 				 (?block ?paths)
-				 (bind ?leftOvers (create$))
-				 (progn$ (?path ?paths)
+				 (bind ?l (create$))
+				 (progn$ (?z ?paths)
 							(bind ?cPath (instance-address * 
 																	 (symbol-to-instance-name ?z)))
 							(if (not (member$ ?block (send ?cPath get-values))) then
-							  (bind ?leftOvers (insert$ ?leftOvers 1 ?path))))
-				 (return ?leftOvers))
+							  (bind ?l (insert$ ?l 1 ?z))))
+				 (return ?l))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::CloneInstructionIntoBlock
 			"Moves the given object into bottom of the given block"
