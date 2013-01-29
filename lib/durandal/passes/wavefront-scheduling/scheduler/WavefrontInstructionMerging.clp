@@ -29,318 +29,382 @@
 ; Written by Joshua Scoggins
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::AssertScheduleCPVIntoTargetBlock 
-         (object (is-a Wavefront) 
-                 (values $? ?e $?))
-         (object (is-a Diplomat) 
-                 (id ?e) 
-                 (IsOpen TRUE))
-         ?agObj <- (object (is-a PathAggregate) 
-                           (parent ?e) 
-                           (MovableCompensationPathVectors 
-                             $?cpvs&:(<> 0 (length$ $?cpvs))))
-         =>
-         (modify-instance ?agObj (MovableCompensationPathVectors))
-         (progn$ (?cpv $?cpvs)
-                 (assert (message (to wavefront-scheduling)
-                                  (action determine-schedule-style)
-                                  (arguments ?cpv => ?e)))))
+			(object (is-a Wavefront) 
+					  (values $? ?e $?))
+			(object (is-a Diplomat) 
+					  (id ?e) 
+					  (IsOpen TRUE))
+			?agObj <- (object (is-a PathAggregate) 
+									(parent ?e) 
+									(MovableCompensationPathVectors 
+									  $?cpvs&:(<> 0 (length$ $?cpvs))))
+			=>
+			(modify-instance ?agObj (MovableCompensationPathVectors))
+			(progn$ (?cpv $?cpvs)
+					  (assert (message (to wavefront-scheduling)
+											 (action determine-schedule-style)
+											 (arguments ?cpv => ?e)))))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::ScheduleStyleForCPVIsMove
-         "This rule attempts to determine if the CPV should be moved into the 
-         given block on the wavefront. If this is true then the fact to perform 
-         this action will be asserted"
-         ?fct <- (message (to wavefront-scheduling)
-                          (action determine-schedule-style)
-                          (arguments ?cpv => ?e))
-         (object (is-a BasicBlock) 
-                 (id ?e) 
-                 (Paths $?paths))
-         (object (is-a CompensationPathVector) 
-                 (id ?cpv)
-                 (Paths $?cpvPaths))
-         ;the two sets are the same
-         (test (equal$ ?paths ?cpvPaths))
-         =>
-         ;change the action...nothing more :D
-         (modify ?fct (action move-instruction)))
+			"This rule attempts to determine if the CPV should be moved into the 
+			given block on the wavefront. If this is true then the fact to perform 
+			this action will be asserted"
+			?fct <- (message (to wavefront-scheduling)
+								  (action determine-schedule-style)
+								  (arguments ?cpv => ?e))
+			(object (is-a BasicBlock) 
+					  (id ?e) 
+					  (Paths $?paths))
+			(object (is-a CompensationPathVector) 
+					  (id ?cpv)
+					  (Paths $?cpvPaths))
+			;the two sets are the same
+			(test (equal$ ?paths ?cpvPaths))
+			=>
+			;change the action...nothing more :D
+			(modify ?fct (action move-instruction)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::ScheduleStyleForCPVIsCompensate
-         "This rule attempts to determine if the CPV should be copied into the 
-         given block on the wavefront. If this is true then the fact to perform 
-         this action will be asserted."
-         ?fct <- (message (to wavefront-scheduling)
-                          (action determine-schedule-style)
-                          (arguments ?cpv => ?e))
-         (object (is-a BasicBlock) 
-                 (id ?e) 
-                 (Paths $?paths))
-         (object (is-a CompensationPathVector) 
-                 (id ?cpv)
-                 (Paths $?cpvPaths))
-         ;there are more paths in the CPV than in the block
-         (test (subsetp ?paths ?cpvPaths))
-         =>
-         (modify ?fct (action clone-instruction)))
+			"This rule attempts to determine if the CPV should be copied into the 
+			given block on the wavefront. If this is true then the fact to perform 
+			this action will be asserted."
+			?fct <- (message (to wavefront-scheduling)
+								  (action determine-schedule-style)
+								  (arguments ?cpv => ?e))
+			(object (is-a BasicBlock) 
+					  (id ?e) 
+					  (Paths $?paths))
+			(object (is-a CompensationPathVector) 
+					  (id ?cpv)
+					  (Paths $?cpvPaths))
+			;there are more paths in the CPV than in the block
+			(test (subsetp ?paths ?cpvPaths))
+			=>
+			(modify ?fct (action clone-instruction)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::RemoveScheduleStyleForCPV
-         (declare (salience 1))
-         ?fct <- (message (to wavefront-scheduling)
-                          (action determine-schedule-style)
-                          (arguments ?cpv => ?e))
-         (object (is-a BasicBlock) 
-                 (id ?e) 
-                 (Paths $?paths))
-         (object (is-a CompensationPathVector) 
-                 (id ?cpv)
-                 (parent ?i)
-                 (Paths $?cpvPaths))
-         (test (not (subsetp ?paths ?cpvPaths)))
-         ?agObj <- (object (is-a PathAggregate) 
-                           (parent ?e)
-                           (InstructionList $?il))
-         =>
-         ;TODO: Put code in here to delete a given instruction from the target
-         ;      instruction list as well. 
-         ;
-         ; Eventually, I will detect if we are in a loop. If we are then it is
-         ; necessary to figure out which paths remain in the loop and those
-         ; that exit. 
-         ;this should prevent a potential infinite loop
-         ;(printout t "Preventing " ?i " from being scheduled into " ?e crlf)
-         (retract ?fct)
-         (bind ?ind (member$ ?i $?il))
-         (if ?ind then (slot-delete$ ?agObj InstructionList ?ind ?ind)))
+			(declare (salience 1))
+			?fct <- (message (to wavefront-scheduling)
+								  (action determine-schedule-style)
+								  (arguments ?cpv => ?e))
+			(object (is-a BasicBlock) 
+					  (id ?e) 
+					  (Paths $?paths))
+			(object (is-a CompensationPathVector) 
+					  (id ?cpv)
+					  (parent ?i)
+					  (Paths $?cpvPaths))
+			(test (not (subsetp ?paths ?cpvPaths)))
+			?agObj <- (object (is-a PathAggregate) 
+									(parent ?e)
+									(InstructionList $?il))
+			=>
+			;TODO: Put code in here to delete a given instruction from the target
+			;      instruction list as well. 
+			;
+			; Eventually, I will detect if we are in a loop. If we are then it is
+			; necessary to figure out which paths remain in the loop and those
+			; that exit. 
+			;this should prevent a potential infinite loop
+			;(printout t "Preventing " ?i " from being scheduled into " ?e crlf)
+			(retract ?fct)
+			(bind ?ind (member$ ?i $?il))
+			(if ?ind then (slot-delete$ ?agObj InstructionList ?ind ?ind)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::MoveInstructionIntoBlock
-         "Moves the given object into bottom of the given block"
-         ?fct <- (message (to wavefront-scheduling)
-                          (action move-instruction)
-                          (arguments ?cpv => ?e))
-         ?newBlock <- (object (is-a BasicBlock) 
-                              (id ?e) 
-                              (contents $?blockBefore ?last)
-                              (Produces $?nBProds))
-         ?agObj <- (object (is-a PathAggregate) 
-                           (parent ?e)
-                           (InstructionPropagation $?agIP)
-                           (ScheduledInstructions $?agSI)
-                           (ReplacementActions $?agRA))
-         ?terminator <- (object (is-a TerminatorInstruction) 
-                                (pointer ?tPtr) 
-                                (id ?last) 
-                                (TimeIndex ?ti) 
-                                (parent ?e))
-         ?cpvObject <- (object (is-a CompensationPathVector) 
-                               (id ?cpv) 
-                               (parent ?inst)
-                               (ScheduleTargets $?cpvST)
-                               (Aliases $?cpvAliases))
-         ?newInst <- (object (is-a Instruction) 
-                             (id ?inst) 
-                             (pointer ?nPtr) 
-                             (parent ?otherBlock) 
-                             (DestinationRegisters ?register) 
-                             (Consumers $?niConsumers)
-                             (class ?class))
-         ?oldBlock <- (object (is-a BasicBlock) 
-                              (id ?otherBlock) 
-                              (Produces $?pBefore ?inst $?pRest)
-                              (contents $?before ?inst $?rest))
-         ;TODO: add another rule where we have to update the consumers list as
-         ;      well
-         =>
-         (object-pattern-match-delay
-           ;(printout t "Scheduled " ?inst " into " ?e crlf)
-           (modify-instance ?terminator (TimeIndex (+ ?ti 1)))
-           ;(modify-instance ?newBlock (Produces ?nBProds ?register))
-           (modify-instance ?oldBlock (contents $?before $?rest) 
-                            (Produces $?pBefore $?pRest))
-           ;(modify-instance ?cpvObject (Paths))
-           (modify ?fct (action remove-evidence)
-                   (arguments ?inst => $?niConsumers))
-           (assert (message (to wavefront-scheduling)
-                            (action recompute-block)
-                            (arguments ?otherBlock)))
-           (if (eq StoreInstruction ?class) then 
-             (modify-instance ?agObj 
-                              (ScheduledInstructions $?agSI ?inst ?register)
-                              (ReplacementActions $?agRA ?inst ?inst !))
-             ;(slot-insert$ ?agObj ScheduledInstructions 1 ?inst ?register)
-             (modify-instance ?newBlock 
-                              (Produces $?nBProds ?register)
-                              (contents $?blockBefore ?inst ?last))
-             (modify-instance ?cpvObject 
-                              (Paths)
-                              (ScheduleTargets ?cpvST ?e ?inst)
-                              (Aliases $?cpvAliases ?inst ?e))
-             (llvm-unlink-and-move-instruction-before ?nPtr ?tPtr)
-             ;(slot-insert$ ?cpvObject ScheduleTargets 1 ?e ?inst)
-             ;(slot-insert$ ?cpvObject Aliases 1 ?inst ?e)
-             ;(slot-insert$ ?agObj ReplacementActions 1 ?inst ?inst !)
-             else
-             (bind ?newName (sym-cat movedinstruction. (gensym*) . ?inst))
-             (modify-instance ?cpvObject (Paths)
-                              (ScheduleTargets ?cpvST ?e ?newName)
-                              (Aliases ?cpvAliases ?newName ?e))
-             ;(slot-insert$ ?cpvObject ScheduleTargets 1 ?e ?newName)
-             ;(slot-insert$ ?cpvObject Aliases 1 ?newName ?e)
-             ;(slot-insert$ ?agObj ReplacementActions 1 ?inst ?newName !)
-             (modify-instance ?newBlock 
-                              (Produces $?nBProds ?register)
-                              (contents $?blockBefore ?newName ?last))
-             (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
-             ;purge the list of producers and consumers
-             (duplicate-instance ?newInst to ?newName 
-                                 (id ?newName) 
-                                 (Name ?newName)
-                                 (pointer ?newPtr) 
-                                 (Producers) 
-                                 (Consumers)
-                                 (NonLocalDependencies) 
-                                 (LocalDependencies)
-                                 (TimeIndex ?ti) 
-                                 (parent ?e))
-             (llvm-move-instruction-before ?newPtr ?tPtr)
-             (slot-insert$ ?oldBlock UnlinkedInstructions 1 ?inst)
-             (modify-instance ?agObj (ReplacementActions $?agRA ?inst ?newName !)
-                              (InstructionPropagation $?agIP ?inst ?newName ?e !)
-                              (ScheduledInstructions $?agSI ?inst)))))
+			"Moves the given object into bottom of the given block"
+			?fct <- (message (to wavefront-scheduling)
+								  (action move-instruction)
+								  (arguments ?cpv => ?e))
+			?newBlock <- (object (is-a BasicBlock) 
+										(id ?e) 
+										(contents $?blockBefore ?last)
+										(Produces $?nBProds))
+			?agObj <- (object (is-a PathAggregate) 
+									(parent ?e)
+									(InstructionPropagation $?agIP)
+									(ScheduledInstructions $?agSI)
+									(ReplacementActions $?agRA))
+			?terminator <- (object (is-a TerminatorInstruction) 
+										  (id ?last) 
+										  (pointer ?tPtr) 
+										  (TimeIndex ?ti))
+			?cpvObject <- (object (is-a CompensationPathVector) 
+										 (id ?cpv) 
+										 (parent ?inst)
+										 (ScheduleTargets $?cpvST)
+										 (Aliases $?cpvAliases))
+			?newInst <- (object (is-a Instruction) 
+									  (id ?inst) 
+									  (pointer ?nPtr) 
+									  (parent ?otherBlock) 
+									  (DestinationRegisters ?register) 
+									  (Consumers $?niConsumers)
+									  (class ?class))
+			?oldBlock <- (object (is-a BasicBlock) 
+										(id ?otherBlock) 
+										(Produces $?pBefore ?inst $?pRest)
+										(contents $?before ?inst $?rest))
+			;TODO: add another rule where we have to update the consumers list as
+			;      well
+			=>
+			(object-pattern-match-delay
+			  ;(printout t "Scheduled " ?inst " into " ?e crlf)
+			  (modify-instance ?terminator (TimeIndex (+ ?ti 1)))
+			  ;(modify-instance ?newBlock (Produces ?nBProds ?register))
+			  (modify-instance ?oldBlock (contents $?before $?rest) 
+									 (Produces $?pBefore $?pRest))
+			  ;(modify-instance ?cpvObject (Paths))
+			  (modify ?fct (action remove-evidence)
+						 (arguments ?inst => $?niConsumers))
+			  (assert (message (to wavefront-scheduling)
+									 (action recompute-block)
+									 (arguments ?otherBlock)))
+			  (if (eq StoreInstruction ?class) then 
+				 (modify-instance ?agObj 
+										(ScheduledInstructions $?agSI ?inst ?register)
+										(ReplacementActions $?agRA ?inst ?inst !))
+				 ;(slot-insert$ ?agObj ScheduledInstructions 1 ?inst ?register)
+				 (modify-instance ?newBlock 
+										(Produces $?nBProds ?register)
+										(contents $?blockBefore ?inst ?last))
+				 (modify-instance ?cpvObject 
+										(Paths)
+										(ScheduleTargets ?cpvST ?e ?inst)
+										(Aliases $?cpvAliases ?inst ?e))
+				 (llvm-unlink-and-move-instruction-before ?nPtr ?tPtr)
+				 ;(slot-insert$ ?cpvObject ScheduleTargets 1 ?e ?inst)
+				 ;(slot-insert$ ?cpvObject Aliases 1 ?inst ?e)
+				 ;(slot-insert$ ?agObj ReplacementActions 1 ?inst ?inst !)
+				 else
+				 (bind ?newName (sym-cat movedinstruction. (gensym*) . ?inst))
+				 (modify-instance ?cpvObject (Paths)
+										(ScheduleTargets ?cpvST ?e ?newName)
+										(Aliases ?cpvAliases ?newName ?e))
+				 ;(slot-insert$ ?cpvObject ScheduleTargets 1 ?e ?newName)
+				 ;(slot-insert$ ?cpvObject Aliases 1 ?newName ?e)
+				 ;(slot-insert$ ?agObj ReplacementActions 1 ?inst ?newName !)
+				 (modify-instance ?newBlock 
+										(Produces $?nBProds ?register)
+										(contents $?blockBefore ?newName ?last))
+				 (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
+				 ;purge the list of producers and consumers
+				 (duplicate-instance ?newInst to ?newName 
+											(id ?newName) 
+											(Name ?newName)
+											(pointer ?newPtr) 
+											(Producers) 
+											(Consumers)
+											(NonLocalDependencies) 
+											(LocalDependencies)
+											(TimeIndex ?ti) 
+											(parent ?e))
+				 (llvm-move-instruction-before ?newPtr ?tPtr)
+				 (slot-insert$ ?oldBlock UnlinkedInstructions 1 ?inst)
+				 (modify-instance ?agObj (ReplacementActions $?agRA ?inst ?newName !)
+										(InstructionPropagation $?agIP ?inst ?newName ?e !)
+										(ScheduledInstructions $?agSI ?inst)))))
 ;(slot-insert$ ?agObj InstructionPropagation 1 ?inst ?newName ?e !)
 ;(slot-insert$ ?agObj ScheduledInstructions 1 ?inst))))
 ;------------------------------------------------------------------------------
+(deffunction wavefront-scheduling-merge::GenerateCompensationCopyName 
+				 "Creates the new name for a compensation copy of a given instruction"
+				 (?inst)
+				 (sym-cat compensation.copy. (gensym*) . ?inst))
+;------------------------------------------------------------------------------
+(deffunction wavefront-scheduling-merge::RemovePathsContainingBlock
+				 "Creates the new name for a compensation copy of a given instruction"
+				 (?block ?paths)
+				 (bind ?leftOvers (create$))
+				 (progn$ (?path ?paths)
+							(bind ?cPath (instance-address * 
+																	 (symbol-to-instance-name ?z)))
+							(if (not (member$ ?block (send ?cPath get-values))) then
+							  (bind ?leftOvers (insert$ ?leftOvers 1 ?path))))
+				 (return ?leftOvers))
+;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::CloneInstructionIntoBlock
-         "Moves the given object into bottom of the given block"
-         ?fct <- (message (to wavefront-scheduling)
-                          (action clone-instruction)
-                          (arguments ?cpv => ?e))
-         ?newBlock <- (object (is-a BasicBlock) 
-                              (id ?e) 
-                              (contents $?blockBefore ?last))
-         ?agObj <- (object (is-a PathAggregate) 
-                           (parent ?e))
-         ?terminator <- (object (is-a TerminatorInstruction) 
-                                (pointer ?tPtr) 
-                                (id ?last) 
-                                (TimeIndex ?ti) 
-                                (parent ?e))
-         ?cpvObject <- (object (is-a CompensationPathVector) 
-                               (id ?cpv) 
-                               (parent ?inst) 
-                               (Paths $?cpvPaths))
-         ?newInst <- (object (is-a Instruction) 
-                             (id ?inst) 
-                             (pointer ?nPtr) 
-                             (parent ?otherBlock) 
-                             (DestinationRegisters ?register) 
-                             (class ?class))
-         =>
-         ;we also need to update all CPVs within 
-         (object-pattern-match-delay
-           (bind ?newName (sym-cat compensation.copy. (gensym*) . ?inst))
-           ;(printout t "Scheduled " ?inst " into " ?e " from " ?otherBlock 
-           ;            " as " ?newName crlf)
-           (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
-           ;purge the list of producers and consumers
-           (duplicate-instance ?newInst to ?newName 
-                               (id ?newName) 
-                               (Name ?newName)
-                               (pointer ?newPtr) 
-                               (parent ?e)
-                               (TimeIndex (+ ?ti 1)))
-           (llvm-move-instruction-before ?newPtr ?tPtr)
-           ;we add the original name so that we don't have to do
-           ; an insane number of updates to the CPVs that follow
-           ; this object
-           (if (eq StoreInstruction ?class) then 
-             (slot-insert$ ?agObj ScheduledInstructions 1 ?inst ?register)
-             else
-             (slot-insert$ ?agObj InstructionPropagation 1 ?inst ?newName ?e !)
-             (slot-insert$ ?agObj ScheduledInstructions 1 ?inst))
-           (slot-insert$ ?newBlock Produces 1 ?register)
-           (modify-instance ?newBlock (contents $?blockBefore ?newName ?last))
-           (slot-insert$ ?cpvObject ScheduleTargets 1 ?e ?newName)
-           (slot-insert$ ?cpvObject Aliases 1 ?newName ?e) 
-           (slot-insert$ ?agObj ReplacementActions 1 ?inst ?newName !)
-           (modify ?fct (action recompute-block)
-                   (arguments ?otherBlock))
-           (assert (message (to wavefront-scheduling)
-                            (action reopen-blocks)
-                            (arguments ?cpv)))
-           (bind ?leftOvers (create$))
-           (progn$ (?z ?cpvPaths)
-                   (bind ?cPath (instance-address * 
-                                 (symbol-to-instance-name ?z)))
-                   (if (not (member$ ?e (send ?cPath get-values))) then
-                     (bind ?leftOvers (insert$ ?leftOvers 1 ?z))))
-           (modify-instance ?cpvObject (Paths ?leftOvers))))
+			"Moves the given object into bottom of the given block"
+			?fct <- (message (to wavefront-scheduling)
+								  (action clone-instruction)
+								  (arguments ?cpv => ?e))
+			?newBlock <- (object (is-a BasicBlock) 
+										(id ?e) 
+										(contents $?blockBefore ?last)
+										(Produces $?prods))
+			?agObj <- (object (is-a PathAggregate) 
+									(parent ?e)
+									(InstructionPropagation $?ip)
+									(ScheduledInstructions $?si)
+									(ReplacementActions $?ra))
+			?terminator <- (object (is-a TerminatorInstruction) 
+										  (id ?last) 
+										  (pointer ?tPtr) 
+										  (TimeIndex ?ti))
+			?cpvObject <- (object (is-a CompensationPathVector) 
+										 (id ?cpv) 
+										 (parent ?inst) 
+										 (Paths $?cpvPaths)
+										 (ScheduleTargets $?st)
+										 (Aliases $?als))
+			?newInst <- (object (is-a Instruction) 
+									  (id ?inst) 
+									  (pointer ?nPtr) 
+									  (parent ?otherBlock) 
+									  (DestinationRegisters ?register))
+			=>
+			;we also need to update all CPVs within 
+			(bind ?newName (GenerateCompensationCopyName ?inst))
+			(bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
+			(llvm-move-instruction-before ?newPtr ?tPtr)
+			;purge the list of producers and consumers
+			(duplicate-instance ?newInst to ?newName 
+									  (id ?newName) 
+									  (Name ?newName)
+									  (pointer ?newPtr) 
+									  (parent ?e)
+									  (TimeIndex (+ ?ti 1)))
+			;we add the original name so that we don't have to do
+			; an insane number of updates to the CPVs that follow
+			; this object
+			(modify-instance ?agObj (InstructionPropagation ?inst ?newName ?e ! $?ip)
+								  (ScheduledInstructions ?inst $?si)
+								  (ReplacementActions ?inst ?newName ! $?ra))
+			(modify-instance ?newBlock (contents $?blockBefore ?newName ?last)
+								  (Produces ?register $?prods))
+			(duplicate ?fct (action reopen-blocks)
+						  (arguments ?cpv))
+			(modify ?fct (action recompute-block)
+					  (arguments ?otherBlock))
+			(modify-instance ?cpvObject 
+								  (Paths (RemovePathsContainingBlock ?e $?cpvPaths))
+								  (ScheduleTargets ?e ?newName $?st)
+								  (Aliases ?newName ?e $?als)))
+;------------------------------------------------------------------------------
+(defrule wavefront-scheduling-merge::CloneStoreInstructionIntoBlock
+			"Moves the given store instruction into bottom of the given block"
+			(declare (salience 1))
+			?fct <- (message (to wavefront-scheduling)
+								  (action clone-instruction)
+								  (arguments ?cpv => ?e))
+			?newBlock <- (object (is-a BasicBlock) 
+										(id ?e) 
+										(contents $?blockBefore ?last)
+										(Produces $?prods))
+			?agObj <- (object (is-a PathAggregate) 
+									(parent ?e)
+									(ScheduledInstructions $?si)
+									(ReplacementActions $?ra))
+			?terminator <- (object (is-a TerminatorInstruction) 
+										  (id ?last) 
+										  (pointer ?tPtr) 
+										  (TimeIndex ?ti))
+			?cpvObject <- (object (is-a CompensationPathVector) 
+										 (id ?cpv) 
+										 (parent ?inst) 
+										 (Paths $?cpvPaths)
+										 (ScheduleTargets $?st)
+										 (Aliases $?als))
+			?newInst <- (object (is-a StoreInstruction) 
+									  (id ?inst) 
+									  (pointer ?nPtr) 
+									  (parent ?otherBlock) 
+									  (DestinationRegisters ?register))
+			=>
+			;we also need to update all CPVs within 
+			(bind ?newName (GenerateCompensationCopyName ?inst))
+			(bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
+			(llvm-move-instruction-before ?newPtr ?tPtr)
+			;purge the list of producers and consumers
+			(duplicate-instance ?newInst to ?newName 
+									  (id ?newName) 
+									  (Name ?newName)
+									  (pointer ?newPtr) 
+									  (parent ?e)
+									  (TimeIndex (+ ?ti 1)))
+			;we add the original name so that we don't have to do
+			; an insane number of updates to the CPVs that follow
+			; this object
+			(modify-instance ?agObj (ScheduledInstructions ?inst ?register $?si)
+								  (ReplacementActions ?inst ?newName ! $?ra))
+			(modify-instance ?newBlock (contents $?blockBefore ?newName ?last)
+								  (Produces ?register $?prods))
+			(duplicate ?fct (action reopen-blocks)
+						  (arguments ?cpv))
+			(modify ?fct (action recompute-block)
+					  (arguments ?otherBlock))
+			(modify-instance ?cpvObject 
+								  (Paths (RemovePathsContainingBlock ?e $?cpvPaths))
+								  (ScheduleTargets ?e ?newName $?st)
+								  (Aliases ?newName ?e $?als)))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::FAILURE-CLONE
-         (declare (salience -768))
-         ?fct <- (message (to wavefront-scheduling)
-                          (action clone-instruction)
-                          (arguments ?cpv => ?e))
-         (object (is-a CompensationPathVector) 
-                 (id ?cpv) 
-                 (parent ?p))
-         =>
-         (printout t "ERROR: Didn't clone " ?p " into " ?e crlf)
-         (halt))
+			(declare (salience -768))
+			?fct <- (message (to wavefront-scheduling)
+								  (action clone-instruction)
+								  (arguments ?cpv => ?e))
+			(object (is-a CompensationPathVector) 
+					  (id ?cpv) 
+					  (parent ?p))
+			=>
+			(printout t "ERROR: Didn't clone " ?p " into " ?e crlf)
+			(halt))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::FAILURE-MOVE
-         (declare (salience -768))
-         ?fct <- (message (to wavefront-scheduling)
-                          (action move-instruction)
-                          (arguments ?cpv => ?e))
-         (object (is-a CompensationPathVector) 
-                 (id ?cpv) 
-                 (parent ?p))
-         =>
-         (printout t "ERROR: Didn't move " ?p " into " ?e crlf)
-         (halt))
+			(declare (salience -768))
+			?fct <- (message (to wavefront-scheduling)
+								  (action move-instruction)
+								  (arguments ?cpv => ?e))
+			(object (is-a CompensationPathVector) 
+					  (id ?cpv) 
+					  (parent ?p))
+			=>
+			(printout t "ERROR: Didn't move " ?p " into " ?e crlf)
+			(halt))
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-merge::FAILURE-SCHEDULE-STYLE
-         (declare (salience -768))
-         (message (to wavefront-scheduling)
-                  (action determine-schedule-style)
-                  (arguments ?cpv => ?e))
-         (object (is-a CompensationPathVector) 
-                 (id ?cpv) 
-                 (parent ?p)
-                 (Aliases $?aliases)
-                 (Paths $?cpvPaths))
-         ?pa <- (object (is-a PathAggregate) 
-                        (parent ?e))
-         (object (is-a Instruction) 
-                 (id ?p) 
-                 (parent ?bb))
-         (object (is-a BasicBlock) 
-                 (id ?e) 
-                 (parent ?r) 
-                 (Paths $?paths))
-         (object (is-a Wavefront) 
-                 (parent ?r) 
-                 (values $?z) 
-                 (Closed $?y))
-         (object (is-a Region) 
-                 (id ?r) 
-                 (Entrances ?x $?))
-         (object (is-a BasicBlock) 
-                 (id ?x) 
-                 (Paths $?allPaths))
-         =>
-         (printout t "ERROR: Couldn't figure out scheduling stype for " ?p 
-                   " which is targeted for " ?e crlf
-                   "Blocks on the wavefront = " ?z crlf
-                   "Closed Blocks = " ?y crlf
-                   "For reference ?cpvPaths = " ?cpvPaths crlf
-                   "For reference aliases of ?cpv are = " $?aliases crlf
-                   "For reference ?paths = " ?paths crlf
-                   "Parent of " ?p " is " ?bb crlf
-                   "Printing out the path aggregate for " ?p crlf )
-         (send ?pa print)
-         (progn$ (?apath ?allPaths)
-                 (bind ?aObj (instance-name (symbol-to-instance-name ?apath)))
-                 (printout t "  " ?apath " = " (send ?aObj get-contents) crlf))
-         (facts)
-         (halt))
+			(declare (salience -768))
+			(message (to wavefront-scheduling)
+						(action determine-schedule-style)
+						(arguments ?cpv => ?e))
+			(object (is-a CompensationPathVector) 
+					  (id ?cpv) 
+					  (parent ?p)
+					  (Aliases $?aliases)
+					  (Paths $?cpvPaths))
+			?pa <- (object (is-a PathAggregate) 
+								(parent ?e))
+			(object (is-a Instruction) 
+					  (id ?p) 
+					  (parent ?bb))
+			(object (is-a BasicBlock) 
+					  (id ?e) 
+					  (parent ?r) 
+					  (Paths $?paths))
+			(object (is-a Wavefront) 
+					  (parent ?r) 
+					  (values $?z) 
+					  (Closed $?y))
+			(object (is-a Region) 
+					  (id ?r) 
+					  (Entrances ?x $?))
+			(object (is-a BasicBlock) 
+					  (id ?x) 
+					  (Paths $?allPaths))
+			=>
+			(printout t "ERROR: Couldn't figure out scheduling stype for " ?p 
+						 " which is targeted for " ?e crlf
+						 "Blocks on the wavefront = " ?z crlf
+						 "Closed Blocks = " ?y crlf
+						 "For reference ?cpvPaths = " ?cpvPaths crlf
+						 "For reference aliases of ?cpv are = " $?aliases crlf
+						 "For reference ?paths = " ?paths crlf
+						 "Parent of " ?p " is " ?bb crlf
+						 "Printing out the path aggregate for " ?p crlf )
+			(send ?pa print)
+			(progn$ (?apath ?allPaths)
+					  (bind ?aObj (instance-name (symbol-to-instance-name ?apath)))
+					  (printout t "  " ?apath " = " (send ?aObj get-contents) crlf))
+			(facts)
+			(halt))
 ;------------------------------------------------------------------------------
