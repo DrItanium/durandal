@@ -23,3 +23,6 @@ queue. It may be a good idea to create this scheduling queue when the
 corresponding wavefront has been created for the target region. In fact, it may
 be a good idea to just graft the queue into the wavefront object so that we can
 reduce the number of objects required for a complete match.
+
+The rewrite to use the scheduling queue also allows us to reduce the number of
+hook calls greatly which also reduces the overall running time. 
