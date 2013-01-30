@@ -30,3 +30,5 @@
 (load* "passes/wavefront-scheduling/common/PathAggregate.clp")
 (load* "passes/wavefront-scheduling/common/Functions.clp")
 (load* "passes/wavefront-scheduling/common/Slice.clp")
+(load* "passes/wavefront-scheduling/common/SchedulingQueue.clp")
+(load* "passes/wavefront-scheduling/common/Need.clp")
