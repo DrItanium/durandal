@@ -255,6 +255,8 @@
 			=>
 			;we also need to update all CPVs within 
 			(bind ?newName (GenerateCompensationCopyName ?inst))
+         ;make a Need object to mark the need. Then queue that element into the
+			;scheduling queue. This will defer the operation
 			(bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
 			(llvm-move-instruction-before ?newPtr ?tPtr)
 			;purge the list of producers and consumers

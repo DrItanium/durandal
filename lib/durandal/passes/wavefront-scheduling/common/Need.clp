@@ -37,5 +37,6 @@
 	(slot target)
 	(slot action)
 	(slot new-name)
+	(slot move-before)
 	(slot position))
 ;------------------------------------------------------------------------------
