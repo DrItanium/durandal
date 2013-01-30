@@ -1,0 +1,25 @@
+The idea behind the SchedulingQueue implementation is to streamline the need
+for moving and creating instructions within LLVM in response to rules being
+fired. 
+
+The reason for this rewrite is to make it easier to control where the
+instructions are scheduled so that elements like phi nodes are not scheduled
+incorrectly. It also makes sure that the order of instructions to be scheduled
+is correct regardless of the order in which those instruction needs are marked. 
+
+Unlike most of the code, I've decided to write my ideas down first as a way to
+allow me to come back to them in the future if I forget anything. 
+
+There are a few issues that have to be dealt with before we can actually
+perform scheduling. The first is the scheduling queue itself. Ideally, I would
+like to only have SchedulingQueue at a given time but sometimes this may not be
+possible. In these cases, it is a good idea to create a scheduling queue to be
+attached to each region. The idea being that the region is our "quantum" unit.
+Having multiple SchedulingQueues also prevents a really long queue from slowing
+down the entire expert system to iterate through it. 
+
+This makes it really important to figure out when to create this scheduling
+queue. It may be a good idea to create this scheduling queue when the
+corresponding wavefront has been created for the target region. In fact, it may
+be a good idea to just graft the queue into the wavefront object so that we can
+reduce the number of objects required for a complete match.
