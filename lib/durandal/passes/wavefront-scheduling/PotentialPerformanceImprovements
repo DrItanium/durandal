@@ -1,0 +1,2 @@
+During rule fires, I have found that nesting statements will slightly improve
+performance over using binds due to the reduction in interpretation
