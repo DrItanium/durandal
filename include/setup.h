@@ -184,7 +184,7 @@
 /************************************************************/
 
 #ifndef FACT_SET_QUERIES
-#define FACT_SET_QUERIES 0
+#define FACT_SET_QUERIES 1
 #endif
 
 #if ! DEFTEMPLATE_CONSTRUCT
@@ -328,7 +328,7 @@
 /****************************************************************/
 
 #ifndef HELP_FUNCTIONS
-#define HELP_FUNCTIONS 0
+#define HELP_FUNCTIONS 1
 #endif
 
 #if HELP_FUNCTIONS
@@ -366,7 +366,7 @@
 /****************************************************************/
 
 #ifndef EMACS_EDITOR
-#define  EMACS_EDITOR 1
+#define  EMACS_EDITOR 0
 #endif
 
 #if GENERIC || MAC_XCD || MAC_MCW || WIN_MCW || WIN_BTC || WIN_MVC
