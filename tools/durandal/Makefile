@@ -21,6 +21,7 @@ USEDLIBS = pipeline_clips.a indirect.a core.a rampancy.a ExpertSystem.a clips.a 
            clangAnalysis.a clangRewrite.a \
            clangEdit.a clangAST.a clangLex.a clangBasic.a clang.a extended_passes.a
 LINK_COMPONENTS = all
+LDFLAGS += -lrt
 #
 # Include Makefile.common so we know what to do.
 #
