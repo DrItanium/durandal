@@ -40,7 +40,7 @@
          ?fct <- (Picked ?e for ?r)
          ?bb <- (object (is-a BasicBlock) 
                         (id ?e) 
-                        (Successors $?a&:(not (eq (length$ $?a) 1))))
+								(Successors $?a&:(<> (length$ $?a) 1)))
          =>
          ;we don't need to assert anything since the block isn't going to get
          ;scheduled
