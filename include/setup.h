@@ -61,52 +61,66 @@
 /* Flag denoting the environment in which the executable is to run.  */
 /* Only one of these flags should be turned on (set to 1) at a time. */
 /*********************************************************************/
-
-#ifndef UNIX_V
-#define UNIX_V  0   /* UNIX System V, 4.2bsd, or HP Unix, presumably with gcc */
+#if defined(__APPLE__)
+#define DARWIN 1
+#elif defined(__FreeBSD__)
+#define UNIX_V 1
+#elif defined(__OpenBSD__)
+#define UNIX_V 1
+#elif defined(__linux__)
+#define LINUX 1
+#elif defined(_WIN32)
+//VC++ is the only supported compiler 
+#define WIN_MVC 1
+#else
+#define GENERIC 1
 #endif
 
-#ifndef UNIX_7
-#define UNIX_7  0   /* UNIX System III Version 7 or Sun Unix, presumably with gcc */
-#endif
-
-#ifndef LINUX
-#define LINUX   0   /* Untested, presumably with gcc */
-#endif
-
-#ifndef DARWIN
-#define DARWIN  0   /* Darwin Mac OS 10.5, presumably with gcc or Xcode 3.0 with Console */
-#endif
-
-#ifndef MAC_XCD
-#define MAC_XCD 0   /* MacOS 10.5, with Xcode 3.0 and Cocoa GUI */
-#endif
-
-#ifndef MAC_MCW
-#define MAC_MCW 0   /* MacOS 10.5, with CodeWarrior 9.6 */
-#endif
-
-#ifndef WIN_MVC
-#define WIN_MVC 0   /* Windows XP, with VC++ 2008 Express */
-#endif
-
-#ifndef WIN_BTC
-#define WIN_BTC 0   /* Windows XP, with Borland Turbo C++ 2006 */
-#endif
-
-#ifndef WIN_MCW
-#define WIN_MCW 0   /* Windows XP, with CodeWarrior 9.4 */
-#endif
-
-#ifndef WIN_GCC
-#define WIN_GCC 0   /* Windows XP, with DJGPP 3.21 */
-#endif
+//#ifndef UNIX_V
+//#define UNIX_V  0   /* UNIX System V, 4.2bsd, or HP Unix, presumably with gcc */
+//#endif
+//
+//#ifndef UNIX_7
+//#define UNIX_7  0   /* UNIX System III Version 7 or Sun Unix, presumably with gcc */
+//#endif
+//
+//#ifndef LINUX
+//#define LINUX   0   /* Untested, presumably with gcc */
+//#endif
+//
+//#ifndef DARWIN
+//#define DARWIN  0   /* Darwin Mac OS 10.5, presumably with gcc or Xcode 3.0 with Console */
+//#endif
+//
+//#ifndef MAC_XCD
+//#define MAC_XCD 0   /* MacOS 10.5, with Xcode 3.0 and Cocoa GUI */
+//#endif
+//
+//#ifndef MAC_MCW
+//#define MAC_MCW 0   /* MacOS 10.5, with CodeWarrior 9.6 */
+//#endif
+//
+//#ifndef WIN_MVC
+//#define WIN_MVC 0   /* Windows XP, with VC++ 2008 Express */
+//#endif
+//
+//#ifndef WIN_BTC
+//#define WIN_BTC 0   /* Windows XP, with Borland Turbo C++ 2006 */
+//#endif
+//
+//#ifndef WIN_MCW
+//#define WIN_MCW 0   /* Windows XP, with CodeWarrior 9.4 */
+//#endif
+//
+//#ifndef WIN_GCC
+//#define WIN_GCC 0   /* Windows XP, with DJGPP 3.21 */
+//#endif
 
 /* The following are unsupported: */
                     
-#ifndef VAX_VMS                    
-#define VAX_VMS 0   /* VAX VMS */
-#endif
+//#ifndef VAX_VMS                    
+//#define VAX_VMS 0   /* VAX VMS */
+//#endif
 
 /* Use GENERIC if nothing else is used. */
 
