@@ -40,7 +40,7 @@ void SetupDurandalInitFunctions(void* theEnv) {
 
 void InitializeDurandal(void* theEnv) {
 	EnvClear(theEnv);
-	BatchStar(theEnv, (char*)"Init.clp");
+	EnvBatchStar(theEnv, (char*)"Init.clp");
 	EnvReset(theEnv);
 }
 
