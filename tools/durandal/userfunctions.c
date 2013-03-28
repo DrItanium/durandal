@@ -80,12 +80,14 @@ void EnvUserFunctions(
   extern void BinaryOperationsFunctionDefinitions(void* theEnv);
   extern void RegisterCLIPSPipelineFunctions(void* theEnv);
   extern void RegisterLLVMFunctionManipulationFunctions(void* theEnv);
+  extern void SetupDurandalInitFunctions(void* theEnv);
   RegisterExpertSystemFunctions(theEnv);
   SetupLLVMIORouter(theEnv);
   SetupRampancyExpertSystemInterfaces(theEnv);
   BinaryOperationsFunctionDefinitions(theEnv);
   RegisterCLIPSPipelineFunctions(theEnv);
   RegisterLLVMFunctionManipulationFunctions(theEnv);
+  SetupDurandalInitFunctions(theEnv);
   /*
    * Uncomment the two lines below this multiline comment to enable
    * environment manipulation operations from within clips. 
@@ -98,6 +100,7 @@ void EnvUserFunctions(
    */
   extern void EnvironmentOperationsDefinitions(void* theEnv);
   EnvironmentOperationsDefinitions(theEnv);
+  
 
 #if MAC_MCW || WIN_MCW || MAC_XCD
 #pragma unused(theEnv)
