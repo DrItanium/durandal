@@ -80,11 +80,13 @@ void CLIPSObjectBuilder::addField(const char* n, uint64_t v) {
       (*stream) << openParen << n << space << v << closeParen; 
    }
 }
+#if !defined(__APPLE__)
 void CLIPSObjectBuilder::addField(const char* n, int64_t v) {
    if(v != 0) {
       (*stream) << openParen << n << space << v << closeParen; 
    }
 }
+#endif
 void CLIPSObjectBuilder::addField(const char* n, llvm::StringRef ref) {
    (*stream) << openParen << n << space << ref << closeParen;
 }
@@ -160,9 +162,11 @@ void CLIPSObjectBuilder::appendValue(bool v) {
 void CLIPSObjectBuilder::appendValue(uint64_t v) {
    (*stream) << space << v;
 }
+#if !defined(__APPLE__)
 void CLIPSObjectBuilder::appendValue(int64_t v) {
    (*stream) << space << v;
 }
+#endif
 void CLIPSObjectBuilder::appendTrue() {
    (*stream) << " TRUE";
 }
