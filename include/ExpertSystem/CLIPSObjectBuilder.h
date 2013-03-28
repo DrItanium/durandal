@@ -45,7 +45,9 @@ class CLIPSObjectBuilder {
 		void addField(const char* n, llvm::StringRef ref);
       void addField(const char* n, bool v); 
       void addField(const char* n, uint64_t v);
+#if !defined(__APPLE__)
       void addField(const char* n, int64_t v); 
+#endif
       void addStringField(const char* n, const std::string& str);
 		void addTrueField(const char* n);
 		void addFalseField(const char* n);
@@ -61,7 +63,9 @@ class CLIPSObjectBuilder {
 		void appendValue(llvm::StringRef ref);
 		void appendValue(bool v);
 		void appendValue(uint64_t v);
+#if !defined(__APPLE__)
 		void appendValue(int64_t v);
+#endif
 		void appendTrue();
 		void appendFalse();
 		void closeField();
