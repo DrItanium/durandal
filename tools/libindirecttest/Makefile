@@ -21,11 +21,11 @@ USEDLIBS = core.a indirect.a rampancy.a ExpertSystem.a clips.a clangFrontend.a \
            clangAnalysis.a clangRewrite.a \
            clangEdit.a clangAST.a clangLex.a clangBasic.a clang.a 
 LINK_COMPONENTS = all
-ifneq ($(HOST_OS),DARWIN)
-  LDFLAGS += -lrt
-endif
 #
 # Include Makefile.common so we know what to do.
 #
 include $(DURANDAL_LEVEL)/Makefile
 
+ifneq ($(HOST_OS),Darwin)
+  LDFLAGS += -lrt
+endif
