@@ -31,7 +31,7 @@
          "Creates a frequency counter hint for basic blocks"
          (declare (salience 2))
          (object (is-a Region) 
-                 (id ?p) 
+                 (name ?p) 
                  (class Region))
          (not (exists (object (is-a FrequencyAnalysis) 
                               (parent ?p))))
@@ -47,11 +47,11 @@
          ?wa <- (object (is-a FrequencyAnalysis) 
                         (parent ?p))
          (object (is-a Region) 
-                 (id ?p) 
+                 (name ?p) 
                  (class Region) 
                  (contents $? ?t $?))
          (object (is-a BasicBlock) 
-                 (id ?t) 
+                 (name ?t) 
                  (parent ?p) 
                  (contents $?insts&:(> (length$ $?insts) 1)))
          =>
@@ -64,7 +64,7 @@
                         (parent ?p) 
                         (frequency ?z&:(and (< ?z 100) (> ?z 1))))
          ?region <- (object (is-a Region) 
-                            (id ?p)
+                            (name ?p)
                             (class Region))
          =>
          (assert (message (to wavefront-scheduling)

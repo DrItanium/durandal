@@ -29,7 +29,7 @@
                  (parent ?r) 
                  (values $? ?e $?))
          (object (is-a BasicBlock) 
-                 (id ?e) 
+                 (name ?e) 
                  (contents $?c))
          =>
          (assert (message (to wavefront-scheduling) 
@@ -44,7 +44,7 @@
                  (parent ?r) 
                  (values $? ?e $?))
          (object (is-a Region) 
-                 (id ?e)) 
+                 (name ?e)) 
          =>
          (assert (message (to wavefront-scheduling)
                           (action propagate-aggregates)

@@ -31,7 +31,7 @@
           (values $? ?e $?))
          ;select only BasicBlocks
          (object (is-a BasicBlock) 
-          (id ?e))
+          (name ?e))
          =>
          (assert (Picked ?e for ?r)))
 ;------------------------------------------------------------------------------
@@ -39,7 +39,7 @@
          (declare (salience 4))
          ?fct <- (Picked ?e for ?r)
          ?bb <- (object (is-a BasicBlock) 
-                        (id ?e) 
+                        (name ?e) 
 								(Successors $?a&:(<> (length$ $?a) 1)))
          =>
          ;we don't need to assert anything since the block isn't going to get
@@ -50,7 +50,7 @@
          (declare (salience 4))
          ?fct <- (Picked ?block for ?)
          ?bb <- (object (is-a BasicBlock) 
-                        (id ?block) 
+                        (name ?block) 
                         (Successors ?) ; we only have one successor
                         (Paths $?paths))
          =>
@@ -83,7 +83,7 @@
                           (action check-path)
                           (arguments ?path for block ?block))
          (object (is-a Path) 
-                 (id ?path) 
+                 (name ?path) 
                  (values $? ?block $?rest))
          ;we don't need to explicitly match for ?block
          =>
@@ -97,7 +97,7 @@
                           (action scan-path)
                           (arguments ?p ?e => ?curr $?rest))
          ?bb <- (object (is-a BasicBlock) 
-                        (id ?curr) 
+                        (name ?curr) 
                         (Successors $?succ)
                         (HasCallBarrier ?hcb)
                         (HasMemoryBarrier ?hmb))
@@ -132,7 +132,7 @@
                           (action scan-path)
                           (arguments ?p ?e => ?curr $?rest))
          ?bb <- (object (is-a Region)
-                        (id ?curr)
+                        (name ?curr)
                         (HasCallBarrier ?hcb)
                         (HasMemoryBarrier ?hmb))
          =>

@@ -49,13 +49,13 @@
                                      with ?new
                                      block ?e))
          (object (is-a Instruction) 
-                 (id ?orig) 
+                 (name ?orig) 
                  (pointer ?oPtr))
          (object (is-a Instruction) 
-                 (id ?new) 
+                 (name ?new) 
                  (pointer ?nPtr))
          (object (is-a BasicBlock) 
-                 (id ?e) 
+                 (name ?e) 
                  (contents $? ?new $?rest))
          =>
          (bind ?ptrList (create$))
@@ -101,7 +101,7 @@
                           (action replace-uses-clips)
                           (arguments ?from => ?to for ?symbol $?rest))
          ?inst <- (object (is-a Instruction) 
-                          (id ?symbol) 
+                          (name ?symbol) 
                           (Operands $?operands) 
                           (LocalDependencies $?locDep)
                           (NonLocalDependencies $?nLocDep))
@@ -142,7 +142,7 @@
                                      in ?symbol
                                      contents ?curr&~?from $?rest))
          ?inst <- (object (is-a Instruction) 
-                          (id ?symbol)
+                          (name ?symbol)
                           (LocalDependencies $?locDep))
          =>
          (modify-instance ?inst (LocalDependencies $?locDep ?curr))
@@ -158,7 +158,7 @@
                                      in ?symbol
                                      contents ?from $?rest))
          ?inst <- (object (is-a Instruction) 
-                          (id ?symbol)
+                          (name ?symbol)
                           (LocalDependencies $?locDep))
          =>
          (object-pattern-match-delay
@@ -175,7 +175,7 @@
                                      in ?symbol
                                      contents ?curr&~?from $?rest))
          ?inst <- (object (is-a Instruction) 
-                          (id ?symbol)
+                          (name ?symbol)
                           (NonLocalDependencies $?nld))
          =>
          (modify-instance ?inst (NonLocalDependencies $?nld ?curr))
@@ -191,7 +191,7 @@
                                      in ?symbol
                                      contents ?from $?rest))
          ?inst <- (object (is-a Instruction) 
-                          (id ?symbol)
+                          (name ?symbol)
                           (NonLocalDependencies $?nld))
          =>
          (modify-instance ?inst (NonLocalDependencies $?nld ?to))
@@ -207,7 +207,7 @@
                                      replacement ?s
                                      operands ?op&~?f $?ops))
          ?inst <- (object (is-a Instruction) 
-                          (id ?s)
+                          (name ?s)
                           (Operands $?operands))
          =>
          (modify-instance ?inst (Operands $?operands ?op))
@@ -223,7 +223,7 @@
                                      replacement ?s
                                      operands ?f $?ops))
          ?inst <- (object (is-a Instruction) 
-                          (id ?s)
+                          (name ?s)
                           (Operands $?operands))
          =>
          (modify-instance ?inst (Operands $?operands ?t))

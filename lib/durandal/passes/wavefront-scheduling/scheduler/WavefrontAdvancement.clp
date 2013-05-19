@@ -28,7 +28,7 @@
          "Moves blocks out of the contents into the closed list"
          (declare (salience 2701))
          ?wave <- (object (is-a Wavefront) 
-                          (id ?z) 
+                          (name ?z) 
                           (parent ?r) 
                           (values $?c) 
                           (Closed $?cl))
@@ -40,17 +40,17 @@
 (defrule wavefront-scheduling-advance-identify::MarkShouldStayOnWavefront
          (declare (salience 343))
          ?wave <- (object (is-a Wavefront) 
-                          (id ?q) 
+                          (name ?q) 
                           (parent ?r) 
                           (DeleteNodes $?a ?b $?c)
                           (Closed $?clos)
                           (values $?contents))
 
          ?bb <- (object (is-a Diplomat) 
-                        (id ?b) 
+                        (name ?b) 
                         (NextPathElements ?s))
          (object (is-a Diplomat) 
-                 (id ?s) 
+                 (name ?s) 
                  (PreviousPathElements $?ppe))
          (test (not (subsetp ?ppe (create$ ?a ?b ?c))))
          ?agObj <- (object (is-a PathAggregate) 
@@ -68,11 +68,11 @@
 (defrule wavefront-scheduling-advance::DeleteElementFromWavefront
          (declare (salience 180))
          ?wave <- (object (is-a Wavefront) 
-                          (id ?id) 
+                          (name ?id) 
                           (parent ?r) 
                           (DeleteNodes ?a $?rest))
          (object (is-a Diplomat) 
-                 (id ?a) 
+                 (name ?a) 
                  (NextPathElements $?npe))
          =>
          ;TODO: Continue to port here
@@ -91,7 +91,7 @@
                           (action add-blocks-into)
                           (arguments ?id => ?next $?rest))
          ?wave <- (object (is-a Wavefront) 
-                          (id ?id) 
+                          (name ?id) 
                           (values $?contents))
          =>
          (modify ?fct (arguments ?id => $?rest))
@@ -149,17 +149,17 @@
 ;------------------------------------------------------------------------------
 (defrule wavefront-scheduling-final::RetractUnlinkedInstructions
          ?bb <- (object (is-a BasicBlock) 
-                        (id ?b) 
+                        (name ?b) 
                         (UnlinkedInstructions ?i $?rest))
          ?instruction <- (object (is-a Instruction) 
-                                 (id ?i) 
+                                 (name ?i) 
                                  (parent ?b) 
                                  (pointer ?ptr))
          (object (is-a PathAggregate) 
                  (parent ?b) 
                  (InstructionPropagation $? ?i ?new ?b ! $?))
          (object (is-a Instruction) 
-                 (id ?new) 
+                 (name ?new) 
                  (pointer ?nPtr))
          =>
          ;this is a little gross but it is a very easy way to ensure that

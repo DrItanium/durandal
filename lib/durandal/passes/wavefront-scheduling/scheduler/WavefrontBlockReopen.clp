@@ -28,7 +28,7 @@
                           (action reopen-blocks)
                           (arguments ?cpv))
          ?obj <- (object (is-a CompensationPathVector) 
-                         (id ?cpv) 
+                         (name ?cpv) 
                          (Failures $?failures))
          =>
          (modify-instance ?obj (Failures))
@@ -43,7 +43,7 @@
                           (Closed $?a ?fail $?b)
                           (values $?cnts))
          ?bb <- (object (is-a BasicBlock) 
-                        (id ?fail) 
+                        (name ?fail) 
                         (IsOpen FALSE))
          ?pa <- (object (is-a PathAggregate) 
                         (parent ?fail)
@@ -69,7 +69,7 @@
          ?wave <- (object (is-a Wavefront) 
            (Closed $?c&:(not (member$ ?fail $?c))))
          ?obj <- (object (is-a CompensationPathVector) 
-           (id ?cpv)
+           (name ?cpv)
            (Failures $?z))
          =>
          (modify ?fct (arguments ?cpv => $?failures))
