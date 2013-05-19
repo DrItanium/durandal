@@ -191,7 +191,6 @@
              (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
              ;purge the list of producers and consumers
              (duplicate-instance ?newInst to ?newName 
-                                 (name ?newName) 
                                  (Name ?newName)
                                  (pointer ?newPtr) 
                                  (Producers) 
@@ -241,7 +240,6 @@
            (bind ?newPtr (llvm-clone-instruction ?nPtr ?newName))
            ;purge the list of producers and consumers
            (duplicate-instance ?newInst to ?newName 
-                               (name ?newName) 
                                (Name ?newName)
                                (pointer ?newPtr) 
                                (parent ?e)
