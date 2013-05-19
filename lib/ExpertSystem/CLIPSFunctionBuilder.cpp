@@ -102,8 +102,8 @@ void CLIPSFunctionBuilder::addFields(Function* func,
    CLIPSGlobalValueBuilder::addFields(func, kc, (char*)"");
    //this part contains the code for building the function itself
    FunctionNamer& namer = getNamer();
-   addField("ReturnType", kc->route(func->getReturnType(), namer));
-   addField("FunctionType", kc->route(func->getFunctionType(), namer));
+   addInstanceNameField("ReturnType", kc->route(func->getReturnType(), namer));
+   addInstanceNameField("FunctionType", kc->route(func->getFunctionType(), namer));
    if(func->isVarArg()) {
       addTrueField("IsVarArg");
    }
@@ -155,14 +155,14 @@ void CLIPSFunctionBuilder::addFields(Function* func,
             s != f; ++s) {
          Argument* a = s;
          //build it if we need to :)
-         appendValue(kc->route(a, namer, fnName));
+         appendInstanceName(kc->route(a, namer, fnName));
       }
    } closeField();
    openField("contents"); {
       for(llvm::Function::iterator i = func->begin() , e = func->end(); 
             i != e; ++i) {
          BasicBlock* bb = i; 
-         appendValue(kc->route(bb, namer, fnName));
+         appendInstanceName(kc->route(bb, namer, fnName));
       }
    } closeField();
 }

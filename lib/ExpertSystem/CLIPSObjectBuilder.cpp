@@ -34,9 +34,15 @@ CLIPSObjectBuilder::CLIPSObjectBuilder(std::string n, std::string t) {
 CLIPSObjectBuilder::~CLIPSObjectBuilder() {
    delete stream;
 }
-void CLIPSObjectBuilder::setParent(char* p) { addField("parent", p); }
-void CLIPSObjectBuilder::setParent(const char* p) { addField("parent", p); }
-void CLIPSObjectBuilder::setPointer(PointerAddress v) { addField("pointer", v); }
+void CLIPSObjectBuilder::setParent(char* p) { 
+   (*stream) << openParen << "parent" << space << '[' << p << ']' << closeParen;
+}
+void CLIPSObjectBuilder::setParent(const char* p) { 
+   (*stream) << openParen << "parent" << space << '[' << p << ']' << closeParen;
+}
+void CLIPSObjectBuilder::setPointer(PointerAddress v) { 
+   addField("pointer", v); 
+}
 void CLIPSObjectBuilder::addField(const char* n, unsigned v) { 
    if(v != 0) {
       (*stream) << openParen << n << space << v << closeParen; 
@@ -187,6 +193,13 @@ void CLIPSObjectBuilder::appendFalse() {
 void CLIPSObjectBuilder::closeField() {
    (*stream) << closeParen;
 }
+void CLIPSObjectBuilder::appendInstanceName(std::string v) {
+   (*stream) << space << '[' << v << ']';
+}
+void CLIPSObjectBuilder::appendInstanceName(llvm::StringRef v) {
+   (*stream) << space << '[' << v << ']';
+}
+
 void CLIPSObjectBuilder::addStringField(const char* n, const std::string& string) {
    if(string.size() > 0) {
       (*stream) << "(" << n << " \"" << string << "\")";

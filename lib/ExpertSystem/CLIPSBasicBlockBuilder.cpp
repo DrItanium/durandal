@@ -12,7 +12,7 @@ void CLIPSBasicBlockBuilder::addFields(BasicBlock* bb, KnowledgeConstructor *kc,
       openField("Predecessors");
       for(; pi != pe; ++pi) {
          BasicBlock* pred = *pi;
-         appendValue(pred->getName());
+         appendInstanceName(pred->getName());
       }
       closeField();
    }
@@ -21,7 +21,7 @@ void CLIPSBasicBlockBuilder::addFields(BasicBlock* bb, KnowledgeConstructor *kc,
       openField("Successors");
       for(; si != se; ++si) {
          BasicBlock* succ = *si;
-         appendValue(succ->getName());
+         appendInstanceName(succ->getName());
       }
       closeField();
    }
@@ -32,8 +32,8 @@ void CLIPSBasicBlockBuilder::addFields(BasicBlock* bb, KnowledgeConstructor *kc,
       for(BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
          Instruction* inst = i;
          std::string res = kc->route(inst, namer, name);
-         appendValue(res);
-         data << " " << res;
+         appendInstanceName(res);
+         data << " " << '[' << res << ']';
       }
       closeField();
       addField("Produces", data.str()); 

@@ -21,8 +21,8 @@ void CLIPSConstantBuilder::build(Constant* cnst, KnowledgeConstructor* kc, char*
 CLIPSBlockAddressBuilder::CLIPSBlockAddressBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "BlockAddress", namer) { }
 void CLIPSBlockAddressBuilder::addFields(BlockAddress* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
-   addField("Target", addr->getBasicBlock()->getName());
-   addField("Function", addr->getFunction()->getName());
+   addInstanceNameField("Target", addr->getBasicBlock()->getName());
+   addInstanceNameField("Function", addr->getFunction()->getName());
 }
 void CLIPSBlockAddressBuilder::build(BlockAddress* cnst, KnowledgeConstructor* kc, char* parent) {
    open();
@@ -159,7 +159,7 @@ void CLIPSConstantStructBuilder::build(ConstantStruct* cnst, KnowledgeConstructo
 CLIPSConstantVectorBuilder::CLIPSConstantVectorBuilder(std::string nm, FunctionNamer& namer) : CLIPSConstantBuilder(nm, "ConstantVector", namer) { }
 void CLIPSConstantVectorBuilder::addFields(ConstantVector* addr, KnowledgeConstructor* kc, char* parent) {
    CLIPSConstantBuilder::addFields((Constant*)addr, kc, parent); 
-   addField("SplatValue", kc->route(addr->getSplatValue(), getNamer()));
+   addInstanceNameField("SplatValue", kc->route(addr->getSplatValue(), getNamer()));
 }
 void CLIPSConstantVectorBuilder::build(ConstantVector* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
@@ -211,7 +211,7 @@ void CLIPSGlobalValueBuilder::build(GlobalValue* cnst, KnowledgeConstructor *kc,
 CLIPSGlobalAliasBuilder::CLIPSGlobalAliasBuilder(std::string nm, FunctionNamer& namer) : CLIPSGlobalValueBuilder(nm, "GlobalAlias", namer) { }
 void CLIPSGlobalAliasBuilder::addFields(GlobalAlias* addr, KnowledgeConstructor *kc, char* parent) {
    CLIPSGlobalValueBuilder::addFields((GlobalValue*)addr, kc, parent); 
-   addField("Aliasee", kc->route(addr->getAliasee(), getNamer()));
+   addInstanceNameField("Aliasee", kc->route(addr->getAliasee(), getNamer()));
 }
 void CLIPSGlobalAliasBuilder::build(GlobalAlias* cnst, KnowledgeConstructor *kc, char* parent) {
    open();
@@ -228,7 +228,7 @@ void CLIPSGlobalVariableBuilder::addFields(GlobalVariable* addr, KnowledgeConstr
    CLIPSGlobalValueBuilder::addFields((GlobalValue*)addr, kc, parent); 
    if(addr->hasInitializer()) {
       addTrueField("HasInitializer");
-      addField("Initializer", kc->route(addr->getInitializer(), getNamer()));
+      addInstanceNameField("Initializer", kc->route(addr->getInitializer(), getNamer()));
    }
    if(addr->hasDefinitiveInitializer()) addTrueField("HasDefinitiveInitializer");
    if(addr->hasUniqueInitializer()) addTrueField("HasUniqueInitializer");

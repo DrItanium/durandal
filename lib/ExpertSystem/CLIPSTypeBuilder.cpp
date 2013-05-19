@@ -49,7 +49,7 @@ void CLIPSTypeBuilder::addFields(Type* type, KnowledgeConstructor* kc) {
       for(Type::subtype_iterator i = type->subtype_begin(),
             e = type->subtype_end(); i != e; ++i) {
          Type* t = (*i);
-         appendValue(kc->route(t, namer));
+         appendInstanceName(kc->route(t, namer));
       }
       closeField();
    }

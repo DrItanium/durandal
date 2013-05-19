@@ -70,6 +70,8 @@ class CLIPSObjectBuilder {
 #endif
 		void appendTrue();
 		void appendFalse();
+      void appendInstanceName(std::string v);
+      void appendInstanceName(llvm::StringRef v);
 		void closeField();
       void open();
       void close();

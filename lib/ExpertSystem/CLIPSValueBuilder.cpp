@@ -5,9 +5,9 @@ void CLIPSValueBuilder::setType(Type* t, KnowledgeConstructor* kc) {
 	PointerAddress ptr = (PointerAddress)t;
    FunctionNamer& namer = getNamer();
    if(namer.pointerRegistered(ptr)) {
-      addField("Type", namer.nameFromPointer(ptr));
+      addInstanceNameField("Type", namer.nameFromPointer(ptr));
    } else {
-      addField("Type", kc->route(t, namer));
+      addInstanceNameField("Type", kc->route(t, namer));
    }
 }
 

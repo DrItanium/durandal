@@ -12,12 +12,12 @@ void CLIPSLoopBuilder::addFields(Loop* loop, KnowledgeConstructor *kc, char* par
    loop->getUniqueExitBlocks(exitBlocks);
    addField("Depth", loop->getLoopDepth());
    addField("BackEdgeCount", loop->getNumBackEdges());
-   if(latch != 0) addField("LatchBlock", header->getName()); 
-   if(loopPredecessor != 0) addField("LoopPredecessor", loopPredecessor->getName());
-   if(loopPreheader != 0) addField("LoopPreheader", loopPreheader->getName());
+   if(latch != 0) addInstanceNameField("LatchBlock", header->getName()); 
+   if(loopPredecessor != 0) addInstanceNameField("LoopPredecessor", loopPredecessor->getName());
+   if(loopPreheader != 0) addInstanceNameField("LoopPreheader", loopPreheader->getName());
    if(header != 0) {
-      addField("Entrances", header->getName());
-      addField("HeaderBlock", header->getName());
+      addInstanceNameField("Entrances", header->getName());
+      addInstanceNameField("HeaderBlock", header->getName());
    }
    openField("contents");
    //register loops first...that way we don't need to worry about
@@ -25,19 +25,20 @@ void CLIPSLoopBuilder::addFields(Loop* loop, KnowledgeConstructor *kc, char* par
    for(Loop::iterator q = loop->begin(), qu = loop->end(); q != qu; ++q) {
       Loop* subLoop = *q;
       std::string result = kc->route(subLoop, n, t);
-      appendValue(result);
+      appendInstanceName(result);
    }
    for(Loop::block_iterator s = loop->block_begin(), e = loop->block_end(); s != e; ++s) {
       BasicBlock* bb = (*s);
-      if(!n.pointerRegistered((PointerAddress)bb)) 
-         appendValue(kc->route(bb, n, t));
+      if(!n.pointerRegistered((PointerAddress)bb)) {
+         appendInstanceName(kc->route(bb, n, t));
+      }
    }
    closeField();
    openField("Exits");
    for(SmallVectorImpl<BasicBlock*>::iterator i = exitBlocks.begin(),
          e = exitBlocks.end(); i != e; ++i) {
       BasicBlock* bb = (*i);
-      appendValue(bb->getName());
+      appendInstanceName(bb->getName());
    }
    closeField();
 }

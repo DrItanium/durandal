@@ -9,8 +9,8 @@ void CLIPSRegionBuilder::addFields(Region* region, KnowledgeConstructor* kc, cha
    if(region->isSimple()) addTrueField("IsSimple");
    BasicBlock* entry = region->getEntry();
    BasicBlock* exit = region->getExit();
-   if(entry != NULL) addField("Entrances", entry->getName());
-   if(exit != NULL) addField("Exits", exit->getName());
+   if(entry != NULL) addInstanceNameField("Entrances", entry->getName());
+   if(exit != NULL) addInstanceNameField("Exits", exit->getName());
    char* name = (char*)getName().c_str();
    FunctionNamer& namer = getNamer();
    //open contents 
@@ -19,10 +19,10 @@ void CLIPSRegionBuilder::addFields(Region* region, KnowledgeConstructor* kc, cha
       RegionNode* rn = *i;
       if(!rn->isSubRegion()) {
          BasicBlock* bb = rn->getEntry(); 
-         appendValue(kc->route(bb, namer, name));
+         appendInstanceName(kc->route(bb, namer, name));
       } else {
          Region* subRegion = rn->getNodeAs<Region>();
-         appendValue(kc->route(subRegion, namer, name));
+         appendInstanceName(kc->route(subRegion, namer, name));
       }
    }
    closeField();

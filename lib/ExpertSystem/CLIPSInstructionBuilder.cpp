@@ -31,7 +31,7 @@ void CLIPSInstructionBuilder::addFields(Instruction* instruction, KnowledgeConst
    if(instruction->isAssociative()) addTrueField("IsAssociative");
    if(instruction->isCommutative()) addTrueField("IsCommutative");
    if(!instruction->getType()->isVoidTy() && instruction->hasName() && addDestinationRegisters) {
-      addField("DestinationRegisters", instruction->getName());	
+      addInstanceNameField("DestinationRegisters", instruction->getName());	
    }
    if(!instruction->use_empty()) {
       //      DenseMap<BasicBlock*,unsigned> counterArgument;
@@ -43,11 +43,11 @@ void CLIPSInstructionBuilder::addFields(Instruction* instruction, KnowledgeConst
          User* target = *i;
          PointerAddress ptr = (PointerAddress)target;
          if(namer.pointerRegistered(ptr)) {
-            appendValue(namer.nameFromPointer(ptr));
+            appendInstanceName(namer.nameFromPointer(ptr));
          } else if(isa<Function>(target) || isa<Instruction>(target)) {
-            appendValue(target->getName());
+            appendInstanceName(target->getName());
          } else {
-            appendValue(kc->route(target, namer));
+            appendInstanceName(kc->route(target, namer));
          }
       }
       closeField();
@@ -95,16 +95,20 @@ void CLIPSPHINodeBuilder::addFields(PHINode* instruction, KnowledgeConstructor *
    if(instruction->isAssociative()) addTrueField("IsAssociative");
    if(instruction->isCommutative()) addTrueField("IsCommutative");
    //TODO: insert code to add the potential constant value
-   addField("DestinationRegisters", instruction->getName());
+   addInstanceNameField("DestinationRegisters", instruction->getName());
    openField("Operands");
    //we use pattern matching within CLIPS to our advantage :D
    for(unsigned i = 0; i < instruction->getNumIncomingValues(); ++i) {
       Value* target = instruction->getIncomingValue(i);
       BasicBlock* from = instruction->getIncomingBlock(i);
-      if(isa<UndefValue>(target)) appendValue("undef");
-      else if(Instruction* inst = dyn_cast<Instruction>(target)) appendValue(inst->getName());
-      else appendValue(kc->route(target, namer));
-      appendValue(from->getName());
+      if(isa<UndefValue>(target)) {
+         appendValue("[undef]");
+      } else if(Instruction* inst = dyn_cast<Instruction>(target)) {
+         appendInstanceName(inst->getName());
+      } else {
+         appendInstanceName(kc->route(target, namer));
+      }
+      appendInstanceName(from->getName());
    }
    closeField();
    if(!instruction->use_empty()) {
@@ -143,11 +147,11 @@ void CLIPSPHINodeBuilder::addFields(PHINode* instruction, KnowledgeConstructor *
          */
          PointerAddress ptr = (PointerAddress)target;
          if(namer.pointerRegistered(ptr)) {
-            appendValue(namer.nameFromPointer(ptr));
+            appendInstanceName(namer.nameFromPointer(ptr));
          } else if(isa<Function>(target) || isa<Instruction>(target)) {
-            appendValue(target->getName());
+            appendInstanceName(target->getName());
          } else {
-            appendValue(kc->route(target, namer));
+            appendInstanceName(kc->route(target, namer));
          }
       }
       closeField();
@@ -206,8 +210,11 @@ make_build_method(BinaryOperator, BinaryOperator)
       if(target-> isInlineAsm()) addTrueField("IsInlineAsm");
       Function* fn = target->getCalledFunction();
       openField("CalledFunction");
-      if(fn != NULL) appendValue(fn->getName());
-      else appendValue("indirect");
+      if(fn != NULL) {
+         appendValue(fn->getName());
+      } else {
+         appendValue("indirect");
+      }
       closeField();
 
       if(target->getNumArgOperands() > 0) {
@@ -215,7 +222,7 @@ make_build_method(BinaryOperator, BinaryOperator)
          FunctionNamer& namer = getNamer();
          for(unsigned i = 0; i < target->getNumArgOperands(); ++i) {
             //add function args
-            appendValue(kc->route(target->getArgOperand(i), namer));
+            appendInstanceName(kc->route(target->getArgOperand(i), namer));
          }
          closeField();
       }
@@ -239,7 +246,7 @@ make_build_method(LoadInstruction, LoadInst)
 
    void CLIPSExtractValueInstructionBuilder::addFields(ExtractValueInst* inst, KnowledgeConstructor *kc, char* parent) {
       CLIPSUnaryInstructionBuilder::addFields((UnaryInstruction*)inst, kc, parent);
-      addField("AggregateOperand", kc->route(inst->getAggregateOperand(), getNamer()));
+      addInstanceNameField("AggregateOperand", kc->route(inst->getAggregateOperand(), getNamer()));
       openField("Indices");
       for(ExtractValueInst::idx_iterator i = inst->idx_begin(), e = inst->idx_end();
             i != e; ++i) {
@@ -258,8 +265,8 @@ make_build_method(ExtractValueInstruction, ExtractValueInst)
       if(inst->isIntegerCast()) addTrueField("IsIntegerCast");
       if(inst->isLosslessCast()) addTrueField("IsLosslessCast");
       FunctionNamer& namer = getNamer();
-      addField("SourceType", kc->route(inst->getSrcTy(), namer)); 
-      addField("DestinationType", kc->route(inst->getDestTy(), namer));
+      addInstanceNameField("SourceType", kc->route(inst->getSrcTy(), namer)); 
+      addInstanceNameField("DestinationType", kc->route(inst->getDestTy(), namer));
    }
 make_build_method(CastInstruction, CastInst)
 
@@ -268,7 +275,7 @@ make_build_method(CastInstruction, CastInst)
       if(inst->isArrayAllocation()) addTrueField("IsArrayAllocation");
       if(inst->isStaticAlloca()) addTrueField("IsStaticAllocation");
       addField("Alignment", inst->getAlignment());
-      addField("ArraySize", kc->route(inst->getArraySize(), getNamer()));
+      addInstanceNameField("ArraySize", kc->route(inst->getArraySize(), getNamer()));
    }
 make_build_method(AllocaInstruction, AllocaInst)
 
@@ -280,9 +287,9 @@ make_build_method(UnaryInstruction, UnaryInstruction)
    void CLIPSSelectInstructionBuilder::addFields(SelectInst* inst, KnowledgeConstructor *kc, char* parent) {
       CLIPSInstructionBuilder::addFields((Instruction*)inst, kc, parent);
       FunctionNamer& namer = getNamer();
-      addField("Condition", kc->route(inst->getCondition(), namer));
-      addField("TrueValue", kc->route(inst->getTrueValue(), namer));
-      addField("FalseValue", kc->route(inst->getFalseValue(), namer));
+      addInstanceNameField("Condition", kc->route(inst->getCondition(), namer));
+      addInstanceNameField("TrueValue", kc->route(inst->getTrueValue(), namer));
+      addInstanceNameField("FalseValue", kc->route(inst->getFalseValue(), namer));
    }
 make_build_method(SelectInstruction, SelectInst)
    void CLIPSUnreachableInstructionBuilder::addFields(UnreachableInst* instruction, KnowledgeConstructor *kc, char* parent) {
@@ -338,14 +345,14 @@ make_build_method(TerminatorInstruction, TerminatorInst)
       if(inst->isUnconditional()) addTrueField("IsUnconditional");
       if(inst->isConditional()) {
          addTrueField("IsConditional");
-         addField("Condition", kc->route(inst->getCondition(), getNamer()));
+         addInstanceNameField("Condition", kc->route(inst->getCondition(), getNamer()));
       }
    }
 make_build_method(BranchInstruction, BranchInst)
 
    void CLIPSIndirectBranchInstructionBuilder::addFields(IndirectBrInst* inst, KnowledgeConstructor *kc, char* parent) {
       CLIPSTerminatorInstructionBuilder::addFields((TerminatorInst*)inst, kc, parent);
-      addField("Address", kc->route(inst->getAddress(), getNamer()));
+      addInstanceNameField("Address", kc->route(inst->getAddress(), getNamer()));
    }
 make_build_method(IndirectBranchInstruction, IndirectBrInst)
 
@@ -358,8 +365,8 @@ make_build_method(IndirectBranchInstruction, IndirectBrInst)
       if(target->hasStructRetAttr()) addTrueField("HasStructRetAttr");
       if(target->hasByValArgument()) addTrueField("HasByValArgument");
 
-      addField("NormalDestination", target->getNormalDest()->getName());
-      addField("UnwindDestination", target->getUnwindDest()->getName());
+      addInstanceNameField("NormalDestination", target->getNormalDest()->getName());
+      addInstanceNameField("UnwindDestination", target->getUnwindDest()->getName());
       Function* fn = target->getCalledFunction();
       openField("CalledFunction");
       if(fn != NULL) {
@@ -372,7 +379,7 @@ make_build_method(IndirectBranchInstruction, IndirectBrInst)
          openField("Arguments");
          FunctionNamer& namer = getNamer();
          for(unsigned i = 0;i < target->getNumArgOperands(); ++i) {
-            appendValue(kc->route(target->getArgOperand(i), namer));
+            appendInstanceName(kc->route(target->getArgOperand(i), namer));
          }
          closeField();
       }
@@ -387,7 +394,7 @@ make_build_method(ResumeInstruction, ResumeInst)
    void CLIPSReturnInstructionBuilder::addFields(ReturnInst* inst, KnowledgeConstructor *kc, char* parent) {
       CLIPSTerminatorInstructionBuilder::addFields((TerminatorInst*)inst, kc, parent);
       Value* result = inst->getReturnValue();
-      if(result != 0) addField("ReturnValue", kc->route(result, getNamer()));
+      if(result != 0) addInstanceNameField("ReturnValue", kc->route(result, getNamer()));
    }
 make_build_method(ReturnInstruction, ReturnInst)
 
@@ -410,7 +417,7 @@ make_build_method(ReturnInstruction, ReturnInst)
       if(inst->isLogicalShift()) addTrueField("IsLogicalShift");
       if(inst->isAssociative()) addTrueField("IsAssociative");
       if(inst->isCommutative()) addTrueField("IsCommutative");
-      addField("Condition", kc->route(inst->getCondition(), getNamer()));
+      addInstanceNameField("Condition", kc->route(inst->getCondition(), getNamer()));
       addField("DefaultDestination", inst->getDefaultDest()->getName());
       unsigned succCount = inst->getNumSuccessors();
       if(succCount > 0) {
@@ -419,7 +426,7 @@ make_build_method(ReturnInstruction, ReturnInst)
          for(unsigned i = 0; i < succCount; ++i) {
             appendValue(i);
             BasicBlock* target = inst->getSuccessor(i);
-            appendValue(target->getName());
+            appendInstanceName(target->getName());
          }
          closeField();
       }

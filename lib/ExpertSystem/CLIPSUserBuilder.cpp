@@ -11,9 +11,9 @@ void CLIPSUserBuilder::addFields(User* user, KnowledgeConstructor *kc, char* par
 	   for (User::op_iterator i0 = user->op_begin(), e0 = user->op_end(); i0 != e0; ++i0) {
          Value* target = *i0;
 			if(isa<Function>(target) || isa<Instruction>(target) || isa<BasicBlock>(target)) {
-				appendValue(target->getName());
+				appendInstanceName(target->getName());
          } else {
-				appendValue(kc->route(target, namer));
+				appendInstanceName(kc->route(target, namer));
          }
 		}
 		closeField();
