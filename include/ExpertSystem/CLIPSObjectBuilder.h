@@ -48,6 +48,8 @@ class CLIPSObjectBuilder {
 #if !defined(__APPLE__)
       void addField(const char* n, int64_t v); 
 #endif
+      void addInstanceNameField(const char* n, llvm::StringRef ref);
+      void addInstanceNameField(const char* n, std::string ref);
       void addStringField(const char* n, const std::string& str);
 		void addTrueField(const char* n);
 		void addFalseField(const char* n);

@@ -87,6 +87,17 @@ void CLIPSObjectBuilder::addField(const char* n, int64_t v) {
    }
 }
 #endif
+void CLIPSObjectBuilder::addInstanceNameField(
+      const char* n, 
+      llvm::StringRef ref) {
+   (*stream) << openParen << n << space << '[' << ref << ']' << closeParen;
+}
+void CLIPSObjectBuilder::addInstanceNameField(
+      const char* n, 
+      std::string ref) {
+   (*stream) << openParen << n << space << '[' << ref << ']' << closeParen;
+}
+
 void CLIPSObjectBuilder::addField(const char* n, llvm::StringRef ref) {
    (*stream) << openParen << n << space << ref << closeParen;
 }
