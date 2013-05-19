@@ -1,0 +1,15 @@
+lib/ExpertSystem/Debug+Asserts/
+lib/clips/Debug+Asserts/
+lib/core/Debug+Asserts/
+lib/indirect/Debug+Asserts/
+lib/passes/Debug+Asserts/
+lib/rampancy/Debug+Asserts/
+lib/pipeline/Debug+Asserts/
+lib/pipeline/clips/Debug+Asserts/
+tools/durandal/Debug+Asserts/
+tools/libindirecttest/Debug+Asserts/
+docs/tex/llvm/*.dvi
+docs/tex/llvm/*.aux
+docs/tex/llvm/*.fdb_latexmk
+docs/tex/llvm/*.log
+
