@@ -97,15 +97,15 @@
   (slot PointerType (type SYMBOL)) ; from AllocaInst::getType
   (slot PointerType-Pointer (type NUMBER) (range 0 ?VARIABLE))
   (slot IsArrayAllocation (type SYMBOL) (allowed-values FALSE TRUE)) 
-  (slot ArraySize (type NUMBER) (range 0 ?VARIABLE))
+  (slot ArraySize (type INSTANCE NUMBER) (range 0 ?VARIABLE))
   (slot IsStatic (type SYMBOL) (allowed-values FALSE TRUE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::CastInstruction 
   (is-a UnaryInstruction)
   (slot IsIntegerCast (type SYMBOL) (allowed-values FALSE TRUE))
   (slot IsLosslessCast (type SYMBOL) (allowed-values FALSE TRUE))
-  (slot SourceType (type SYMBOL))
-  (slot DestinationType (type SYMBOL)))
+  (slot SourceType (type INSTANCE))
+  (slot DestinationType (type INSTANCE)))
 ;------------------------------------------------------------------------------
 (defclass llvm::BitCastInstruction 
   (is-a CastInstruction))
@@ -195,7 +195,7 @@
 ;------------------------------------------------------------------------------
 (defclass llvm::ReturnInstruction 
   (is-a TerminatorInstruction)
-  (slot ReturnValue (type SYMBOL)))
+  (slot ReturnValue (type INSTANCE SYMBOL)))
 ;------------------------------------------------------------------------------
 (defclass llvm::SwitchEntry 
   (is-a Object ParentedObject InteropObject)
