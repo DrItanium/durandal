@@ -28,10 +28,10 @@
 ;------------------------------------------------------------------------------
 (defclass llvm::LLVMModule
   (is-a Object InteropObject ParentedObject)
-  (slot inline-asm (type STRING))
-  (slot triple (type STRING))
-  (slot data-layout (type STRING))
-  (slot module-identifier (type STRING))
+  (slot inline-asm (type LEXEME))
+  (slot triple (type LEXEME))
+  (slot data-layout (type LEXEME))
+  (slot module-identifier (type LEXEME))
   (slot endianness (type SYMBOL) (allowed-symbols any little big))
   (slot pointer-size (type SYMBOL) (allowed-symbols any pointer32 pointer64)))
 ;------------------------------------------------------------------------------
