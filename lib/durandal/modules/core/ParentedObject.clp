@@ -30,5 +30,5 @@
 (defclass core::ParentedObject 
   "An interface that provides a parent field." 
   (is-a USER)
-  (slot parent (type SYMBOL) (visibility public)))
+  (slot parent (type INSTANCE) (visibility public)))
 ;------------------------------------------------------------------------------
