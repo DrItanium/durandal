@@ -29,18 +29,18 @@
 ;------------------------------------------------------------------------------
 (defrule paths::initialize-path-construction-region
 			(declare (salience 3))
-			?r0 <- (object (is-a Region) (id ?id) (Entrances $? ?a $?) 
+			?r0 <- (object (is-a Region) (name ?id) (Entrances $? ?a $?) 
 								(contents $? ?z $?))
-			(object (is-a Region) (id ?z) (parent ?id) (Entrances $? ?a $?))
-			(object (is-a BasicBlock) (id ?a) (parent ?n&~?id))
+			(object (is-a Region) (name ?z) (parent ?id) (Entrances $? ?a $?))
+			(object (is-a BasicBlock) (name ?a) (parent ?n&~?id))
 			=>
 			(make-instance of Path (parent ?n) (values ?z)))
 ;------------------------------------------------------------------------------
 (defrule paths::initialize-path-construction-basicblock
 			(declare (salience 3))
-			?r0 <- (object (is-a Region) (id ?id) (Entrances $? ?a $?) 
+			?r0 <- (object (is-a Region) (name ?id) (Entrances $? ?a $?) 
 								(contents $? ?z $?))
-			(object (is-a BasicBlock) (id ?a) (parent ?n))
+			(object (is-a BasicBlock) (name ?a) (parent ?n))
 			=>
 			(make-instance of Path (parent ?n) (values ?a)))
 ;------------------------------------------------------------------------------

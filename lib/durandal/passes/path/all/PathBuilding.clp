@@ -33,7 +33,7 @@
 			reference count of the given path object is greater than one."
 			(declare (salience 1))
 			?fct <- (Add ?next to ?id)
-			?hint <- (object (is-a Path) (closed FALSE) (id ?id) (parent ?p) 
+			?hint <- (object (is-a Path) (closed FALSE) (name ?id) (parent ?p) 
 								  (reference-count ?rc&:(> ?rc 1))
 								  (values $?contents))
 			=>
@@ -47,7 +47,7 @@
 			equal to one"
 			(declare (salience 1))
 			?fct <- (Add ?next to ?id)
-			?hint <- (object (is-a Path) (closed FALSE) (id ?id) 
+			?hint <- (object (is-a Path) (closed FALSE) (name ?id) 
 								  (reference-count 1) (values $?values))
 			=>
 			(retract ?fct)
@@ -57,7 +57,7 @@
 			"Closes a path via an in-place update"
 			(declare (salience 1))
 			?fct <- (Close ?id with ?bb)
-			?hint <- (object (is-a Path) (closed FALSE) (id ?id) 
+			?hint <- (object (is-a Path) (closed FALSE) (name ?id) 
 								  (reference-count 1))
 			=>
 			(retract ?fct)
@@ -67,7 +67,7 @@
 			"Closes a path by making a copy of the target path"
 			(declare (salience 1))
 			?fct <- (Close ?id with ?bb)
-			?hint <- (object (is-a Path) (id ?id) (closed FALSE) (parent ?p)
+			?hint <- (object (is-a Path) (name ?id) (closed FALSE) (parent ?p)
 								  (reference-count ?rc&:(> ?rc 1))
 								  (values $?values))
 			=>
