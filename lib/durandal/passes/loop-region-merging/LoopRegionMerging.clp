@@ -37,7 +37,7 @@
 (defrule loop-region-merging-flatlist-build::ConstructFlatListForRegion
 			"Creates a flat representation of the contents of the given region"
 			(object (is-a Region) 
-					  (id ?id) 
+					  (name ?id) 
 					  (contents $?z))
 			(not (exists (object (is-a FlatList) 
 										(parent ?id))))
@@ -55,7 +55,7 @@
 			?o <- (object (is-a FlatList) 
 							  (parent ?id))
 			(object (is-a BasicBlock) 
-					  (id ?first))
+					  (name ?first))
 			=>
 			(slot-insert$ ?o values 1 ?first)
 			(modify ?f (arguments ?id => $?rest)))
@@ -67,10 +67,10 @@
 			?o <- (object (is-a FlatList) 
 							  (parent ?id))
 			(object (is-a Region) 
-					  (id ?first))
+					  (name ?first))
 			(object (is-a FlatList) 
 					  (parent ?first) 
-					  (id ?name))
+					  (name ?name))
 			=>
 			;Add the reference to FlatList for the time being until we have
 			;finished constructing an entire flat list
@@ -90,7 +90,7 @@
 			?id <- (object (is-a FlatList) 
 								(values $?a ?b $?c))
 			(object (is-a FlatList) 
-					  (id ?b) 
+					  (name ?b) 
 					  (values $?j))
 			=>
 			(modify-instance ?id (values $?a $?j $?c)))
@@ -99,11 +99,11 @@
 			"Asserts that a region owns another through a subset check. The first 
 			flat list is checked to see if it is a _proper_ subset of the second"
 			(object (is-a FlatList) 
-					  (id ?i0) 
+					  (name ?i0) 
 					  (values $?c0) 
 					  (parent ?p0))
 			(object (is-a FlatList) 
-					  (id ?i1&~?i0) 
+					  (name ?i1&~?i0) 
 					  (values $?c1) 
 					  (parent ?p1))
 			(test (and (> (length$ ?c1) 
@@ -120,7 +120,7 @@
 								(parent ?p) 
 								(values $? ?b $?))
 			(object (is-a BasicBlock) 
-					  (id ?b))
+					  (name ?b))
 			=>
 			(assert (message (to loop-region-merging) 
 								  (action claim-owns) 
@@ -130,11 +130,11 @@
 			"Asserts that two regions are equivalent if one flat list contains the
 			same elements as a second one."
 			?f0 <- (object (is-a FlatList) 
-								(id ?i0) 
+								(name ?i0) 
 								(values $?c0) 
 								(parent ?p0))
 			?f1 <- (object (is-a FlatList) 
-								(id ?i1&~?i0) 
+								(name ?i1&~?i0) 
 								(values $?c1) 
 								(parent ?p1))
 			(test (and (= (length$ ?c1) 
@@ -168,9 +168,9 @@
 								 (action claim-equivalent) 
 								 (arguments ?a => ?b))
 			(object (is-a Loop) 
-					  (id ?a))
+					  (name ?a))
 			(object (is-a Region&~Loop) 
-					  (id ?b))
+					  (name ?b))
 			=>
 			(duplicate ?f0 (action delete-region)
 						  (arguments ?b))
@@ -186,9 +186,9 @@
 								 (action claim-equivalent) 
 								 (arguments ?b => ?a))
 			(object (is-a Loop) 
-					  (id ?a))
+					  (name ?a))
 			(object (is-a Region&~Loop) 
-					  (id ?b))
+					  (name ?b))
 			=>
 			(duplicate ?f0 (action delete-region)
 						  (arguments ?b))
@@ -243,7 +243,7 @@
 								 (action delete-region)
 								 (arguments ?r0))
 			?region <- (object (is-a Region) 
-									 (id ?r0))
+									 (name ?r0))
 			=>
 			(retract ?f0)
 			(unmake-instance ?region))

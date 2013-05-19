@@ -25,7 +25,7 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-construction::construct-determinant-for-region
 			(object (is-a Region) 
-					  (id ?r))
+					  (name ?r))
 			(not (exists (object (is-a OwnershipDeterminant) 
 										(parent ?r))))
 			=>
@@ -34,7 +34,7 @@
 ;------------------------------------------------------------------------------
 (defrule loop-region-merging-determinant-construction::construct-determinant-for-basicblock
 			(object (is-a BasicBlock) 
-					  (id ?b))
+					  (name ?b))
 			(not (exists (object (is-a OwnershipDeterminant) 
 										(parent ?b))))
 			=>
@@ -93,7 +93,7 @@
 (defrule loop-region-merging-fixup::delete-non-existent-references
 			?region <- (object (is-a Region) 
 									 (contents $? ?b $?))
-			(not (exists (object (id ?b))))
+			(not (exists (object (name ?b))))
 			=>
 			(object-pattern-match-delay 
 			  (bind ?ind0 (member$ ?b (send ?region get-contents)))
@@ -104,7 +104,7 @@
 					  (parent ?p) 
 					  (Claims ?a))
 			?obj <- (object (is-a Region) 
-								 (id ?p))
+								 (name ?p))
 			=>
 			(modify-instance ?obj (parent ?a)))
 ;------------------------------------------------------------------------------
@@ -113,7 +113,7 @@
 					  (parent ?p) 
 					  (Claims ?a))
 			?obj <- (object (is-a BasicBlock) 
-								 (id ?p))
+								 (name ?p))
 			=>
 			(modify-instance ?obj (parent ?a)))
 ;------------------------------------------------------------------------------
@@ -122,7 +122,7 @@
 					  (parent ?p)
 					  (PotentialChildren $? ?a $?))
 			?region <- (object (is-a Region) 
-									 (id ?p) 
+									 (name ?p) 
 									 (contents $?c))
 			(test (not (member$ ?a ?c)))
 			=>
@@ -142,10 +142,10 @@
 			"Now that we have figured out and updated ownership claims it is 
 			necessary to remove leftover entries in other regions"
 			?r <- (object (is-a Region) 
-							  (id ?t) 
+							  (name ?t) 
 							  (contents $?a ?b $?c))
 			(object (is-a ParentedObject) 
-					  (id ?b) 
+					  (name ?b) 
 					  (parent ~?t))
 			=>
 			(modify-instance ?r (contents $?a $?c)))
@@ -154,7 +154,7 @@
 			(object (is-a OwnershipDeterminant) 
 					  (parent ?a) 
 					  (Claims $?z&:(> (length$ ?z) 1))
-					  (id ?name))
+					  (name ?name))
 			=>
 			(printout t "ERROR: " ?name " has more than one claim of ownership on"
 						 " it!" crlf "The claims are " ?z crlf)
@@ -167,7 +167,7 @@
 					  (PotentialChildren $?pc) 
 					  (IndirectClaims $?ic))
 			(object (is-a Region) 
-					  (id ?a) 
+					  (name ?a) 
 					  (IsTopLevelRegion FALSE))
 			=>
 			(printout t "ERROR: " ?a " has no remaining claims!" crlf 
@@ -182,7 +182,7 @@
 					  (PotentialChildren $?pc) 
 					  (IndirectClaims $?ic))
 			(object (is-a BasicBlock) 
-					  (id ?a)) 
+					  (name ?a)) 
 			=>
 			(printout t "ERROR: BasicBlock " ?a " has no remaining claims!" crlf 
 						 ?a " has " $?pc " as it's potential children." crlf
