@@ -99,7 +99,7 @@ void CLIPSFunctionBuilder::setAttributes(const AttributeSet& attr) {
 void CLIPSFunctionBuilder::addFields(Function* func, 
       KnowledgeConstructor* kc) {
 
-   CLIPSGlobalValueBuilder::addFields(func, kc, (char*)"");
+   CLIPSGlobalValueBuilder::addFields(func, kc, (char*)"nil");
    //this part contains the code for building the function itself
    FunctionNamer& namer = getNamer();
    addInstanceNameField("ReturnType", kc->route(func->getReturnType(), namer));
