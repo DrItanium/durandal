@@ -31,8 +31,8 @@
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-modification-propagation::PropagateRegionProducers-ParentExists
 			?fct <- (Give ?r the following produced items $?produced)
-			?region <- (object (is-a Region) (id ?r) (parent ?p))
-			(exists (object (is-a Region) (id ?p)))
+			?region <- (object (is-a Region) (name ?r) (parent ?p))
+			(exists (object (is-a Region) (name ?p)))
 			=>
 			(retract ?fct)
 			(assert (Give ?p the following produced items $?produced))
@@ -40,15 +40,15 @@
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-modification-propagation::PropagateRegionProducers-ParentDoesntExist
 			?fct <- (Give ?r the following produced items $?produced)
-			?region <- (object (is-a Region) (id ?r) (parent ?p))
-			(not (exists (object (is-a Region) (id ?p))))
+			?region <- (object (is-a Region) (name ?r) (parent ?p))
+			(not (exists (object (is-a Region) (name ?p))))
 			=>
 			(retract ?fct)
 			(slot-insert$ ?region Produces 1 ?produced))
 ;------------------------------------------------------------------------------
 (defrule dependency-analysis-modification-propagation::IdentifyNonLocalDependencies
 			?i0 <- (object (is-a Instruction) (parent ?p) (Operands $? ?op $?))
-			(object (is-a ParentedObject) (id ?op) (parent ~?p))
+			(object (is-a ParentedObject) (name ?op) (parent ~?p))
 			;(test (not (member$ ?op (send ?i0 get-NonLocalDependencies))))
 			=>
 			;since we don't copy the set of producers at the start anymore we

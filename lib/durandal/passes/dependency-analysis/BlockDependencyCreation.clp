@@ -31,10 +31,10 @@
 			(declare (salience 1))
 			(object (is-a CallInstruction) 
 					  (parent ?p) 
-					  (id ?t0) 
+					  (name ?t0) 
 					  (ArgumentOperands $? ?o $?))
 			(object (is-a Instruction) 
-					  (id ?o) 
+					  (name ?o) 
 					  (parent ?p))
 			=>
 			(assert (message (to dependency-analysis)
@@ -47,10 +47,10 @@
 (defrule dependency-analysis-analysis::MarkLocalDependency 
 			(object (is-a Instruction&~CallInstruction) 
 					  (parent ?p) 
-					  (id ?t0) 
+					  (name ?t0) 
 					  (Operands $? ?o $?))
 			(object (is-a Instruction) 
-					  (id ?o) 
+					  (name ?o) 
 					  (parent ?p))
 			=>
 			(assert (message (to dependency-analysis)
@@ -65,7 +65,7 @@
 			(object (is-a BasicBlock) 
 					  (contents $?before ?n0 $?))
 			(object (is-a CallInstruction) 
-					  (id ?n0) 
+					  (name ?n0) 
 					  (MayWriteToMemory TRUE))
 			=>
 			(progn$ (?n1 ?before)
@@ -82,7 +82,7 @@
 			(object (is-a BasicBlock) 
 					  (contents $?a ?n0 $?))
 			(object (is-a CallInstruction) 
-					  (id ?n0) 
+					  (name ?n0) 
 					  (MayHaveSideEffects TRUE))
 			=>
 			(progn$ (?n1 ?a)
@@ -97,10 +97,10 @@
 			"Creates a series of dependencies for all instructions following a 
 			call instruction if it turns out that the call could modify memory."
 			(object (is-a BasicBlock) 
-					  (id ?p)
+					  (name ?p)
 					  (contents $? ?name $?rest))
 			(object (is-a CallInstruction) 
-					  (id ?name) 
+					  (name ?name) 
 					  ;removing parent match reduces join network complexity
 					  (MayWriteToMemory TRUE))
 			=>
@@ -122,10 +122,10 @@
 			"Creates a series of dependencies for all instructions following a 
 			call instruction if it turns out that the call is inline asm."
 			(object (is-a BasicBlock) 
-					  (id ?p) 
+					  (name ?p) 
 					  (contents $? ?name $?rest))
 			(object (is-a CallInstruction) 
-					  (id ?name) 
+					  (name ?name) 
 					  ;removing parent reduces join network complexity
 					  (IsInlineAsm TRUE))
 			=>
@@ -147,10 +147,10 @@
 			"Creates a series of dependencies for all instructions following a 
 			call instruction if it turns out that the call has side effects."
 			(object (is-a BasicBlock) 
-					  (id ?p)
+					  (name ?p)
 					  (contents $? ?name $?rest))
 			(object (is-a CallInstruction) 
-					  (id ?name) 
+					  (name ?name) 
 					  ;removing parent reduces join network complexity 
 					  (MayHaveSideEffects TRUE)) 
 			=>
@@ -174,11 +174,11 @@
 								  (action element-has-a-call-barrier)
 								  (arguments ?z))
 			?d <- (object (is-a Diplomat) 
-							  (id ?z) 
+							  (name ?z) 
 							  (HasCallBarrier FALSE)
 							  (parent ?p))
 			(exists (object (is-a Diplomat) 
-								 (id ?p)))
+								 (name ?p)))
 			=>
 			(modify ?fct (arguments ?p))
 			(modify-instance ?d (HasCallBarrier TRUE)))
@@ -189,11 +189,11 @@
 								  (action element-has-a-call-barrier)
 								  (arguments ?z))
 			(object (is-a Diplomat) 
-							  (id ?z) 
+							  (name ?z) 
 							  (HasCallBarrier TRUE)
 							  (parent ?p))
 			(exists (object (is-a Diplomat) 
-								 (id ?p)))
+								 (name ?p)))
 			=>
 			(modify ?fct (arguments ?p)))
 ;------------------------------------------------------------------------------
@@ -203,11 +203,11 @@
 								  (action element-has-a-call-barrier)
 								  (arguments ?z))
 			?d <- (object (is-a Diplomat) 
-							  (id ?z) 
+							  (name ?z) 
 							  (HasCallBarrier FALSE)
 							  (parent ?p))
 			(not (exists (object (is-a Diplomat) 
-										(id ?p))))
+										(name ?p))))
 			=>
 			(retract ?fct)
 			(modify-instance ?d (HasCallBarrier TRUE)))
@@ -218,11 +218,11 @@
 								  (action element-has-a-call-barrier)
 								  (arguments ?z))
 			(object (is-a Diplomat) 
-							  (id ?z) 
+							  (name ?z) 
 							  (HasCallBarrier TRUE)
 							  (parent ?p))
 			(not (exists (object (is-a Diplomat) 
-										(id ?p))))
+										(name ?p))))
 			=>
 			(retract ?fct))
 ;------------------------------------------------------------------------------
@@ -231,7 +231,7 @@
 								  (action instruction-has-a-call-barrier)
 								  (arguments ?target))
 			?inst <- (object (is-a Instruction) 
-								  (id ?target) 
+								  (name ?target) 
 								  (HasCallDependency FALSE))
 			=>
 			(retract ?fct)
@@ -242,7 +242,7 @@
 								  (action instruction-has-a-call-barrier)
 								  (arguments ?target))
 			(object (is-a Instruction) 
-								  (id ?target) 
+								  (name ?target) 
 								  (HasCallDependency TRUE))
 			=>
 			(retract ?fct))
@@ -251,10 +251,10 @@
 			(object (is-a BasicBlock) 
 					  (contents $? ?t0 $? ?t1 $?))
 			(object (is-a StoreInstruction) 
-					  (id ?t0)
+					  (name ?t0)
 					  (MemoryTarget UNKNOWN))
 			(object (is-a StoreInstruction|LoadInstruction) 
-					  (id ?t1))
+					  (name ?t1))
 			=>
 			(assert (message (to dependency-analysis)
 								  (action instruction-consumes)
@@ -267,10 +267,10 @@
 			(object (is-a BasicBlock) 
 					  (contents $? ?t0 $? ?t1 $?))
 			(object (is-a LoadInstruction) 
-					  (id ?t0) 
+					  (name ?t0) 
 					  (MemoryTarget UNKNOWN))
 			(object (is-a StoreInstruction) 
-					  (id ?t1))
+					  (name ?t1))
 			=>
 			(assert (message (to dependency-analysis)
 								  (action instruction-consumes)
@@ -283,10 +283,10 @@
 			(object (is-a BasicBlock) 
 					  (contents $? ?t0 $? ?t1 $?))
 			(object (is-a StoreInstruction) 
-					  (id ?t0)
+					  (name ?t0)
 					  (MemoryTarget ?sym0&~UNKNOWN))
 			(object (is-a LoadInstruction) 
-					  (id ?t1) 
+					  (name ?t1) 
 					  (MemoryTarget ?sym0))
 			=>
 			(assert (message (to dependency-analysis)
@@ -300,10 +300,10 @@
 			(object (is-a BasicBlock) 
 					  (contents $? ?t0 $? ?t1 $?))
 			(object (is-a StoreInstruction) 
-					  (id ?t0)
+					  (name ?t0)
 					  (MemoryTarget ?sym0&~UNKNOWN))
 			(object (is-a StoreInstruction) 
-					  (id ?t1) 
+					  (name ?t1) 
 					  (MemoryTarget ?sym0))
 			=>
 			(assert (message (to dependency-analysis)
@@ -317,10 +317,10 @@
 			(object (is-a BasicBlock)
 					  (contents $? ?t0 $? ?t1 $?))
 			(object (is-a LoadInstruction) 
-					  (id ?t0)
+					  (name ?t0)
 					  (MemoryTarget ?sym0&~UNKNOWN)) 
 			(object (is-a StoreInstruction) 
-					  (id ?t1) 
+					  (name ?t1) 
 					  (MemoryTarget ?sym0))
 			=>
 			(assert (message (to dependency-analysis)

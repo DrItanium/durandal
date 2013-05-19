@@ -83,7 +83,7 @@
                          (action instruction-consume-list)
                          (arguments ?id => $?t1))
          ?inst <- (object (is-a Instruction) 
-                          (id ?id) 
+                          (name ?id) 
                           (Consumers $?c) 
                           (Producers $?p) 
                           (LocalDependencies $?ld))
@@ -112,7 +112,7 @@
                           (action instruction-consume-list)
                           (arguments ?id => $?targets))
          ?inst <- (object (is-a Instruction) 
-                          (id ?id) 
+                          (name ?id) 
                           (Consumers $?cs))
          =>
          (retract ?fct)
@@ -131,7 +131,7 @@
                           (action instruction-produce-list)
                           (arguments ?id => $?targets))
          ?inst <- (object (is-a Instruction) 
-                          (id ?id) 
+                          (name ?id) 
                           (Producers $?ps)
                           (LocalDependencies $?ld))
          =>
