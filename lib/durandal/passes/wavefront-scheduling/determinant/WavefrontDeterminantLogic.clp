@@ -30,9 +30,8 @@
 (defrule wavefront-scheduling-determinant::InstanceFrequencyCounter
          "Creates a frequency counter hint for basic blocks"
          (declare (salience 2))
-         (object (is-a Region) 
-                 (name ?p) 
-                 (class Region))
+         (object (is-a Region&~Loop) 
+                 (name ?p))
          (not (exists (object (is-a FrequencyAnalysis) 
                               (parent ?p))))
          =>
@@ -46,9 +45,8 @@
          (declare (salience 1))
          ?wa <- (object (is-a FrequencyAnalysis) 
                         (parent ?p))
-         (object (is-a Region) 
+         (object (is-a Region&~Loop) 
                  (name ?p) 
-                 (class Region) 
                  (contents $? ?t $?))
          (object (is-a BasicBlock) 
                  (name ?t) 
@@ -63,9 +61,8 @@
          ?fa <- (object (is-a FrequencyAnalysis) 
                         (parent ?p) 
                         (frequency ?z&:(and (< ?z 100) (> ?z 1))))
-         ?region <- (object (is-a Region) 
-                            (name ?p)
-                            (class Region))
+         ?region <- (object (is-a Region&~Loop) 
+                            (name ?p))
          =>
          (assert (message (to wavefront-scheduling)
                           (action can-wavefront-schedule)

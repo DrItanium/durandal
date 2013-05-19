@@ -26,7 +26,7 @@
 ;------------------------------------------------------------------------------
 (defclass types::Slice 
   (is-a ParentedObject Object)
-  (slot target-block (type SYMBOL) (visibility public))
-  (slot target-path (type SYMBOL) (visibility public))
+  (slot target-block (type INSTANCE) (visibility public))
+  (slot target-path (type INSTANCE) (visibility public))
   (multislot contents (visibility public)))
 ;------------------------------------------------------------------------------
