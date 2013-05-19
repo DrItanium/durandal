@@ -71,7 +71,7 @@
 (defmessage-handler llvm::Function remove-from-parent primary
                     ()
                     (llvm-function-remove-from-parent ?self:pointer)
-                    (bind ?self:parent nil))
+                    (bind ?self:parent [nil]))
 ;------------------------------------------------------------------------------
 (defmessage-handler llvm::Function erase-from-parent primary
                     ()
