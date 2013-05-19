@@ -140,8 +140,7 @@
                              (pointer ?nPtr) 
                              (parent ?otherBlock) 
                              (DestinationRegisters ?register) 
-                             (Consumers $?niConsumers)
-                             (class ?class))
+                             (Consumers $?niConsumers))
          ?oldBlock <- (object (is-a BasicBlock) 
                               (name ?otherBlock) 
                               (Produces $?pBefore ?inst $?pRest)
@@ -161,6 +160,7 @@
            (assert (message (to wavefront-scheduling)
                             (action recompute-block)
                             (arguments ?otherBlock)))
+           (bind ?class (class ?newInst))
            (if (eq StoreInstruction ?class) then 
              (modify-instance ?agObj 
                               (ScheduledInstructions $?agSI ?inst ?register)
@@ -231,8 +231,7 @@
                              (name ?inst) 
                              (pointer ?nPtr) 
                              (parent ?otherBlock) 
-                             (DestinationRegisters ?register) 
-                             (class ?class))
+                             (DestinationRegisters ?register))
          =>
          ;we also need to update all CPVs within 
          (object-pattern-match-delay
@@ -251,6 +250,7 @@
            ;we add the original name so that we don't have to do
            ; an insane number of updates to the CPVs that follow
            ; this object
+           (bind ?class (class ?newInst))
            (if (eq StoreInstruction ?class) then 
              (slot-insert$ ?agObj ScheduledInstructions 1 ?inst ?register)
              else
