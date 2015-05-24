@@ -21,13 +21,23 @@ extern "C" {
 #include "clips.h"
 }
 #define ENGINE_BOOKKEEPING_DATA USER_ENVIRONMENT_DATA + 0
-extern "C" RegisterEngineBookkeeping(void* theEnv);
+extern "C" void RegisterEngineBookkeeping(void* theEnv);
+extern "C" void RegisterInstance(void* theEnv, void* native, void* instance);
+extern "C" bool ContainsInstance(void* theEnv, void* key);
+extern "C" void* GetInstance(void* theEnv, void* key);
 #define EngineBookkeepingData(theEnv) \
 	((struct knowledge::EngineBookkeeping*) GetEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA))
 namespace knowledge {
-struct EngineBookkeeping {
-// just the pointers ma'am
-	llvm::DenseMap<void*, void*> instanceMap;
+class EngineBookkeeping {
+	public:
+		EngineBookkeeping();
+		~EngineBookkeeping();
+		void registerInstance(void* key, std::string& value);
+		bool containsInstance(void* key);
+		std::string& getRelatedInstance(void* key);
+	private:
+		// just the pointers ma'am
+		llvm::DenseMap<void*, std::string> instanceMap;
 };
 void* convert(void* theEnv, llvm::Module* module);
 void* convert(void* theEnv, llvm::BasicBlock* block, void* parent);
