@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*             EXPRESSION OPERATIONS MODULE            */
    /*******************************************************/
@@ -19,6 +19,11 @@
 /* Revision History:                                         */
 /*                                                           */
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Add NegateExpression function.                 */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -345,7 +350,7 @@ globle struct expr *GenConstant(
 /*************************************************/
 globle void PrintExpression(
   void *theEnv,
-  char *fileid,
+  const char *fileid,
   struct expr *theExpression)
   {
    struct expr *oldExpression;
@@ -359,22 +364,22 @@ globle void PrintExpression(
         {
          case SF_VARIABLE:
          case GBL_VARIABLE:
-            EnvPrintRouter(theEnv,fileid,(char*)"?");
+            EnvPrintRouter(theEnv,fileid,"?");
             EnvPrintRouter(theEnv,fileid,ValueToString(theExpression->value));
             break;
 
          case MF_VARIABLE:
          case MF_GBL_VARIABLE:
-            EnvPrintRouter(theEnv,fileid,(char*)"$?");
+            EnvPrintRouter(theEnv,fileid,"$?");
             EnvPrintRouter(theEnv,fileid,ValueToString(theExpression->value));
             break;
 
          case FCALL:
-           EnvPrintRouter(theEnv,fileid,(char*)"(");
+           EnvPrintRouter(theEnv,fileid,"(");
            EnvPrintRouter(theEnv,fileid,ValueToString(ExpressionFunctionCallName(theExpression)));
-           if (theExpression->argList != NULL) { EnvPrintRouter(theEnv,fileid,(char*)" "); }
+           if (theExpression->argList != NULL) { EnvPrintRouter(theEnv,fileid," "); }
            PrintExpression(theEnv,fileid,theExpression->argList);
-           EnvPrintRouter(theEnv,fileid,(char*)")");
+           EnvPrintRouter(theEnv,fileid,")");
            break;
 
          default:
@@ -386,7 +391,7 @@ globle void PrintExpression(
         }
 
       theExpression = theExpression->nextArg;
-      if (theExpression != NULL) EnvPrintRouter(theEnv,fileid,(char*)" ");
+      if (theExpression != NULL) EnvPrintRouter(theEnv,fileid," ");
      }
 
    return;
@@ -499,6 +504,43 @@ globle struct expr *CombineExpressions(
    tempPtr = GenConstant(theEnv,FCALL,ExpressionData(theEnv)->PTR_AND);
    tempPtr->argList = expr1;
    expr1->nextArg = expr2;
+   return(tempPtr);
+  }
+
+/*********************/
+/* NegateExpression: */
+/*********************/
+globle struct expr *NegateExpression(
+  void *theEnv,
+  struct expr *theExpression)
+  {
+   struct expr *tempPtr;
+
+   /*=========================================*/
+   /* If the expression is NULL, return NULL. */
+   /*=========================================*/
+
+   if (theExpression == NULL) return(NULL);
+
+   /*==================================================*/
+   /* The expression is already wrapped within a "not" */
+   /* function call, just remove the function call.    */
+   /*==================================================*/
+
+   if (theExpression->value == ExpressionData(theEnv)->PTR_NOT)
+     {
+      tempPtr = theExpression->argList;
+      rtn_struct(theEnv,expr,theExpression);
+      return(tempPtr);
+     }
+
+   /*===================================================*/
+   /* Wrap the expression within a "not" function call. */
+   /*===================================================*/
+
+   tempPtr = GenConstant(theEnv,FCALL,ExpressionData(theEnv)->PTR_NOT);
+   tempPtr->argList = theExpression;
+
    return(tempPtr);
   }
 

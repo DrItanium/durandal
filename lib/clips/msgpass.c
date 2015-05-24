@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  05/17/06          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*              OBJECT MESSAGE DISPATCH CODE           */
    /*******************************************************/
@@ -15,12 +15,27 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*      6.24: Removed IMPERATIVE_MESSAGE_HANDLERS and        */
 /*            AUXILIARY_MESSAGE_HANDLERS compilation flags.  */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: The return value of DirectMessage indicates    */
+/*            whether an execution error has occurred.       */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Changed garbage collection algorithm.          */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -69,7 +84,7 @@
    =========================================
    ***************************************** */
 
-static void PerformMessage(void *,DATA_OBJECT *,EXPRESSION *,SYMBOL_HN *);
+static intBool PerformMessage(void *,DATA_OBJECT *,EXPRESSION *,SYMBOL_HN *);
 static HANDLER_LINK *FindApplicableHandlers(void *,DEFCLASS *,SYMBOL_HN *);
 static void CallHandlers(void *,DATA_OBJECT *);
 static void EarlySlotBindError(void *,INSTANCE_TYPE *,DEFCLASS *,unsigned);
@@ -89,11 +104,12 @@ static void EarlySlotBindError(void *,INSTANCE_TYPE *,DEFCLASS *,unsigned);
                  3) Address of DATA_OBJECT buffer
                     (NULL if don't care)
                  4) Message argument expressions
-  RETURNS      : Nothing useful
+  RETURNS      : Returns FALSE is an execution error occurred
+                 or execution is halted, otherwise TRUE
   SIDE EFFECTS : Side effects of message execution
   NOTES        : None
  *****************************************************/
-globle void DirectMessage(
+globle intBool DirectMessage(
   void *theEnv,
   SYMBOL_HN *msg,
   INSTANCE_TYPE *ins,
@@ -109,7 +125,7 @@ globle void DirectMessage(
    args.argList = NULL;
    args.type = INSTANCE_ADDRESS;
    args.value = (void *) ins;
-   PerformMessage(theEnv,resultbuf,&args,msg);
+   return PerformMessage(theEnv,resultbuf,&args,msg);
   }
 
 /***************************************************
@@ -129,17 +145,20 @@ globle void DirectMessage(
 globle void EnvSend(
   void *theEnv,
   DATA_OBJECT *idata,
-  char *msg,
-  char *args,
+  const char *msg,
+  const char *args,
   DATA_OBJECT *result)
   {
    int error;
    EXPRESSION *iexp;
    SYMBOL_HN *msym;
 
-   if ((EvaluationData(theEnv)->CurrentEvaluationDepth == 0) && (! CommandLineData(theEnv)->EvaluatingTopLevelCommand) &&
-       (EvaluationData(theEnv)->CurrentExpression == NULL))
-     { PeriodicCleanup(theEnv,TRUE,FALSE); }
+   if ((UtilityData(theEnv)->CurrentGarbageFrame->topLevel) && (! CommandLineData(theEnv)->EvaluatingTopLevelCommand) &&
+       (EvaluationData(theEnv)->CurrentExpression == NULL) && (UtilityData(theEnv)->GarbageCollectionLocks == 0))
+     {
+      CleanCurrentGarbageFrame(theEnv,NULL);
+      CallPeriodicTasks(theEnv);
+     }
 
    SetEvaluationError(theEnv,FALSE);
    result->type = SYMBOL;
@@ -207,7 +226,7 @@ globle void SendCommand(
 
    result->type = SYMBOL;
    result->value = EnvFalseSymbol(theEnv);
-   if (EnvArgTypeCheck(theEnv,(char*)"send",2,SYMBOL,&temp) == FALSE)
+   if (EnvArgTypeCheck(theEnv,"send",2,SYMBOL,&temp) == FALSE)
      return;
    msg = (SYMBOL_HN *) temp.value;
 
@@ -306,12 +325,12 @@ globle void CallNextHandler(
      return;
    if (NextHandlerAvailable(theEnv) == FALSE)
      {
-      PrintErrorID(theEnv,(char*)"MSGPASS",1,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Shadowed message-handlers not applicable in current context.\n");
+      PrintErrorID(theEnv,"MSGPASS",1,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Shadowed message-handlers not applicable in current context.\n");
       SetEvaluationError(theEnv,TRUE);
       return;
      }
-   if (EvaluationData(theEnv)->CurrentExpression->value == (void *) FindFunction(theEnv,(char*)"override-next-handler"))
+   if (EvaluationData(theEnv)->CurrentExpression->value == (void *) FindFunction(theEnv,"override-next-handler"))
      {
       overridep = 1;
       args.type = ProceduralPrimitiveData(theEnv)->ProcParamArray[0].type;
@@ -322,7 +341,7 @@ globle void CallNextHandler(
       args.nextArg = GetFirstArgument();
       args.argList = NULL;
       PushProcParameters(theEnv,&args,CountArguments(&args),
-                          ValueToString(MessageHandlerData(theEnv)->CurrentMessageName),(char*)"message",
+                          ValueToString(MessageHandlerData(theEnv)->CurrentMessageName),"message",
                           UnboundHandlerErr);
       if (EvaluationData(theEnv)->EvaluationError)
         {
@@ -526,12 +545,9 @@ globle HANDLER_LINK *JoinHandlerLinks(
   SIDE EFFECTS : Expression printed
   NOTES        : None
  ***************************************************/
-#if WIN_BTC && (! DEVELOPER)
-#pragma argsused
-#endif
 globle void PrintHandlerSlotGetFunction(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   void *theValue)
   {
 #if DEVELOPER
@@ -540,18 +556,13 @@ globle void PrintHandlerSlotGetFunction(
    SLOT_DESC *sd;
 
    theReference = (HANDLER_SLOT_REFERENCE *) ValueToBitMap(theValue);
-   EnvPrintRouter(theEnv,logicalName,(char*)"?self:[");
+   EnvPrintRouter(theEnv,logicalName,"?self:[");
    theDefclass = DefclassData(theEnv)->ClassIDMap[theReference->classID];
    EnvPrintRouter(theEnv,logicalName,ValueToString(theDefclass->header.name));
-   EnvPrintRouter(theEnv,logicalName,(char*)"]");
+   EnvPrintRouter(theEnv,logicalName,"]");
    sd = theDefclass->instanceTemplate[theDefclass->slotNameMap[theReference->slotID] - 1];
    EnvPrintRouter(theEnv,logicalName,ValueToString(sd->slotName->name));
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#pragma unused(logicalName)
-#pragma unused(theValue)
-#endif
 #endif
   }
 
@@ -597,7 +608,7 @@ globle intBool HandlerSlotGetFunction(
 
    if (theInstance->garbage)
      {
-      StaleInstanceAddress(theEnv,(char*)"for slot get",0);
+      StaleInstanceAddress(theEnv,"for slot get",0);
       theResult->type = SYMBOL;
       theResult->value = EnvFalseSymbol(theEnv);
       SetEvaluationError(theEnv,TRUE);
@@ -649,12 +660,9 @@ HandlerGetError:
   SIDE EFFECTS : Expression printed
   NOTES        : None
  ***************************************************/
-#if WIN_BTC && (! DEVELOPER)
-#pragma argsused
-#endif
 globle void PrintHandlerSlotPutFunction(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   void *theValue)
   {
 #if DEVELOPER
@@ -663,24 +671,19 @@ globle void PrintHandlerSlotPutFunction(
    SLOT_DESC *sd;
 
    theReference = (HANDLER_SLOT_REFERENCE *) ValueToBitMap(theValue);
-   EnvPrintRouter(theEnv,logicalName,(char*)"(bind ?self:[");
+   EnvPrintRouter(theEnv,logicalName,"(bind ?self:[");
    theDefclass = DefclassData(theEnv)->ClassIDMap[theReference->classID];
    EnvPrintRouter(theEnv,logicalName,ValueToString(theDefclass->header.name));
-   EnvPrintRouter(theEnv,logicalName,(char*)"]");
+   EnvPrintRouter(theEnv,logicalName,"]");
    sd = theDefclass->instanceTemplate[theDefclass->slotNameMap[theReference->slotID] - 1];
    EnvPrintRouter(theEnv,logicalName,ValueToString(sd->slotName->name));
    if (GetFirstArgument() != NULL)
      {
-      EnvPrintRouter(theEnv,logicalName,(char*)" ");
+      EnvPrintRouter(theEnv,logicalName," ");
       PrintExpression(theEnv,logicalName,GetFirstArgument());
      }
-   EnvPrintRouter(theEnv,logicalName,(char*)")");
+   EnvPrintRouter(theEnv,logicalName,")");
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#pragma unused(logicalName)
-#pragma unused(theValue)
-#endif
 #endif
   }
 
@@ -727,7 +730,7 @@ globle intBool HandlerSlotPutFunction(
 
    if (theInstance->garbage)
      {
-      StaleInstanceAddress(theEnv,(char*)"for slot put",0);
+      StaleInstanceAddress(theEnv,"for slot put",0);
       theResult->type = SYMBOL;
       theResult->value = EnvFalseSymbol(theEnv);
       SetEvaluationError(theEnv,TRUE);
@@ -817,12 +820,12 @@ globle void DynamicHandlerGetSlot(
 
    result->type = SYMBOL;
    result->value = EnvFalseSymbol(theEnv);
-   if (CheckCurrentMessage(theEnv,(char*)"dynamic-get",TRUE) == FALSE)
+   if (CheckCurrentMessage(theEnv,"dynamic-get",TRUE) == FALSE)
      return;
    EvaluateExpression(theEnv,GetFirstArgument(),&temp);
    if (temp.type != SYMBOL)
      {
-      ExpectedTypeError1(theEnv,(char*)"dynamic-get",1,(char*)"symbol");
+      ExpectedTypeError1(theEnv,"dynamic-get",1,"symbol");
       SetEvaluationError(theEnv,TRUE);
       return;
      }
@@ -830,7 +833,7 @@ globle void DynamicHandlerGetSlot(
    sp = FindInstanceSlot(theEnv,ins,(SYMBOL_HN *) temp.value);
    if (sp == NULL)
      {
-      SlotExistError(theEnv,ValueToString(temp.value),(char*)"dynamic-get");
+      SlotExistError(theEnv,ValueToString(temp.value),"dynamic-get");
       return;
      }
    if ((sp->desc->publicVisibility == 0) &&
@@ -869,12 +872,12 @@ globle void DynamicHandlerPutSlot(
 
    theResult->type = SYMBOL;
    theResult->value = EnvFalseSymbol(theEnv);
-   if (CheckCurrentMessage(theEnv,(char*)"dynamic-put",TRUE) == FALSE)
+   if (CheckCurrentMessage(theEnv,"dynamic-put",TRUE) == FALSE)
      return;
    EvaluateExpression(theEnv,GetFirstArgument(),&temp);
    if (temp.type != SYMBOL)
      {
-      ExpectedTypeError1(theEnv,(char*)"dynamic-put",1,(char*)"symbol");
+      ExpectedTypeError1(theEnv,"dynamic-put",1,"symbol");
       SetEvaluationError(theEnv,TRUE);
       return;
      }
@@ -882,7 +885,7 @@ globle void DynamicHandlerPutSlot(
    sp = FindInstanceSlot(theEnv,ins,(SYMBOL_HN *) temp.value);
    if (sp == NULL)
      {
-      SlotExistError(theEnv,ValueToString(temp.value),(char*)"dynamic-put");
+      SlotExistError(theEnv,ValueToString(temp.value),"dynamic-put");
       return;
      }
    if ((sp->desc->noWrite == 0) ? FALSE :
@@ -929,12 +932,13 @@ globle void DynamicHandlerPutSlot(
                  2) Message argument expressions
                     (including implicit object)
                  3) Message name
-  RETURNS      : Nothing useful
+  RETURNS      : Returns FALSE is an execution error occurred
+                 or execution is halted, otherwise TRUE
   SIDE EFFECTS : Any side-effects of message execution
                     and caller's result buffer set
   NOTES        : None
  *****************************************************/
-static void PerformMessage(
+static intBool PerformMessage(
   void *theEnv,
   DATA_OBJECT *result,
   EXPRESSION *args,
@@ -948,12 +952,19 @@ static void PerformMessage(
 #if PROFILING_FUNCTIONS
    struct profileFrameInfo profileFrame;
 #endif
+   struct garbageFrame newGarbageFrame;
+   struct garbageFrame *oldGarbageFrame;
 
    result->type = SYMBOL;
    result->value = EnvFalseSymbol(theEnv);
    EvaluationData(theEnv)->EvaluationError = FALSE;
    if (EvaluationData(theEnv)->HaltExecution)
-     return;
+     return FALSE;
+
+   oldGarbageFrame = UtilityData(theEnv)->CurrentGarbageFrame;
+   memset(&newGarbageFrame,0,sizeof(struct garbageFrame));
+   UtilityData(theEnv)->CurrentGarbageFrame = &newGarbageFrame;
+
    oldce = ExecutingConstruct(theEnv);
    SetExecutingConstruct(theEnv,TRUE);
    oldName = MessageHandlerData(theEnv)->CurrentMessageName;
@@ -961,7 +972,7 @@ static void PerformMessage(
    EvaluationData(theEnv)->CurrentEvaluationDepth++;
 
    PushProcParameters(theEnv,args,CountArguments(args),
-                        ValueToString(MessageHandlerData(theEnv)->CurrentMessageName),(char*)"message",
+                        ValueToString(MessageHandlerData(theEnv)->CurrentMessageName),"message",
                         UnboundHandlerErr);
 
 
@@ -969,9 +980,12 @@ static void PerformMessage(
      {
       EvaluationData(theEnv)->CurrentEvaluationDepth--;
       MessageHandlerData(theEnv)->CurrentMessageName = oldName;
-      PeriodicCleanup(theEnv,FALSE,TRUE);
+      
+      RestorePriorGarbageFrame(theEnv,&newGarbageFrame,oldGarbageFrame,result);
+      CallPeriodicTasks(theEnv);      
+      
       SetExecutingConstruct(theEnv,oldce);
-      return;
+      return FALSE;
      }
 
    if (ProceduralPrimitiveData(theEnv)->ProcParamArray->type == INSTANCE_ADDRESS)
@@ -979,11 +993,11 @@ static void PerformMessage(
       ins = (INSTANCE_TYPE *) ProceduralPrimitiveData(theEnv)->ProcParamArray->value;
       if (ins->garbage == 1)
         {
-         StaleInstanceAddress(theEnv,(char*)"send",0);
+         StaleInstanceAddress(theEnv,"send",0);
          SetEvaluationError(theEnv,TRUE);
         }
       else if (DefclassInScope(theEnv,ins->cls,(struct defmodule *) EnvGetCurrentModule(theEnv)) == FALSE)
-        NoInstanceError(theEnv,ValueToString(ins->name),(char*)"send");
+        NoInstanceError(theEnv,ValueToString(ins->name),"send");
       else
         {
          cls = ins->cls;
@@ -995,10 +1009,10 @@ static void PerformMessage(
       ins = FindInstanceBySymbol(theEnv,(SYMBOL_HN *) ProceduralPrimitiveData(theEnv)->ProcParamArray->value);
       if (ins == NULL)
         {
-         PrintErrorID(theEnv,(char*)"MSGPASS",2,FALSE);
-         EnvPrintRouter(theEnv,WERROR,(char*)"No such instance ");
+         PrintErrorID(theEnv,"MSGPASS",2,FALSE);
+         EnvPrintRouter(theEnv,WERROR,"No such instance ");
          EnvPrintRouter(theEnv,WERROR,ValueToString((SYMBOL_HN *) ProceduralPrimitiveData(theEnv)->ProcParamArray->value));
-         EnvPrintRouter(theEnv,WERROR,(char*)" in function send.\n");
+         EnvPrintRouter(theEnv,WERROR," in function send.\n");
          SetEvaluationError(theEnv,TRUE);
         }
       else
@@ -1011,7 +1025,7 @@ static void PerformMessage(
      }
    else if ((cls = DefclassData(theEnv)->PrimitiveClassMap[ProceduralPrimitiveData(theEnv)->ProcParamArray->type]) == NULL)
      {
-      SystemError(theEnv,(char*)"MSGPASS",1);
+      SystemError(theEnv,"MSGPASS",1);
       EnvExitRouter(theEnv,EXIT_FAILURE);
      }
    if (EvaluationData(theEnv)->EvaluationError)
@@ -1019,9 +1033,12 @@ static void PerformMessage(
       PopProcParameters(theEnv);
       EvaluationData(theEnv)->CurrentEvaluationDepth--;
       MessageHandlerData(theEnv)->CurrentMessageName = oldName;
-      PeriodicCleanup(theEnv,FALSE,TRUE);
+         
+      RestorePriorGarbageFrame(theEnv,&newGarbageFrame,oldGarbageFrame,result);
+      CallPeriodicTasks(theEnv);
+
       SetExecutingConstruct(theEnv,oldce);
-      return;
+      return FALSE;
      }
 
    /* oldCore = MessageHandlerData(theEnv)->TopOfCore; */
@@ -1112,15 +1129,20 @@ static void PerformMessage(
    PopProcParameters(theEnv);
    EvaluationData(theEnv)->CurrentEvaluationDepth--;
    MessageHandlerData(theEnv)->CurrentMessageName = oldName;
-   PropagateReturnValue(theEnv,result);
-   PeriodicCleanup(theEnv,FALSE,TRUE);
+
+   RestorePriorGarbageFrame(theEnv,&newGarbageFrame,oldGarbageFrame,result);
+   CallPeriodicTasks(theEnv);
+
    SetExecutingConstruct(theEnv,oldce);
 
    if (EvaluationData(theEnv)->EvaluationError)
      {
       result->type = SYMBOL;
       result->value = EnvFalseSymbol(theEnv);
+      return FALSE;
      }
+     
+   return TRUE;
   }
 
 /*****************************************************************************
@@ -1184,11 +1206,7 @@ static void CallHandlers(
   void *theEnv,
   DATA_OBJECT *result)
   {
-#if WIN_BTC
-   HANDLER_LINK *oldCurrent,*oldNext;                /* prevents warning */
-#else
    HANDLER_LINK *oldCurrent = NULL,*oldNext = NULL;  /* prevents warning */
-#endif
    DATA_OBJECT temp;
 #if PROFILING_FUNCTIONS
    struct profileFrameInfo profileFrame;
@@ -1361,14 +1379,31 @@ static void EarlySlotBindError(
    SLOT_DESC *sd;
 
    sd = theDefclass->instanceTemplate[theDefclass->slotNameMap[slotID] - 1];
-   PrintErrorID(theEnv,(char*)"MSGPASS",3,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Static reference to slot ");
+   PrintErrorID(theEnv,"MSGPASS",3,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Static reference to slot ");
    EnvPrintRouter(theEnv,WERROR,ValueToString(sd->slotName->name));
-   EnvPrintRouter(theEnv,WERROR,(char*)" of class ");
+   EnvPrintRouter(theEnv,WERROR," of class ");
    PrintClassName(theEnv,WERROR,theDefclass,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)" does not apply to ");
+   EnvPrintRouter(theEnv,WERROR," does not apply to ");
    PrintInstanceNameAndClass(theEnv,WERROR,theInstance,TRUE);
   }
 
-#endif
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle void Send(
+  DATA_OBJECT *idata,
+  const char *msg,
+  const char *args,
+  DATA_OBJECT *result)
+  {
+   EnvSend(GetCurrentEnvironment(),idata,msg,args,result);
+  }
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
+
+#endif /* OBJECT_SYSTEM */
 

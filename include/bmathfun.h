@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*             BASIC MATH FUNCTIONS MODULE             */
    /*******************************************************/
@@ -17,6 +17,10 @@
 /* Revision History:                                         */
 /*                                                           */
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Support for long long integers.                */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -38,9 +42,6 @@
 #define LOCALE extern
 #endif
 
-#define GetAutoFloatDividend() EnvGetAutoFloatDividend(GetCurrentEnvironment())
-#define SetAutoFloatDividend(a) EnvSetAutoFloatDividend(GetCurrentEnvironment(),a)
-
    LOCALE void                    BasicMathFunctionDefinitions(void *);
    LOCALE void                    AdditionFunction(void *,DATA_OBJECT_PTR);
    LOCALE void                    MultiplicationFunction(void *,DATA_OBJECT_PTR);
@@ -56,6 +57,13 @@
    LOCALE void                    AbsFunction(void *,DATA_OBJECT_PTR);
    LOCALE void                    MinFunction(void *,DATA_OBJECT_PTR);
    LOCALE void                    MaxFunction(void *,DATA_OBJECT_PTR);
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+   LOCALE intBool                 GetAutoFloatDividend(void);
+   LOCALE intBool                 SetAutoFloatDividend(int);
+
+#endif
 
 #endif
 

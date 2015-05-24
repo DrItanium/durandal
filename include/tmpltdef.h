@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.26  06/05/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*               DEFTEMPLATE HEADER FILE               */
    /*******************************************************/
@@ -16,10 +16,29 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Added support for templates maintaining their  */
 /*            own list of facts.                             */
 /*                                                           */
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*            Corrected code to remove run-time program      */
+/*            compiler warnings.                             */
+/*                                                           */
+/*      6.30: Added code for deftemplate run time            */
+/*            initialization of hashed comparisons to        */
+/*            constants.                                     */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Support for deftemplate slot facets.           */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -109,9 +128,6 @@ struct deftemplateData
 #endif
   };
 
-#define EnvGetDeftemplateName(theEnv,x) GetConstructNameString((struct constructHeader *) x)
-#define EnvGetDeftemplatePPForm(theEnv,x) GetConstructPPForm(theEnv,(struct constructHeader *) x)
-#define EnvDeftemplateModule(theEnv,x) GetConstructModuleName((struct constructHeader *) x)
 #define DeftemplateData(theEnv) ((struct deftemplateData *) GetEnvironmentData(theEnv,DEFTEMPLATE_DATA))
 
 #ifdef LOCALE
@@ -124,16 +140,8 @@ struct deftemplateData
 #define LOCALE extern
 #endif
 
-#define FindDeftemplate(a) EnvFindDeftemplate(GetCurrentEnvironment(),a)
-#define GetNextDeftemplate(a) EnvGetNextDeftemplate(GetCurrentEnvironment(),a)
-#define IsDeftemplateDeletable(a) EnvIsDeftemplateDeletable(GetCurrentEnvironment(),a)
-#define GetDeftemplateName(x) GetConstructNameString((struct constructHeader *) x)
-#define GetDeftemplatePPForm(x) GetConstructPPForm(GetCurrentEnvironment(),(struct constructHeader *) x)
-#define GetNextFactInTemplate(a,b) EnvGetNextFactInTemplate(GetCurrentEnvironment(),a,b)
-#define DeftemplateModule(x) GetConstructModuleName((struct constructHeader *) x)
-
    LOCALE void                           InitializeDeftemplates(void *);
-   LOCALE void                          *EnvFindDeftemplate(void *,char *);
+   LOCALE void                          *EnvFindDeftemplate(void *,const char *);
    LOCALE void                          *EnvGetNextDeftemplate(void *,void *);
    LOCALE intBool                        EnvIsDeftemplateDeletable(void *,void *);
    LOCALE void                          *EnvGetNextFactInTemplate(void *,void *,void *);
@@ -142,11 +150,25 @@ struct deftemplateData
    LOCALE void                           IncrementDeftemplateBusyCount(void *,void *);
    LOCALE void                           DecrementDeftemplateBusyCount(void *,void *);
    LOCALE void                          *CreateDeftemplateScopeMap(void *,struct deftemplate *);
-
 #if RUN_TIME
    LOCALE void                           DeftemplateRunTimeInitialize(void *);
 #endif
-   
-#endif
+   LOCALE const char                    *EnvDeftemplateModule(void *,void *);
+   LOCALE const char                    *EnvGetDeftemplateName(void *,void *);
+   LOCALE const char                    *EnvGetDeftemplatePPForm(void *,void *);
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+   LOCALE const char                    *DeftemplateModule(void *);
+   LOCALE void                          *FindDeftemplate(const char *);
+   LOCALE const char                    *GetDeftemplateName(void *);
+   LOCALE const char                    *GetDeftemplatePPForm(void *);
+   LOCALE void                          *GetNextDeftemplate(void *);
+   LOCALE intBool                        IsDeftemplateDeletable(void *);
+   LOCALE void                          *GetNextFactInTemplate(void *,void *);
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
+
+#endif /* _H_tmpltdef */
 
 

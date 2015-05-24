@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                 FACT MATCH MODULE                   */
    /*******************************************************/
@@ -16,6 +16,7 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*      6.24: Removed INCREMENTAL_RESET compilation flag.    */
@@ -25,6 +26,13 @@
 /*      6.30: Added support for hashed alpha memories.       */
 /*                                                           */
 /*            Fix for DR0880. 2008-01-24                     */
+/*                                                           */
+/*            Added support for hashed comparisons to        */
+/*            constants.                                     */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
 /*                                                           */
 /*************************************************************/
 
@@ -183,10 +191,15 @@ globle void FactPatternMatch(
               
             if (tempPtr != NULL)
               {
-               if (tempPtr->header.stopNode)
-                 { ProcessFactAlphaMatch(theEnv,theFact,markers,tempPtr); }
-               
-               patternPtr = GetNextFactPatternNode(theEnv,FALSE,tempPtr);
+               if (SkipFactPatternNode(theEnv,tempPtr))
+                 { patternPtr = GetNextFactPatternNode(theEnv,TRUE,patternPtr); }
+               else
+                 {
+                  if (tempPtr->header.stopNode)
+                    { ProcessFactAlphaMatch(theEnv,theFact,markers,tempPtr); }
+                
+                  patternPtr = GetNextFactPatternNode(theEnv,FALSE,tempPtr);
+                 }
               }
             else
               { patternPtr = GetNextFactPatternNode(theEnv,TRUE,patternPtr); }
@@ -699,11 +712,11 @@ static void PatternNetErrorMessage(
    /* Print the fact being pattern matched. */
    /*=======================================*/
 
-   PrintErrorID(theEnv,(char*)"FACTMCH",1,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"This error occurred in the fact pattern network\n");
-   EnvPrintRouter(theEnv,WERROR,(char*)"   Currently active fact: ");
+   PrintErrorID(theEnv,"FACTMCH",1,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"This error occurred in the fact pattern network\n");
+   EnvPrintRouter(theEnv,WERROR,"   Currently active fact: ");
    PrintFact(theEnv,WERROR,FactData(theEnv)->CurrentPatternFact,FALSE,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"\n");
+   EnvPrintRouter(theEnv,WERROR,"\n");
 
    /*==============================================*/
    /* Print the field position or slot name of the */
@@ -711,12 +724,12 @@ static void PatternNetErrorMessage(
    /*==============================================*/
 
    if (FactData(theEnv)->CurrentPatternFact->whichDeftemplate->implied)
-     { gensprintf(buffer,(char*)"   Problem resides in field #%d\n",patternPtr->whichField); }
+     { gensprintf(buffer,"   Problem resides in field #%d\n",patternPtr->whichField); }
    else
      {
       theSlots = FactData(theEnv)->CurrentPatternFact->whichDeftemplate->slotList;
       for (i = 0; i < (int) patternPtr->whichSlot; i++) theSlots = theSlots->next;
-      gensprintf(buffer,(char*)"   Problem resides in slot %s\n",ValueToString(theSlots->slotName));
+      gensprintf(buffer,"   Problem resides in slot %s\n",ValueToString(theSlots->slotName));
      }
 
    EnvPrintRouter(theEnv,WERROR,buffer);
@@ -729,7 +742,7 @@ static void PatternNetErrorMessage(
    /*==========================================================*/
 
    TraceErrorToJoin(theEnv,patternPtr,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"\n");
+   EnvPrintRouter(theEnv,WERROR,"\n");
   }
 
 /***************************************************************************/
@@ -753,7 +766,7 @@ static void TraceErrorToJoin(
          for (joinPtr = patternPtr->header.entryJoin;
               joinPtr != NULL;
               joinPtr = joinPtr->rightMatchNode)
-           { TraceErrorToRule(theEnv,joinPtr,(char*)"      "); }
+           { TraceErrorToRule(theEnv,joinPtr,"      "); }
         }
       else
         { TraceErrorToJoin(theEnv,patternPtr->nextLevel,TRUE); }
@@ -774,9 +787,6 @@ static int SkipFactPatternNode(
   void *theEnv,
   struct factPatternNode *thePattern)
   {
-#if (MAC_MCW || WIN_MCW) && (RUN_TIME || BLOAD_ONLY)
-#pragma unused(theEnv,thePattern)
-#endif
 
 #if (! RUN_TIME) && (! BLOAD_ONLY)
    if (EngineData(theEnv)->IncrementalResetInProgress &&
@@ -796,9 +806,6 @@ static int SkipFactPatternNode(
 /*  that the nodes were traversed ("initialized") by the       */
 /*  incremental reset.                                         */
 /***************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle void MarkFactPatternForIncrementalReset(
   void *theEnv,
   struct patternNodeHeader *thePattern,
@@ -806,9 +813,6 @@ globle void MarkFactPatternForIncrementalReset(
   {
    struct factPatternNode *patternPtr = (struct factPatternNode *) thePattern;
    struct joinNode *theJoin;
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    /*=====================================*/
    /* We should be passed a valid pointer */

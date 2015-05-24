@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  07/01/05          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*         IMPLICIT SYSTEM METHODS PARSING MODULE      */
    /*******************************************************/
@@ -15,10 +15,20 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*      6.24: Added pragmas to remove unused parameter       */
 /*            warnings.                                      */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Support for long long integers.                */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -54,9 +64,9 @@
    =========================================
    ***************************************** */
 
-static void FormMethodsFromRestrictions(void *,DEFGENERIC *,char *,EXPRESSION *);
+static void FormMethodsFromRestrictions(void *,DEFGENERIC *,const char *,EXPRESSION *);
 static RESTRICTION *ParseRestrictionType(void *,int);
-static EXPRESSION *GenTypeExpression(void *,EXPRESSION *,int,int,char *);
+static EXPRESSION *GenTypeExpression(void *,EXPRESSION *,int,int,const char *);
 
 /* =========================================
    *****************************************
@@ -112,7 +122,7 @@ globle void AddImplicitMethods(
 static void FormMethodsFromRestrictions(
   void *theEnv,
   DEFGENERIC *gfunc,
-  char *rstring,
+  const char *rstring,
   EXPRESSION *actions)
   {
    DEFMETHOD *meth;
@@ -249,8 +259,8 @@ static void FormMethodsFromRestrictions(
       rptr = ParseRestrictionType(theEnv,(int) defaultc);
       if (max != -1)
         {
-         rptr->query = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,(char*)"<="));
-         rptr->query->argList = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,(char*)"length$"));
+         rptr->query = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,"<="));
+         rptr->query->argList = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,"length$"));
          rptr->query->argList->argList = GenProcWildcardReference(theEnv,min + i + 1);
          rptr->query->argList->nextArg =
                GenConstant(theEnv,INTEGER,(void *) EnvAddLong(theEnv,(long long) (max - min - i)));
@@ -377,26 +387,13 @@ static RESTRICTION *ParseRestrictionType(
                  environment, they are pointers
                  to classes
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static EXPRESSION *GenTypeExpression(
   void *theEnv,
   EXPRESSION *top,
   int nonCOOLCode,
   int primitiveCode,
-  char *COOLName)
+  const char *COOLName)
   {
-#if OBJECT_SYSTEM
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(nonCOOLCode)
-#endif
-#else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(primitiveCode)
-#pragma unused(COOLName)
-#endif
-#endif
    EXPRESSION *tmp;
 
 #if OBJECT_SYSTEM

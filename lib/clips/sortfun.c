@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  07/01/05            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                SORT FUNCTIONS MODULE                */
    /*******************************************************/
@@ -15,11 +15,15 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*      6.24: The sort function leaks memory when called     */
 /*            with a multifield value of length zero.        */
 /*            DR0864                                         */
+/*                                                           */
+/*      6.30: Added environment cleanup call function        */
+/*            DeallocateSortFunctionData.                    */
 /*                                                           */
 /*************************************************************/
 
@@ -66,7 +70,7 @@ globle void SortFunctionDefinitions(
   {
    AllocateEnvironmentData(theEnv,SORTFUN_DATA,sizeof(struct sortFunctionData),DeallocateSortFunctionData);
 #if ! RUN_TIME
-   EnvDefineFunction2(theEnv,(char*)"sort",'u', PTIEF SortFunction,(char*)"SortFunction",(char*)"1**w");
+   EnvDefineFunction2(theEnv,"sort",'u', PTIEF SortFunction,"SortFunction","1**w");
 #endif
   }
 
@@ -117,7 +121,7 @@ globle void SortFunction(
    DATA_OBJECT *theArguments, *theArguments2;
    DATA_OBJECT theArg;
    struct multifield *theMultifield, *tempMultifield;
-   char *functionName;
+   const char *functionName;
    struct expr *functionReference;
    int argumentSize = 0;
    struct FunctionDefinition *fptr;
@@ -136,21 +140,21 @@ globle void SortFunction(
    /* The function expects at least one argument. */
    /*=============================================*/
 
-   if ((argumentCount = EnvArgCountCheck(theEnv,(char*)"sort",AT_LEAST,1)) == -1)
+   if ((argumentCount = EnvArgCountCheck(theEnv,"sort",AT_LEAST,1)) == -1)
      { return; }
 
    /*=============================================*/
    /* Verify that the comparison function exists. */
    /*=============================================*/
 
-   if (EnvArgTypeCheck(theEnv,(char*)"sort",1,SYMBOL,&theArg) == FALSE)
+   if (EnvArgTypeCheck(theEnv,"sort",1,SYMBOL,&theArg) == FALSE)
      { return; }
 
    functionName = DOToString(theArg);
    functionReference = FunctionReferenceExpression(theEnv,functionName);
    if (functionReference == NULL)
      {
-      ExpectedTypeError1(theEnv,(char*)"sort",1,(char*)"function name, deffunction name, or defgeneric name");
+      ExpectedTypeError1(theEnv,"sort",1,"function name, deffunction name, or defgeneric name");
       return;
      }
 
@@ -166,7 +170,7 @@ globle void SortFunction(
           (GetMaximumArgs(fptr) == 0) ||
           (GetMaximumArgs(fptr) == 1))
         {
-         ExpectedTypeError1(theEnv,(char*)"sort",1,(char*)"function name expecting two arguments");
+         ExpectedTypeError1(theEnv,"sort",1,"function name expecting two arguments");
          ReturnExpression(theEnv,functionReference);
          return;
         }
@@ -185,7 +189,7 @@ globle void SortFunction(
           (dptr->maxNumberOfParameters == 0) ||
           (dptr->maxNumberOfParameters == 1))
         {
-         ExpectedTypeError1(theEnv,(char*)"sort",1,(char*)"deffunction name expecting two arguments");
+         ExpectedTypeError1(theEnv,"sort",1,"deffunction name expecting two arguments");
          ReturnExpression(theEnv,functionReference);
          return;
         }

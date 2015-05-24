@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                 DEFTEMPLATE MODULE                  */
    /*******************************************************/
@@ -18,6 +18,7 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Added support for templates maintaining their  */
 /*            own list of facts.                             */
 /*                                                           */
@@ -25,6 +26,21 @@
 /*                                                           */
 /*            Corrected code to remove run-time program      */
 /*            compiler warnings.                             */
+/*                                                           */
+/*      6.30: Added code for deftemplate run time            */
+/*            initialization of hashed comparisons to        */
+/*            constants.                                     */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Support for deftemplate slot facets.           */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -84,7 +100,7 @@
 globle void InitializeDeftemplates(
   void *theEnv)
   {
-   globle struct entityRecord deftemplatePtrRecord = { (char*)"DEFTEMPLATE_PTR",
+   globle struct entityRecord deftemplatePtrRecord = { "DEFTEMPLATE_PTR",
                                                            DEFTEMPLATE_PTR,1,0,0,
                                                            NULL,
                                                            NULL,NULL,
@@ -106,7 +122,7 @@ globle void InitializeDeftemplates(
    DeftemplateFunctions(theEnv);
 
    DeftemplateData(theEnv)->DeftemplateConstruct =
-      AddConstruct(theEnv,(char*)"deftemplate",(char*)"deftemplates",ParseDeftemplate,EnvFindDeftemplate,
+      AddConstruct(theEnv,"deftemplate","deftemplates",ParseDeftemplate,EnvFindDeftemplate,
                    GetConstructNamePointer,GetConstructPPForm,
                    GetConstructModuleItem,EnvGetNextDeftemplate,SetNextConstruct,
                    EnvIsDeftemplateDeletable,EnvUndeftemplate,ReturnDeftemplate);
@@ -148,17 +164,11 @@ static void DeallocateDeftemplateData(
 /* DestroyDeftemplateAction: Action used to remove   */
 /*   deftemplates as a result of DestroyEnvironment. */
 /*****************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void DestroyDeftemplateAction(
   void *theEnv,
   struct constructHeader *theConstruct,
   void *buffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(buffer)
-#endif
    struct deftemplate *theDeftemplate = (struct deftemplate *) theConstruct;
    
    if (theDeftemplate == NULL) return;
@@ -174,7 +184,7 @@ static void DestroyDeftemplateAction(
 static void InitializeDeftemplateModules(
   void *theEnv)
   {
-   DeftemplateData(theEnv)->DeftemplateModuleIndex = RegisterModuleItem(theEnv,(char*)"deftemplate",
+   DeftemplateData(theEnv)->DeftemplateModuleIndex = RegisterModuleItem(theEnv,"deftemplate",
                                     AllocateModule,
                                     ReturnModule,
 #if BLOAD_AND_BSAVE || BLOAD || BLOAD_ONLY
@@ -190,7 +200,7 @@ static void InitializeDeftemplateModules(
                                     EnvFindDeftemplate);
 
 #if (! BLOAD_ONLY) && (! RUN_TIME) && DEFMODULE_CONSTRUCT
-   AddPortConstructItem(theEnv,(char*)"deftemplate",SYMBOL);
+   AddPortConstructItem(theEnv,"deftemplate",SYMBOL);
 #endif
   }
 
@@ -232,7 +242,7 @@ globle struct deftemplateModule *GetDeftemplateModuleItem(
 /*****************************************************/
 globle void *EnvFindDeftemplate(
   void *theEnv,
-  char *deftemplateName)
+  const char *deftemplateName)
   {  
    return(FindNamedConstruct(theEnv,deftemplateName,DeftemplateData(theEnv)->DeftemplateConstruct)); 
   }
@@ -276,9 +286,6 @@ static void ReturnDeftemplate(
   void *theEnv,
   void *vTheConstruct)
   {
-#if (MAC_MCW || WIN_MCW) && (RUN_TIME || BLOAD_ONLY)
-#pragma unused(theEnv,vTheConstruct)
-#endif
 
 #if (! BLOAD_ONLY) && (! RUN_TIME)
    struct deftemplate *theConstruct = (struct deftemplate *) vTheConstruct;
@@ -332,9 +339,6 @@ static void DestroyDeftemplate(
   void *theEnv,
   void *vTheConstruct)
   {
-#if (MAC_MCW || WIN_MCW) && (RUN_TIME || BLOAD_ONLY)
-#pragma unused(vTheConstruct)
-#endif
 
    struct deftemplate *theConstruct = (struct deftemplate *) vTheConstruct;
 #if (! BLOAD_ONLY) && (! RUN_TIME)
@@ -374,9 +378,6 @@ globle void ReturnSlots(
   void *theEnv,
   struct templateSlot *slotPtr)
   {
-#if (MAC_MCW || WIN_MCW) && (RUN_TIME || BLOAD_ONLY)
-#pragma unused(theEnv,slotPtr)
-#endif
 
 #if (! BLOAD_ONLY) && (! RUN_TIME)
    struct templateSlot *nextSlot;
@@ -410,17 +411,11 @@ globle void DecrementDeftemplateBusyCount(
 /* IncrementDeftemplateBusyCount: Increments the */
 /*   busy count of a deftemplate data structure. */
 /*************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle void IncrementDeftemplateBusyCount(
   void *theEnv,
   void *vTheTemplate)
   {
    struct deftemplate *theTemplate = (struct deftemplate *) vTheTemplate;
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    theTemplate->busyCount++;
   }
@@ -430,17 +425,11 @@ globle void IncrementDeftemplateBusyCount(
 /*   first fact in the template's fact-list. Otherwise returns the */
 /*   next template fact following the fact passed as an argument.  */
 /*******************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle void *EnvGetNextFactInTemplate(
   void *theEnv,
   void *theTemplate,
   void *factPtr)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
    if (factPtr == NULL)
      { return((void *) ((struct deftemplate *) theTemplate)->factList); }
 
@@ -451,16 +440,16 @@ globle void *EnvGetNextFactInTemplate(
 
 #if ! RUN_TIME
 
-/*******************************************************************/
-/* CreateDeftemplateScopeMap:    */
-/*******************************************************************/
+/******************************/
+/* CreateDeftemplateScopeMap: */
+/******************************/
 globle void *CreateDeftemplateScopeMap(
   void *theEnv,
   struct deftemplate *theDeftemplate)
   {
    unsigned scopeMapSize;
    char *scopeMap;
-   char *templateName;
+   const char *templateName;
    struct defmodule *matchModule, *theModule;
    int moduleID,count;
    void *theBitMap;
@@ -479,7 +468,7 @@ globle void *CreateDeftemplateScopeMap(
      {
       EnvSetCurrentModule(theEnv,(void *) theModule);
       moduleID = (int) theModule->bsaveID;
-      if (FindImportedConstruct(theEnv,(char*)"deftemplate",matchModule,
+      if (FindImportedConstruct(theEnv,"deftemplate",matchModule,
                                 templateName,&count,TRUE,NULL) != NULL)
         SetBitMap(scopeMap,moduleID);
      }
@@ -499,17 +488,11 @@ globle void *CreateDeftemplateScopeMap(
 /*   to each deftemplate construct when a runtime */
 /*   initialization occurs.                       */
 /**************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void RuntimeDeftemplateAction(
   void *theEnv,
   struct constructHeader *theConstruct,
   void *buffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(buffer)
-#endif
    struct deftemplate *theDeftemplate = (struct deftemplate *) theConstruct;
    
    SearchForHashedPatternNodes(theEnv,theDeftemplate->patternNetwork);
@@ -542,7 +525,83 @@ globle void DeftemplateRunTimeInitialize(
    DoForAllConstructs(theEnv,RuntimeDeftemplateAction,DeftemplateData(theEnv)->DeftemplateModuleIndex,TRUE,NULL); 
   }
 
-#endif
+#endif /* RUN_TIME */
+
+/*##################################*/
+/* Additional Environment Functions */
+/*##################################*/
+
+globle const char *EnvDeftemplateModule(
+  void *theEnv,
+  void *theDeftemplate)
+  {
+   return GetConstructModuleName((struct constructHeader *) theDeftemplate);
+  }
+
+globle const char *EnvGetDeftemplateName(
+  void *theEnv,
+  void *theDeftemplate)
+  {
+   return GetConstructNameString((struct constructHeader *) theDeftemplate);
+  }
+
+globle const char *EnvGetDeftemplatePPForm(
+  void *theEnv,
+  void *theDeftemplate)
+  {
+   return GetConstructPPForm(theEnv,(struct constructHeader *) theDeftemplate);
+  }
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle const char *DeftemplateModule(
+  void *theDeftemplate)
+  {
+   return EnvDeftemplateModule(GetCurrentEnvironment(),theDeftemplate);
+  }
+
+globle void *FindDeftemplate(
+  const char *deftemplateName)
+  {
+   return EnvFindDeftemplate(GetCurrentEnvironment(),deftemplateName);
+  }
+
+globle const char *GetDeftemplateName(
+  void *theDeftemplate)
+  {
+   return EnvGetDeftemplateName(GetCurrentEnvironment(),theDeftemplate);
+  }
+
+globle const char *GetDeftemplatePPForm(
+  void *theDeftemplate)
+  {
+   return EnvGetDeftemplatePPForm(GetCurrentEnvironment(),theDeftemplate);
+  }
+
+globle void *GetNextDeftemplate(
+  void *deftemplatePtr)
+  {
+   return EnvGetNextDeftemplate(GetCurrentEnvironment(),deftemplatePtr);
+  }
+
+globle intBool IsDeftemplateDeletable(
+  void *vTheDeftemplate)
+  {
+   return EnvIsDeftemplateDeletable(GetCurrentEnvironment(),vTheDeftemplate);
+  }
+
+globle void *GetNextFactInTemplate(
+  void *theTemplate,
+  void *factPtr)
+  {
+   return EnvGetNextFactInTemplate(GetCurrentEnvironment(),theTemplate,factPtr);
+  }
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
 
 #endif /* DEFTEMPLATE_CONSTRUCT */
 

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.22  06/15/04            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*         DEFMODULE BASIC COMMANDS HEADER FILE        */
    /*******************************************************/
@@ -18,6 +18,15 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -37,6 +46,7 @@
 #include "router.h"
 #include "argacces.h"
 #include "bload.h"
+#include "multifld.h"
 #include "envrnmnt.h"
 
 #include "modulbsc.h"
@@ -47,7 +57,7 @@
 
    static void                    ClearDefmodules(void *);
 #if DEFMODULE_CONSTRUCT
-   static void                    SaveDefmodules(void *,void *,char *);
+   static void                    SaveDefmodules(void *,void *,const char *);
 #endif
 
 /*****************************************************************/
@@ -56,17 +66,17 @@
 globle void DefmoduleBasicCommands(
   void *theEnv)
   {
-   EnvAddClearFunction(theEnv,(char*)"defmodule",ClearDefmodules,2000);
+   EnvAddClearFunction(theEnv,"defmodule",ClearDefmodules,2000);
 
 #if DEFMODULE_CONSTRUCT
-   AddSaveFunction(theEnv,(char*)"defmodule",SaveDefmodules,1100);
+   AddSaveFunction(theEnv,"defmodule",SaveDefmodules,1100);
 
 #if ! RUN_TIME
-   EnvDefineFunction2(theEnv,(char*)"get-defmodule-list",'m',PTIEF EnvGetDefmoduleList,(char*)"EnvGetDefmoduleList",(char*)"00");
+   EnvDefineFunction2(theEnv,"get-defmodule-list",'m',PTIEF EnvGetDefmoduleList,"EnvGetDefmoduleList","00");
 
 #if DEBUGGING_FUNCTIONS
-   EnvDefineFunction2(theEnv,(char*)"list-defmodules",'v', PTIEF ListDefmodulesCommand,(char*)"ListDefmodulesCommand",(char*)"00");
-   EnvDefineFunction2(theEnv,(char*)"ppdefmodule",'v',PTIEF PPDefmoduleCommand,(char*)"PPDefmoduleCommand",(char*)"11w");
+   EnvDefineFunction2(theEnv,"list-defmodules",'v', PTIEF ListDefmodulesCommand,"ListDefmodulesCommand","00");
+   EnvDefineFunction2(theEnv,"ppdefmodule",'v',PTIEF PPDefmoduleCommand,"PPDefmoduleCommand","11w");
 #endif
 #endif
 #endif
@@ -96,9 +106,6 @@ static void ClearDefmodules(
    CreateMainModule(theEnv);
    DefmoduleData(theEnv)->MainModuleRedefinable = TRUE;
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
   }
 
@@ -111,15 +118,15 @@ static void ClearDefmodules(
 static void SaveDefmodules(
   void *theEnv,
   void *theModule,
-  char *logicalName)
+  const char *logicalName)
   {
-   char *ppform;
+   const char *ppform;
 
    ppform = EnvGetDefmodulePPForm(theEnv,theModule);
    if (ppform != NULL)
      {
       PrintInChunks(theEnv,logicalName,ppform);
-      EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+      EnvPrintRouter(theEnv,logicalName,"\n");
      }
   }
 
@@ -131,7 +138,47 @@ globle void EnvGetDefmoduleList(
   void *theEnv,
   DATA_OBJECT_PTR returnValue)
   {
-   OldGetConstructList(theEnv,returnValue,EnvGetNextDefmodule,EnvGetDefmoduleName); 
+   void *theConstruct;
+   unsigned long count = 0;
+   struct multifield *theList;
+
+   /*====================================*/
+   /* Determine the number of constructs */
+   /* of the specified type.             */
+   /*====================================*/
+
+   for (theConstruct = EnvGetNextDefmodule(theEnv,NULL);
+        theConstruct != NULL;
+        theConstruct = EnvGetNextDefmodule(theEnv,theConstruct))
+     { count++; }
+
+   /*===========================*/
+   /* Create a multifield large */
+   /* enough to store the list. */
+   /*===========================*/
+
+   SetpType(returnValue,MULTIFIELD);
+   SetpDOBegin(returnValue,1);
+   SetpDOEnd(returnValue,(long) count);
+   theList = (struct multifield *) EnvCreateMultifield(theEnv,count);
+   SetpValue(returnValue,(void *) theList);
+
+   /*====================================*/
+   /* Store the names in the multifield. */
+   /*====================================*/
+
+   for (theConstruct = EnvGetNextDefmodule(theEnv,NULL), count = 1;
+        theConstruct != NULL;
+        theConstruct = EnvGetNextDefmodule(theEnv,theConstruct), count++)
+     {
+      if (EvaluationData(theEnv)->HaltExecution == TRUE)
+        {
+         EnvSetMultifieldErrorValue(theEnv,returnValue);
+         return;
+        }
+      SetMFType(theList,count,SYMBOL);
+      SetMFValue(theList,count,EnvAddSymbol(theEnv,EnvGetDefmoduleName(theEnv,theConstruct)));
+     }
   }
 
 #if DEBUGGING_FUNCTIONS
@@ -143,9 +190,9 @@ globle void EnvGetDefmoduleList(
 globle void PPDefmoduleCommand(
   void *theEnv)
   {
-   char *defmoduleName;
+   const char *defmoduleName;
 
-   defmoduleName = GetConstructName(theEnv,(char*)"ppdefmodule",(char*)"defmodule name");
+   defmoduleName = GetConstructName(theEnv,"ppdefmodule","defmodule name");
    if (defmoduleName == NULL) return;
 
    PPDefmodule(theEnv,defmoduleName,WDISPLAY);
@@ -159,15 +206,15 @@ globle void PPDefmoduleCommand(
 /*************************************/
 globle int PPDefmodule(
   void *theEnv,
-  char *defmoduleName,
-  char *logicalName)
+  const char *defmoduleName,
+  const char *logicalName)
   {
    void *defmodulePtr;
 
    defmodulePtr = EnvFindDefmodule(theEnv,defmoduleName);
    if (defmodulePtr == NULL)
      {
-      CantFindItemErrorMessage(theEnv,(char*)"defmodule",defmoduleName);
+      CantFindItemErrorMessage(theEnv,"defmodule",defmoduleName);
       return(FALSE);
      }
 
@@ -183,7 +230,7 @@ globle int PPDefmodule(
 globle void ListDefmodulesCommand(
   void *theEnv)
   {
-   if (EnvArgCountCheck(theEnv,(char*)"list-defmodules",EXACTLY,0) == -1) return;
+   if (EnvArgCountCheck(theEnv,"list-defmodules",EXACTLY,0) == -1) return;
 
    EnvListDefmodules(theEnv,WDISPLAY);
   }
@@ -194,7 +241,7 @@ globle void ListDefmodulesCommand(
 /***************************************/
 globle void EnvListDefmodules(
   void *theEnv,
-  char *logicalName)
+  const char *logicalName)
   {
    void *theModule;
    int count = 0;
@@ -204,14 +251,38 @@ globle void EnvListDefmodules(
         theModule = EnvGetNextDefmodule(theEnv,theModule))
     {
      EnvPrintRouter(theEnv,logicalName,EnvGetDefmoduleName(theEnv,theModule));
-     EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+     EnvPrintRouter(theEnv,logicalName,"\n");
      count++;
     }
 
-   PrintTally(theEnv,logicalName,count,(char*)"defmodule",(char*)"defmodules");
+   PrintTally(theEnv,logicalName,count,"defmodule","defmodules");
   }
 
 #endif /* DEBUGGING_FUNCTIONS */
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle void GetDefmoduleList(
+  DATA_OBJECT_PTR returnValue)
+  {
+   EnvGetDefmoduleList(GetCurrentEnvironment(),returnValue);
+  }
+
+#if DEBUGGING_FUNCTIONS
+
+globle void ListDefmodules(
+  const char *logicalName)
+  {
+   EnvListDefmodules(GetCurrentEnvironment(),logicalName);
+  }
+
+#endif /* DEBUGGING_FUNCTIONS */
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
 
 #endif /* DEFMODULE_CONSTRUCT */
 

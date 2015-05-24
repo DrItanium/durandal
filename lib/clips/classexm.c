@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  03/04/08            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                 CLASS EXAMINATION MODULE            */
    /*******************************************************/
@@ -15,6 +15,7 @@
 /* Contributing Programmer(s):                                */
 /*                                                            */
 /* Revision History:                                          */
+/*                                                            */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859   */
 /*                                                            */
 /*            Modified the slot-writablep function to return  */
@@ -36,6 +37,17 @@
 /*                                                            */
 /*            Added EnvSlotDefaultP function.                 */
 /*                                                            */
+/*            Borland C (IBM_TBC) and Metrowerks CodeWarrior  */
+/*            (MAC_MCW, IBM_MCW) are no longer supported.     */
+/*                                                            */
+/*            Used gensprintf and genstrcat instead of        */
+/*            sprintf and strcat.                             */
+/*                                                            */
+/*            Added const qualifiers to remove C++            */
+/*            deprecation warnings.                           */
+/*                                                            */
+/*            Converted API macros to function calls.        */
+/*                                                           */
 /**************************************************************/
 
 /* =========================================
@@ -71,19 +83,19 @@
    =========================================
    ***************************************** */
 
-static int CheckTwoClasses(void *,char *,DEFCLASS **,DEFCLASS **);
-static SLOT_DESC *CheckSlotExists(void *,char *,DEFCLASS **,intBool,intBool);
-static SLOT_DESC *LookupSlot(void *,DEFCLASS *,char *,intBool);
+static int CheckTwoClasses(void *,const char *,DEFCLASS **,DEFCLASS **);
+static SLOT_DESC *CheckSlotExists(void *,const char *,DEFCLASS **,intBool,intBool);
+static SLOT_DESC *LookupSlot(void *,DEFCLASS *,const char *,intBool);
 
 #if DEBUGGING_FUNCTIONS
-static DEFCLASS *CheckClass(void *,char *,char *);
-static char *GetClassNameArgument(void *,char *);
-static void PrintClassBrowse(void *,char *,DEFCLASS *,long);
-static void DisplaySeparator(void *,char *,char *,int,int);
-static void DisplaySlotBasicInfo(void *,char *,char *,char *,char *,DEFCLASS *);
-static intBool PrintSlotSources(void *,char *,SYMBOL_HN *,PACKED_CLASS_LINKS *,long,int);
-static void DisplaySlotConstraintInfo(void *,char *,char *,char *,unsigned,DEFCLASS *);
-static char *ConstraintCode(CONSTRAINT_RECORD *,unsigned,unsigned);
+static DEFCLASS *CheckClass(void *,const char *,const char *);
+static const char *GetClassNameArgument(void *,const char *);
+static void PrintClassBrowse(void *,const char *,DEFCLASS *,long);
+static void DisplaySeparator(void *,const char *,char *,int,int);
+static void DisplaySlotBasicInfo(void *,const char *,const char *,const char *,char *,DEFCLASS *);
+static intBool PrintSlotSources(void *,const char *,SYMBOL_HN *,PACKED_CLASS_LINKS *,long,int);
+static void DisplaySlotConstraintInfo(void *,const char *,const char *,char *,unsigned,DEFCLASS *);
+static const char *ConstraintCode(CONSTRAINT_RECORD *,unsigned,unsigned);
 #endif
 
 /* =========================================
@@ -116,12 +128,12 @@ globle void BrowseClassesCommand(
      {
       DATA_OBJECT tmp;
 
-      if (EnvArgTypeCheck(theEnv,(char*)"browse-classes",1,SYMBOL,&tmp) == FALSE)
+      if (EnvArgTypeCheck(theEnv,"browse-classes",1,SYMBOL,&tmp) == FALSE)
         return;
       cls = LookupDefclassByMdlOrScope(theEnv,DOToString(tmp));
       if (cls == NULL)
         {
-         ClassExistError(theEnv,(char*)"browse-classes",DOToString(tmp));
+         ClassExistError(theEnv,"browse-classes",DOToString(tmp));
          return;
         }
      }
@@ -139,7 +151,7 @@ globle void BrowseClassesCommand(
  ****************************************************************/
 globle void EnvBrowseClasses(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   void *clsptr)
   {
    PrintClassBrowse(theEnv,logicalName,(DEFCLASS *) clsptr,0);
@@ -158,13 +170,13 @@ globle void EnvBrowseClasses(
 globle void DescribeClassCommand(
   void *theEnv)
   {
-   char *cname;
+   const char *cname;
    DEFCLASS *cls;
    
-   cname = GetClassNameArgument(theEnv,(char*)"describe-class");
+   cname = GetClassNameArgument(theEnv,"describe-class");
    if (cname == NULL)
      return;
-   cls = CheckClass(theEnv,(char*)"describe-class",cname);
+   cls = CheckClass(theEnv,"describe-class",cname);
    if (cls == NULL)
      return;
    EnvDescribeClass(theEnv,WDISPLAY,(void *) cls);
@@ -183,7 +195,7 @@ globle void DescribeClassCommand(
  ******************************************************/
 globle void EnvDescribeClass(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   void *clsptr)
   {
    DEFCLASS *cls;
@@ -199,22 +211,22 @@ globle void EnvDescribeClass(
    DisplaySeparator(theEnv,logicalName,buf,82,'=');
    DisplaySeparator(theEnv,logicalName,buf,82,'*');
    if (cls->abstract)
-     EnvPrintRouter(theEnv,logicalName,(char*)"Abstract: direct instances of this class cannot be created.\n\n");
+     EnvPrintRouter(theEnv,logicalName,"Abstract: direct instances of this class cannot be created.\n\n");
    else
      {
-      EnvPrintRouter(theEnv,logicalName,(char*)"Concrete: direct instances of this class can be created.\n");
+      EnvPrintRouter(theEnv,logicalName,"Concrete: direct instances of this class can be created.\n");
 #if DEFRULE_CONSTRUCT
       if (cls->reactive)
-        EnvPrintRouter(theEnv,logicalName,(char*)"Reactive: direct instances of this class can match defrule patterns.\n\n");
+        EnvPrintRouter(theEnv,logicalName,"Reactive: direct instances of this class can match defrule patterns.\n\n");
       else
-        EnvPrintRouter(theEnv,logicalName,(char*)"Non-reactive: direct instances of this class cannot match defrule patterns.\n\n");
+        EnvPrintRouter(theEnv,logicalName,"Non-reactive: direct instances of this class cannot match defrule patterns.\n\n");
 #else
-      EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+      EnvPrintRouter(theEnv,logicalName,"\n");
 #endif
      }
-   PrintPackedClassLinks(theEnv,logicalName,(char*)"Direct Superclasses:",&cls->directSuperclasses);
-   PrintPackedClassLinks(theEnv,logicalName,(char*)"Inheritance Precedence:",&cls->allSuperclasses);
-   PrintPackedClassLinks(theEnv,logicalName,(char*)"Direct Subclasses:",&cls->directSubclasses);
+   PrintPackedClassLinks(theEnv,logicalName,"Direct Superclasses:",&cls->directSuperclasses);
+   PrintPackedClassLinks(theEnv,logicalName,"Inheritance Precedence:",&cls->allSuperclasses);
+   PrintPackedClassLinks(theEnv,logicalName,"Direct Subclasses:",&cls->directSubclasses);
    if (cls->instanceTemplate != NULL)
      {
       DisplaySeparator(theEnv,logicalName,buf,82,'-');
@@ -237,7 +249,7 @@ globle void EnvDescribeClass(
         maxSlotNameLength = 16;
       if (maxOverrideMessageLength > 12)
         maxOverrideMessageLength = 12;
-#if WIN_MVC || WIN_BTC
+#if WIN_MVC 
       gensprintf(slotNamePrintFormat,"%%-%Id.%Ids : ",maxSlotNameLength,maxSlotNameLength);
       gensprintf(overrideMessagePrintFormat,"%%-%Id.%Ids ",maxOverrideMessageLength,
                                               maxOverrideMessageLength);
@@ -252,7 +264,7 @@ globle void EnvDescribeClass(
 #endif
 
       DisplaySlotBasicInfo(theEnv,logicalName,slotNamePrintFormat,overrideMessagePrintFormat,buf,cls);
-      EnvPrintRouter(theEnv,logicalName,(char*)"\nConstraint information for slots:\n\n");
+      EnvPrintRouter(theEnv,logicalName,"\nConstraint information for slots:\n\n");
       DisplaySlotConstraintInfo(theEnv,logicalName,slotNamePrintFormat,buf,82,cls);
      }
    if (cls->handlerCount > 0)
@@ -270,14 +282,14 @@ globle void EnvDescribeClass(
    if (messageBanner)
      {
       DisplaySeparator(theEnv,logicalName,buf,82,'-');
-      EnvPrintRouter(theEnv,logicalName,(char*)"Recognized message-handlers:\n");
+      EnvPrintRouter(theEnv,logicalName,"Recognized message-handlers:\n");
       DisplayHandlersInLinks(theEnv,logicalName,&cls->allSuperclasses,0);
      }
    DisplaySeparator(theEnv,logicalName,buf,82,'*');
    DisplaySeparator(theEnv,logicalName,buf,82,'=');
   }
 
-#endif
+#endif /* DEBUGGING_FUNCTIONS */
 
 /**********************************************************
   NAME         : GetCreateAccessorString
@@ -289,19 +301,19 @@ globle void EnvDescribeClass(
   SIDE EFFECTS : None
   NOTES        : Used by (describe-class) and (slot-facets)
  **********************************************************/
-globle char *GetCreateAccessorString(
+globle const char *GetCreateAccessorString(
   void *vsd)
   {
    SLOT_DESC *sd = (SLOT_DESC *) vsd;
 
    if (sd->createReadAccessor && sd->createWriteAccessor)
-     return((char*)"RW");
+     return("RW");
    if ((sd->createReadAccessor == 0) && (sd->createWriteAccessor == 0))
-     return((char*)"NIL");
+     return("NIL");
    else
      {
-      if (sd->createReadAccessor) return (char*)"R";
-      else return (char*)"W";
+      if (sd->createReadAccessor) return "R";
+      else return "W";
      }
   }
 
@@ -316,7 +328,7 @@ globle char *GetCreateAccessorString(
 globle void *GetDefclassModuleCommand(
   void *theEnv)
   {
-   return(GetConstructModuleCommand(theEnv,(char*)"defclass-module",DefclassData(theEnv)->DefclassConstruct));
+   return(GetConstructModuleCommand(theEnv,"defclass-module",DefclassData(theEnv)->DefclassConstruct));
   }
 
 /*********************************************************************
@@ -332,7 +344,7 @@ globle intBool SuperclassPCommand(
   {
    DEFCLASS *c1,*c2;
    
-   if (CheckTwoClasses(theEnv,(char*)"superclassp",&c1,&c2) == FALSE)
+   if (CheckTwoClasses(theEnv,"superclassp",&c1,&c2) == FALSE)
      return(FALSE);
    return(EnvSuperclassP(theEnv,(void *) c1,(void *) c2));
   }
@@ -349,17 +361,11 @@ globle intBool SuperclassPCommand(
   SIDE EFFECTS : None
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle intBool EnvSuperclassP(
   void *theEnv,
   void *firstClass,
   void *secondClass)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    return(HasSuperclass((DEFCLASS *) secondClass,(DEFCLASS *) firstClass));
   }
@@ -377,7 +383,7 @@ globle intBool SubclassPCommand(
   {
    DEFCLASS *c1,*c2;
    
-   if (CheckTwoClasses(theEnv,(char*)"subclassp",&c1,&c2) == FALSE)
+   if (CheckTwoClasses(theEnv,"subclassp",&c1,&c2) == FALSE)
      return(FALSE);
    return(EnvSubclassP(theEnv,(void *) c1,(void *) c2));
   }
@@ -394,17 +400,11 @@ globle intBool SubclassPCommand(
   SIDE EFFECTS : None
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle intBool EnvSubclassP(
   void *theEnv,
   void *firstClass,
   void *secondClass)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    return(HasSuperclass((DEFCLASS *) firstClass,(DEFCLASS *) secondClass));
   }
@@ -425,16 +425,16 @@ globle int SlotExistPCommand(
    int inheritFlag = FALSE;
    DATA_OBJECT dobj;
    
-   sd = CheckSlotExists(theEnv,(char*)"slot-existp",&cls,FALSE,TRUE);
+   sd = CheckSlotExists(theEnv,"slot-existp",&cls,FALSE,TRUE);
    if (sd == NULL)
      return(FALSE);
    if (EnvRtnArgCount(theEnv) == 3)
      {
-      if (EnvArgTypeCheck(theEnv,(char*)"slot-existp",3,SYMBOL,&dobj) == FALSE)
+      if (EnvArgTypeCheck(theEnv,"slot-existp",3,SYMBOL,&dobj) == FALSE)
         return(FALSE);
       if (strcmp(DOToString(dobj),"inherit") != 0)
         {
-         ExpectedTypeError1(theEnv,(char*)"slot-existp",3,(char*)"keyword \"inherit\"");
+         ExpectedTypeError1(theEnv,"slot-existp",3,"keyword \"inherit\"");
          SetEvaluationError(theEnv,TRUE);
          return(FALSE);
         }
@@ -458,7 +458,7 @@ globle int SlotExistPCommand(
 globle intBool EnvSlotExistP(
   void *theEnv,
   void *theDefclass,
-  char *slotName,
+  const char *slotName,
   intBool inheritFlag)
   {
    return((LookupSlot(theEnv,(DEFCLASS *) theDefclass,slotName,inheritFlag) != NULL)
@@ -481,22 +481,22 @@ globle int MessageHandlerExistPCommand(
    DATA_OBJECT temp;
    unsigned mtype = MPRIMARY;
    
-   if (EnvArgTypeCheck(theEnv,(char*)"message-handler-existp",1,SYMBOL,&temp) == FALSE)
+   if (EnvArgTypeCheck(theEnv,"message-handler-existp",1,SYMBOL,&temp) == FALSE)
      return(FALSE);
    cls = LookupDefclassByMdlOrScope(theEnv,DOToString(temp));
    if (cls == NULL)
      {
-      ClassExistError(theEnv,(char*)"message-handler-existp",DOToString(temp));
+      ClassExistError(theEnv,"message-handler-existp",DOToString(temp));
       return(FALSE);
      }
-   if (EnvArgTypeCheck(theEnv,(char*)"message-handler-existp",2,SYMBOL,&temp) == FALSE)
+   if (EnvArgTypeCheck(theEnv,"message-handler-existp",2,SYMBOL,&temp) == FALSE)
      return(FALSE);
    mname = (SYMBOL_HN *) GetValue(temp);
    if (EnvRtnArgCount(theEnv) == 3)
      {
-      if (EnvArgTypeCheck(theEnv,(char*)"message-handler-existp",3,SYMBOL,&temp) == FALSE)
+      if (EnvArgTypeCheck(theEnv,"message-handler-existp",3,SYMBOL,&temp) == FALSE)
         return(FALSE);
-      mtype = HandlerType(theEnv,(char*)"message-handler-existp",DOToString(temp));
+      mtype = HandlerType(theEnv,"message-handler-existp",DOToString(temp));
       if (mtype == MERROR)
         {
          SetEvaluationError(theEnv,TRUE);
@@ -522,7 +522,7 @@ globle intBool SlotWritablePCommand(
    DEFCLASS *theDefclass;
    SLOT_DESC *sd;
    
-   sd = CheckSlotExists(theEnv,(char*)"slot-writablep",&theDefclass,TRUE,TRUE);
+   sd = CheckSlotExists(theEnv,"slot-writablep",&theDefclass,TRUE,TRUE);
    if (sd == NULL)
      return(FALSE);
    return((sd->noWrite || sd->initializeOnly) ? FALSE : TRUE);
@@ -541,7 +541,7 @@ globle intBool SlotWritablePCommand(
 globle intBool EnvSlotWritableP(
   void *theEnv,
   void *theDefclass,
-  char *slotName)
+  const char *slotName)
   {
    SLOT_DESC *sd;
 
@@ -565,7 +565,7 @@ globle intBool SlotInitablePCommand(
    DEFCLASS *theDefclass;
    SLOT_DESC *sd;
    
-   sd = CheckSlotExists(theEnv,(char*)"slot-initablep",&theDefclass,TRUE,TRUE);
+   sd = CheckSlotExists(theEnv,"slot-initablep",&theDefclass,TRUE,TRUE);
    if (sd == NULL)
      return(FALSE);
    return((sd->noWrite && (sd->initializeOnly == 0)) ? FALSE : TRUE);
@@ -584,7 +584,7 @@ globle intBool SlotInitablePCommand(
 globle intBool EnvSlotInitableP(
   void *theEnv,
   void *theDefclass,
-  char *slotName)
+  const char *slotName)
   {
    SLOT_DESC *sd;
 
@@ -608,7 +608,7 @@ globle intBool SlotPublicPCommand(
    DEFCLASS *theDefclass;
    SLOT_DESC *sd;
    
-   sd = CheckSlotExists(theEnv,(char*)"slot-publicp",&theDefclass,TRUE,FALSE);
+   sd = CheckSlotExists(theEnv,"slot-publicp",&theDefclass,TRUE,FALSE);
    if (sd == NULL)
      return(FALSE);
    return(sd->publicVisibility ? TRUE : FALSE);
@@ -627,7 +627,7 @@ globle intBool SlotPublicPCommand(
 globle intBool EnvSlotPublicP(
   void *theEnv,
   void *theDefclass,
-  char *slotName)
+  const char *slotName)
   {
    SLOT_DESC *sd;
 
@@ -649,7 +649,7 @@ globle intBool EnvSlotPublicP(
 globle int EnvSlotDefaultP(
   void *theEnv,
   void *theDefclass,
-  char *slotName)
+  const char *slotName)
   {
    SLOT_DESC *sd;
 
@@ -682,7 +682,7 @@ globle intBool SlotDirectAccessPCommand(
    DEFCLASS *theDefclass;
    SLOT_DESC *sd;
    
-   sd = CheckSlotExists(theEnv,(char*)"slot-direct-accessp",&theDefclass,TRUE,TRUE);
+   sd = CheckSlotExists(theEnv,"slot-direct-accessp",&theDefclass,TRUE,TRUE);
    if (sd == NULL)
      return(FALSE);
    return((sd->publicVisibility || (sd->cls == theDefclass)) ? TRUE : FALSE);
@@ -703,7 +703,7 @@ globle intBool SlotDirectAccessPCommand(
 globle intBool EnvSlotDirectAccessP(
   void *theEnv,
   void *theDefclass,
-  char *slotName)
+  const char *slotName)
   {
    SLOT_DESC *sd;
 
@@ -731,14 +731,14 @@ globle void SlotDefaultValueCommand(
 
    SetpType(theValue,SYMBOL);
    SetpValue(theValue,EnvFalseSymbol(theEnv));
-   sd = CheckSlotExists(theEnv,(char*)"slot-default-value",&theDefclass,TRUE,TRUE);
+   sd = CheckSlotExists(theEnv,"slot-default-value",&theDefclass,TRUE,TRUE);
    if (sd == NULL)
      return;
    
    if (sd->noDefault)
      {
       SetpType(theValue,SYMBOL);
-      SetpValue(theValue,EnvAddSymbol(theEnv,(char*)"?NONE"));
+      SetpValue(theValue,EnvAddSymbol(theEnv,"?NONE"));
       return; 
      }
      
@@ -765,7 +765,7 @@ globle void SlotDefaultValueCommand(
 globle intBool EnvSlotDefaultValue(
   void *theEnv,
   void *theDefclass,
-  char *slotName,
+  const char *slotName,
   DATA_OBJECT_PTR theValue)
   {
    SLOT_DESC *sd;
@@ -778,7 +778,7 @@ globle intBool EnvSlotDefaultValue(
    if (sd->noDefault)
      {
       SetpType(theValue,SYMBOL);
-      SetpValue(theValue,EnvAddSymbol(theEnv,(char*)"?NONE"));
+      SetpValue(theValue,EnvAddSymbol(theEnv,"?NONE"));
       return(TRUE); 
      }
      
@@ -803,7 +803,7 @@ globle intBool ClassExistPCommand(
   {
    DATA_OBJECT temp;
    
-   if (EnvArgTypeCheck(theEnv,(char*)"class-existp",1,SYMBOL,&temp) == FALSE)
+   if (EnvArgTypeCheck(theEnv,"class-existp",1,SYMBOL,&temp) == FALSE)
      return(FALSE);
    return((LookupDefclassByMdlOrScope(theEnv,DOToString(temp)) != NULL) ? TRUE : FALSE);
   }
@@ -827,7 +827,7 @@ globle intBool ClassExistPCommand(
  ******************************************************/
 static int CheckTwoClasses(
   void *theEnv,
-  char *func,
+  const char *func,
   DEFCLASS **c1,
   DEFCLASS **c2)
   {
@@ -872,7 +872,7 @@ static int CheckTwoClasses(
  ***************************************************/
 static SLOT_DESC *CheckSlotExists(
   void *theEnv,
-  char *func,
+  const char *func,
   DEFCLASS **classBuffer,
   intBool existsErrorFlag,
   intBool inheritFlag)
@@ -897,14 +897,14 @@ static SLOT_DESC *CheckSlotExists(
    sd = (*classBuffer)->instanceTemplate[slotIndex];
    if ((sd->cls == *classBuffer) || inheritFlag)
      return(sd);
-   PrintErrorID(theEnv,(char*)"CLASSEXM",1,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Inherited slot ");
+   PrintErrorID(theEnv,"CLASSEXM",1,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Inherited slot ");
    EnvPrintRouter(theEnv,WERROR,ValueToString(ssym));
-   EnvPrintRouter(theEnv,WERROR,(char*)" from class ");
+   EnvPrintRouter(theEnv,WERROR," from class ");
    PrintClassName(theEnv,WERROR,sd->cls,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)" is not valid for function ");
+   EnvPrintRouter(theEnv,WERROR," is not valid for function ");
    EnvPrintRouter(theEnv,WERROR,func);
-   EnvPrintRouter(theEnv,WERROR,(char*)"\n");
+   EnvPrintRouter(theEnv,WERROR,"\n");
    SetEvaluationError(theEnv,TRUE);
    return(NULL);
   }
@@ -924,7 +924,7 @@ static SLOT_DESC *CheckSlotExists(
 static SLOT_DESC *LookupSlot(
   void *theEnv,
   DEFCLASS *theDefclass,
-  char *slotName,
+  const char *slotName,
   intBool inheritFlag)
   {
    SYMBOL_HN *slotSymbol;
@@ -959,8 +959,8 @@ static SLOT_DESC *LookupSlot(
  ******************************************************/
 static DEFCLASS *CheckClass(
   void *theEnv,
-  char *func,
-  char *cname)
+  const char *func,
+  const char *cname)
   {
    DEFCLASS *cls;
 
@@ -978,9 +978,9 @@ static DEFCLASS *CheckClass(
   SIDE EFFECTS : None
   NOTES        : Assumes only 1 argument
  *********************************************************/
-static char *GetClassNameArgument(
+static const char *GetClassNameArgument(
   void *theEnv,
-  char *fname)
+  const char *fname)
   {
    DATA_OBJECT temp;
 
@@ -1001,18 +1001,18 @@ static char *GetClassNameArgument(
  ****************************************************************/
 static void PrintClassBrowse(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   DEFCLASS *cls,
   long depth)
   {
    long i;
 
    for (i = 0 ; i < depth ; i++)
-     EnvPrintRouter(theEnv,logicalName,(char*)"  ");
+     EnvPrintRouter(theEnv,logicalName,"  ");
    EnvPrintRouter(theEnv,logicalName,EnvGetDefclassName(theEnv,(void *) cls));
    if (cls->directSuperclasses.classCount > 1)
-     EnvPrintRouter(theEnv,logicalName,(char*)" *");
-   EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+     EnvPrintRouter(theEnv,logicalName," *");
+   EnvPrintRouter(theEnv,logicalName,"\n");
    for (i = 0 ;i < cls->directSubclasses.classCount ; i++)
      PrintClassBrowse(theEnv,logicalName,cls->directSubclasses.classArray[i],depth+1);
   }
@@ -1030,7 +1030,7 @@ static void PrintClassBrowse(
  *********************************************************/
 static void DisplaySeparator(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   char *buf,
   int maxlen,
   int sepchar)
@@ -1075,15 +1075,15 @@ static void DisplaySeparator(
  *************************************************************/
 static void DisplaySlotBasicInfo(
   void *theEnv,
-  char *logicalName,
-  char *slotNamePrintFormat,
-  char *overrideMessagePrintFormat,
+  const char *logicalName,
+  const char *slotNamePrintFormat,
+  const char *overrideMessagePrintFormat,
   char *buf,
   DEFCLASS *cls)
   {
    long i;
    SLOT_DESC *sp;
-   char *createString;
+   const char *createString;
 
    gensprintf(buf,slotNamePrintFormat,"SLOTS");
 #if DEFRULE_CONSTRUCT
@@ -1094,7 +1094,7 @@ static void DisplaySlotBasicInfo(
    EnvPrintRouter(theEnv,logicalName,buf);
    gensprintf(buf,overrideMessagePrintFormat,"OVRD-MSG");
    EnvPrintRouter(theEnv,logicalName,buf);
-   EnvPrintRouter(theEnv,logicalName,(char*)"SOURCE(S)\n");
+   EnvPrintRouter(theEnv,logicalName,"SOURCE(S)\n");
    for (i = 0 ; i < cls->instanceSlotCount ; i++)
      {
       sp = cls->instanceTemplate[i];
@@ -1129,7 +1129,7 @@ static void DisplaySlotBasicInfo(
               sp->noWrite ? "NIL" : ValueToString(sp->overrideMessage));
       EnvPrintRouter(theEnv,logicalName,buf);
       PrintSlotSources(theEnv,logicalName,sp->slotName->name,&sp->cls->allSuperclasses,0,TRUE);
-      EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+      EnvPrintRouter(theEnv,logicalName,"\n");
      }
   }
 
@@ -1155,7 +1155,7 @@ static void DisplaySlotBasicInfo(
  ***************************************************/
 static intBool PrintSlotSources(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   SYMBOL_HN *sname,
   PACKED_CLASS_LINKS *sprec,
   long theIndex,
@@ -1171,7 +1171,7 @@ static intBool PrintSlotSources(
       if (csp->composite)
         {
          if (PrintSlotSources(theEnv,logicalName,sname,sprec,theIndex+1,FALSE))
-           EnvPrintRouter(theEnv,logicalName,(char*)" ");
+           EnvPrintRouter(theEnv,logicalName," ");
         }
       PrintClassName(theEnv,logicalName,sprec->classArray[theIndex],FALSE);
       return(TRUE);
@@ -1207,15 +1207,15 @@ static intBool PrintSlotSources(
  *********************************************************/
 static void DisplaySlotConstraintInfo(
   void *theEnv,
-  char *logicalName,
-  char *slotNamePrintFormat,
+  const char *logicalName,
+  const char *slotNamePrintFormat,
   char *buf,
   unsigned maxlen,
   DEFCLASS *cls)
   {
    long i;
    CONSTRAINT_RECORD *cr;
-   char *strdest = (char*)"***describe-class***";
+   const char *strdest = "***describe-class***";
 
    gensprintf(buf,slotNamePrintFormat,"SLOTS");
    genstrcat(buf,"SYM STR INN INA EXA FTA INT FLT\n");
@@ -1243,29 +1243,29 @@ static void DisplaySlotConstraintInfo(
          OpenStringDestination(theEnv,strdest,buf + strlen(buf),(maxlen - strlen(buf) - 1));
          if (cr->integersAllowed || cr->floatsAllowed || cr->anyAllowed)
            {
-            EnvPrintRouter(theEnv,strdest,(char*)"RNG:[");
+            EnvPrintRouter(theEnv,strdest,"RNG:[");
             PrintExpression(theEnv,strdest,cr->minValue);
-            EnvPrintRouter(theEnv,strdest,(char*)"..");
+            EnvPrintRouter(theEnv,strdest,"..");
             PrintExpression(theEnv,strdest,cr->maxValue);
-            EnvPrintRouter(theEnv,strdest,(char*)"] ");
+            EnvPrintRouter(theEnv,strdest,"] ");
            }
          if (cls->instanceTemplate[i]->multiple)
            {
-            EnvPrintRouter(theEnv,strdest,(char*)"CRD:[");
+            EnvPrintRouter(theEnv,strdest,"CRD:[");
             PrintExpression(theEnv,strdest,cr->minFields);
-            EnvPrintRouter(theEnv,strdest,(char*)"..");
+            EnvPrintRouter(theEnv,strdest,"..");
             PrintExpression(theEnv,strdest,cr->maxFields);
-            EnvPrintRouter(theEnv,strdest,(char*)"]");
+            EnvPrintRouter(theEnv,strdest,"]");
            }
         }
       else
         {
          OpenStringDestination(theEnv,strdest,buf,maxlen);
-         EnvPrintRouter(theEnv,strdest,(char*)" +   +   +   +   +   +   +   +  RNG:[-oo..+oo]");
+         EnvPrintRouter(theEnv,strdest," +   +   +   +   +   +   +   +  RNG:[-oo..+oo]");
          if (cls->instanceTemplate[i]->multiple)
-           EnvPrintRouter(theEnv,strdest,(char*)" CRD:[0..+oo]");
+           EnvPrintRouter(theEnv,strdest," CRD:[0..+oo]");
         }
-      EnvPrintRouter(theEnv,strdest,(char*)"\n");
+      EnvPrintRouter(theEnv,strdest,"\n");
       CloseStringDestination(theEnv,strdest);
       EnvPrintRouter(theEnv,logicalName,buf);
      }
@@ -1284,17 +1284,108 @@ static void DisplaySlotConstraintInfo(
   SIDE EFFECTS : None
   NOTES        : Used by DisplaySlotConstraintInfo
  ******************************************************/
-static char *ConstraintCode(
+static const char *ConstraintCode(
   CONSTRAINT_RECORD *cr,
   unsigned allow,
   unsigned restrictValues)
   {
    if (allow || cr->anyAllowed)
      {
-      if (restrictValues || cr->anyRestriction) return (char*)" #  ";
-      else return (char*)" +  ";
+      if (restrictValues || cr->anyRestriction) return " #  ";
+      else return " +  ";
      }
-   return((char*)"    ");
+   return("    ");
+  }
+
+#endif
+
+/*##################################*/
+/* Additional Environment Functions */
+/*##################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+#if DEBUGGING_FUNCTIONS
+
+globle void BrowseClasses(
+  const char *logicalName,
+  void *clsptr)
+  {
+   EnvBrowseClasses(GetCurrentEnvironment(),logicalName,clsptr);
+  }
+
+globle void DescribeClass(
+  const char *logicalName,
+  void *clsptr)
+  {
+   EnvDescribeClass(GetCurrentEnvironment(),logicalName,clsptr);
+  }
+
+#endif
+
+globle intBool SlotDirectAccessP(
+  void *theDefclass,
+  const char *slotName)
+  {
+   return EnvSlotDirectAccessP(GetCurrentEnvironment(),theDefclass,slotName);
+  }
+
+globle intBool SlotExistP(
+  void *theDefclass,
+  const char *slotName,
+  intBool inheritFlag)
+  {
+   return EnvSlotExistP(GetCurrentEnvironment(),theDefclass,slotName,inheritFlag);
+  }
+
+globle intBool SlotInitableP(
+  void *theDefclass,
+  const char *slotName)
+  {
+   return EnvSlotInitableP(GetCurrentEnvironment(),theDefclass,slotName);
+  }
+
+globle intBool SlotPublicP(
+  void *theDefclass,
+  const char *slotName)
+  {
+   return EnvSlotPublicP(GetCurrentEnvironment(),theDefclass,slotName);
+  }
+
+globle int SlotDefaultP(
+  void *theDefclass,
+  const char *slotName)
+  {
+   return EnvSlotDefaultP(GetCurrentEnvironment(),theDefclass,slotName);
+  }
+
+globle intBool SlotWritableP(
+  void *theDefclass,
+  const char *slotName)
+  {
+   return EnvSlotWritableP(GetCurrentEnvironment(),theDefclass,slotName);
+  }
+
+globle intBool SubclassP(
+  void *firstClass,
+  void *secondClass)
+  {
+   return EnvSubclassP(GetCurrentEnvironment(),firstClass,secondClass);
+  }
+
+globle intBool SuperclassP(
+  void *firstClass,
+  void *secondClass)
+  {
+   return EnvSuperclassP(GetCurrentEnvironment(),firstClass,secondClass);
+  }
+
+globle intBool SlotDefaultValue(
+  void *theDefclass,
+  const char *slotName,
+  DATA_OBJECT_PTR theValue)
+  {
+   return EnvSlotDefaultValue(GetCurrentEnvironment(),theDefclass,slotName,theValue);
   }
 
 #endif

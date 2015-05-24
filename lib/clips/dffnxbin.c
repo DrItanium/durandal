@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.22  06/15/04          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -15,6 +15,12 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Changed integer type/precision.                */
 /*                                                           */
 /*************************************************************/
 
@@ -107,12 +113,12 @@ globle void SetupDeffunctionsBload(
   {
    AllocateEnvironmentData(theEnv,DFFNXBIN_DATA,sizeof(struct deffunctionBinaryData),DeallocateDeffunctionBloadData);
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"deffunctions",0,BsaveDeffunctionFind,BsaveDeffunctionExpressions,
+   AddBinaryItem(theEnv,"deffunctions",0,BsaveDeffunctionFind,BsaveDeffunctionExpressions,
                              BsaveStorageDeffunctions,BsaveDeffunctions,
                              BloadStorageDeffunctions,BloadDeffunctions,
                              ClearDeffunctionBload);
 #else
-   AddBinaryItem(theEnv,(char*)"deffunctions",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"deffunctions",0,NULL,NULL,NULL,NULL,
                              BloadStorageDeffunctions,BloadDeffunctions,
                              ClearDeffunctionBload);
 #endif
@@ -197,17 +203,11 @@ static void BsaveDeffunctionFind(
   SIDE EFFECTS : Needed items marked
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void MarkDeffunctionItems(
   void *theEnv,
   struct constructHeader *theDeffunction,
   void *userBuffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(userBuffer)
-#endif
 
    MarkConstructHeaderNeededItems(theDeffunction,DeffunctionBinaryData(theEnv)->DeffunctionCount++);
    ExpressionData(theEnv)->ExpressionCount += ExpressionSize(((DEFFUNCTION *) theDeffunction)->code);
@@ -302,7 +302,7 @@ static void BsaveDeffunctions(
    while (theModule != NULL)
      {
       theModuleItem = (DEFFUNCTION_MODULE *)
-                      GetModuleItem(theEnv,theModule,FindModuleItem(theEnv,(char*)"deffunction")->moduleIndex);
+                      GetModuleItem(theEnv,theModule,FindModuleItem(theEnv,"deffunction")->moduleIndex);
       AssignBsaveDefmdlItemHdrVals(&dummy_mitem.header,&theModuleItem->header);
       GenWrite((void *) &dummy_mitem,sizeof(BSAVE_DEFFUNCTION_MODULE),fp);
       theModule = (struct defmodule *) EnvGetNextDefmodule(theEnv,(void *) theModule);

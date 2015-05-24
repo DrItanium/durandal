@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  07/25/14            */
    /*                                                     */
    /*                 RULE PATTERN MODULE                 */
    /*******************************************************/
@@ -23,6 +23,9 @@
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
 /*                                                           */
 /*      6.30: Added support for hashed alpha memories.       */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -55,8 +58,8 @@
 /***************************************/
 
 #if (! RUN_TIME) && (! BLOAD_ONLY)
-   static struct lhsParseNode            *ConjuctiveRestrictionParse(void *,char *,struct token *,int *);
-   static struct lhsParseNode            *LiteralRestrictionParse(void *,char *,struct token *,int *);
+   static struct lhsParseNode            *ConjuctiveRestrictionParse(void *,const char *,struct token *,int *);
+   static struct lhsParseNode            *LiteralRestrictionParse(void *,const char *,struct token *,int *);
    static int                             CheckForVariableMixing(void *,struct lhsParseNode *);
    static void                            TallyFieldTypes(struct lhsParseNode *);
 #endif
@@ -248,8 +251,8 @@ globle void *FindHashedPatternNode(
 /******************************************************************/
 void AddReservedPatternSymbol(
   void *theEnv,
-  char *theSymbol,
-  char *reservedBy)
+  const char *theSymbol,
+  const char *reservedBy)
   {
    struct reservedSymbol *newSymbol;
 
@@ -268,8 +271,8 @@ void AddReservedPatternSymbol(
 /******************************************************************/
 intBool ReservedPatternSymbol(
   void *theEnv,
-  char *theSymbol,
-  char *checkedBy)
+  const char *theSymbol,
+  const char *checkedBy)
   {
    struct reservedSymbol *currentSymbol;
 
@@ -297,16 +300,16 @@ intBool ReservedPatternSymbol(
 /********************************************************/
 void ReservedPatternSymbolErrorMsg(
   void *theEnv,
-  char *theSymbol,
-  char *usedFor)
+  const char *theSymbol,
+  const char *usedFor)
   {
-   PrintErrorID(theEnv,(char*)"PATTERN",1,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"The symbol ");
+   PrintErrorID(theEnv,"PATTERN",1,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"The symbol ");
    EnvPrintRouter(theEnv,WERROR,theSymbol);
-   EnvPrintRouter(theEnv,WERROR,(char*)" has special meaning\n");
-   EnvPrintRouter(theEnv,WERROR,(char*)"and may not be used as ");
+   EnvPrintRouter(theEnv,WERROR," has special meaning\n");
+   EnvPrintRouter(theEnv,WERROR,"and may not be used as ");
    EnvPrintRouter(theEnv,WERROR,usedFor);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /************************************************************/
@@ -360,7 +363,7 @@ globle void GetNextPatternEntity(
 
    else
      {
-      SystemError(theEnv,(char*)"PATTERN",1);
+      SystemError(theEnv,"PATTERN",1);
       EnvExitRouter(theEnv,EXIT_FAILURE);
      }
 
@@ -467,7 +470,7 @@ globle intBool AddPatternParser(
 /****************************************************/
 globle struct patternParser *FindPatternParser(
   void *theEnv,
-  char *name)
+  const char *name)
   {
    struct patternParser *tempParser;
 
@@ -569,7 +572,7 @@ globle intBool PostPatternAnalysis(
 /******************************************************************/
 struct lhsParseNode *RestrictionParse(
   void *theEnv,
-  char *readSource,
+  const char *readSource,
   struct token *theToken,
   int multifieldSlot,
   struct symbolHashNode *theSlot,
@@ -625,7 +628,7 @@ struct lhsParseNode *RestrictionParse(
       if ((theToken->type != RPAREN) && (multifieldSlot == TRUE))
         {
          PPBackup(theEnv);
-         SavePPBuffer(theEnv,(char*)" ");
+         SavePPBuffer(theEnv," ");
          SavePPBuffer(theEnv,theToken->printForm);
         }
 
@@ -685,7 +688,7 @@ struct lhsParseNode *RestrictionParse(
 
    if ((topNode == NULL) && (! multifieldSlot))
      {
-      SyntaxErrorMessage(theEnv,(char*)"defrule");
+      SyntaxErrorMessage(theEnv,"defrule");
       return(NULL);
      }
 
@@ -888,7 +891,7 @@ static void TallyFieldTypes(
 /*******************************************************************/
 static struct lhsParseNode *ConjuctiveRestrictionParse(
   void *theEnv,
-  char *readSource,
+  const char *readSource,
   struct token *theToken,
   int *error)
   {
@@ -977,7 +980,7 @@ static struct lhsParseNode *ConjuctiveRestrictionParse(
         }
       else
         {
-         SystemError(theEnv,(char*)"RULEPSR",1);
+         SystemError(theEnv,"RULEPSR",1);
          EnvExitRouter(theEnv,EXIT_FAILURE);
         }
 
@@ -1086,8 +1089,8 @@ static int CheckForVariableMixing(
        (multifield || multiReturnValue))
 
      {
-      PrintErrorID(theEnv,(char*)"PATTERN",2,TRUE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Single and multifield constraints cannot be mixed in a field constraint\n");
+      PrintErrorID(theEnv,"PATTERN",2,TRUE);
+      EnvPrintRouter(theEnv,WERROR,"Single and multifield constraints cannot be mixed in a field constraint\n");
       return(TRUE);
      }
 
@@ -1116,7 +1119,7 @@ static int CheckForVariableMixing(
 /***********************************************************/
 static struct lhsParseNode *LiteralRestrictionParse(
   void *theEnv,
-  char *readSource,
+  const char *readSource,
   struct token *theToken,
   int *error)
   {
@@ -1225,7 +1228,7 @@ static struct lhsParseNode *LiteralRestrictionParse(
 
    else
      {
-      SyntaxErrorMessage(theEnv,(char*)"defrule");
+      SyntaxErrorMessage(theEnv,"defrule");
       *error = TRUE;
       ReturnLHSParseNodes(theEnv,topNode);
       return(NULL);

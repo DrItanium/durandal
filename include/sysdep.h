@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*            SYSTEM DEPENDENT HEADER FILE             */
    /*******************************************************/
@@ -16,14 +16,63 @@
 /*                                                           */
 /* Revision History:                                         */
 /*                                                           */
+/*      6.23: Modified GenOpen to check the file length      */
+/*            against the system constant FILENAME_MAX.      */
+/*                                                           */
 /*      6.24: Support for run-time programs directly passing */
 /*            the hash tables for initialization.            */
+/*                                                           */
+/*            Made gensystem functional for Xcode.           */ 
 /*                                                           */
 /*            Added BeforeOpenFunction and AfterOpenFunction */
 /*            hooks.                                         */
 /*                                                           */
 /*            Added environment parameter to GenClose.       */
 /*            Added environment parameter to GenOpen.        */
+/*                                                           */
+/*            Updated UNIX_V gentime functionality.          */
+/*                                                           */
+/*            Removed GenOpen check against FILENAME_MAX.    */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, IBM_ICB, IBM_TBC, IBM_ZTC, and        */
+/*            IBM_SC).                                       */
+/*                                                           */
+/*            Renamed IBM_MSC and WIN_MVC compiler flags     */
+/*            and IBM_GCC to WIN_GCC.                        */
+/*                                                           */
+/*            Added LINUX and DARWIN compiler flags.         */
+/*                                                           */
+/*            Removed HELP_FUNCTIONS compilation flag and    */
+/*            associated functionality.                      */
+/*                                                           */
+/*            Removed EMACS_EDITOR compilation flag and      */
+/*            associated functionality.                      */
+/*                                                           */
+/*            Combined BASIC_IO and EXT_IO compilation       */
+/*            flags into the single IO_FUNCTIONS flag.       */
+/*                                                           */
+/*            Changed the EX_MATH compilation flag to        */
+/*            EXTENDED_MATH_FUNCTIONS.                       */
+/*                                                           */
+/*            Support for typed EXTERNAL_ADDRESS.            */
+/*                                                           */
+/*            GenOpen function checks for UTF-8 Byte Order   */
+/*            Marker.                                        */
+/*                                                           */
+/*            Added gengetchar, genungetchar, genprintfile,  */
+/*            genstrcpy, genstrncpy, genstrcat, genstrncat,  */
+/*            and gensprintf functions.                      */
+/*                                                           */
+/*            Added SetJmpBuffer function.                   */
+/*                                                           */
+/*            Added environment argument to genexit.         */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -41,7 +90,7 @@
 
 #include <setjmp.h>
 
-#if WIN_BTC || WIN_MVC
+#if WIN_MVC
 #include <dos.h>
 #endif
 
@@ -68,20 +117,19 @@
    LOCALE void                        RerouteStdin(void *,int,char *[]);
    LOCALE double                      gentime(void);
    LOCALE void                        gensystem(void *theEnv);
-   LOCALE void                        VMSSystem(char *);
-   LOCALE int                         GenOpenReadBinary(void *,char *,char *);
+   LOCALE int                         GenOpenReadBinary(void *,const char *,const char *);
    LOCALE void                        GetSeekCurBinary(void *,long);
    LOCALE void                        GetSeekSetBinary(void *,long);
    LOCALE void                        GenTellBinary(void *,long *);
    LOCALE void                        GenCloseBinary(void *);
    LOCALE void                        GenReadBinary(void *,void *,size_t);
-   LOCALE FILE                       *GenOpen(void *,char *,char *);
+   LOCALE FILE                       *GenOpen(void *,const char *,const char *);
    LOCALE int                         GenClose(void *,FILE *);
    LOCALE void                        genexit(void *,int);
    LOCALE int                         genrand(void);
    LOCALE void                        genseed(int);
-   LOCALE int                         genremove(char *);
-   LOCALE int                         genrename(char *,char *);
+   LOCALE int                         genremove(const char *);
+   LOCALE int                         genrename(const char *,const char *);
    LOCALE char                       *gengetcwd(char *,int);
    LOCALE void                        GenWrite(void *,size_t,FILE *);
    LOCALE int                       (*EnvSetBeforeOpenFunction(void *,int (*)(void *)))(void *);
@@ -92,16 +140,15 @@
    LOCALE char                       *genstrcat(char *,const char *);
    LOCALE char                       *genstrncat(char *,const char *,size_t);
    LOCALE void                        SetJmpBuffer(void *,jmp_buf *);
-   LOCALE void                        genprintfile(void *,FILE *,char *);
+   LOCALE void                        genprintfile(void *,FILE *,const char *);
    LOCALE int                         gengetchar(void *);
    LOCALE int                         genungetchar(void *,int);
+#if FILE_SYSTEM_ROOTING
+   LOCALE int                         _GenOpenReadBinary(void *,const char *,const char *);
+   LOCALE FILE                       *_GenOpen(void *,const char *,const char *);
+#endif
    
-#if WIN_BTC
-   LOCALE __int64 _RTLENTRY _EXPFUNC  strtoll(const char *,char **,int);
-   LOCALE __int64 _RTLENTRY _EXPFUNC  llabs(__int64 val);
-#endif
-
-#endif
+#endif /* _H_sysdep */
 
 
 

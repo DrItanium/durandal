@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  03/04/08            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                CONSTANTS HEADER FILE                */
    /*******************************************************/
@@ -19,6 +19,10 @@
 /*      6.30: Moved default type constants (NO_DEFAULT,      */
 /*            STATIC_DEFAULT, and DYNAMIC_DEFAULT) to        */
 /*            constant.h                                     */
+/*                                                           */
+/*            Added DATA_OBJECT_ARRAY primitive type.        */
+/*                                                           */
+/*            Added NESTED_RHS constant.                     */
 /*                                                           */
 /*************************************************************/
 
@@ -63,49 +67,53 @@
 #define DYNAMIC_DEFAULT 2
 
 #ifndef WPROMPT_STRING
-#define WPROMPT_STRING (char*)"wclips"
+#define WPROMPT_STRING "wclips"
 #endif
 
 #ifndef APPLICATION_NAME
-#define APPLICATION_NAME (char*)"CLIPS"
+#define APPLICATION_NAME "maya"
 #endif
 
 #ifndef COMMAND_PROMPT
-#define COMMAND_PROMPT (char*)"CLIPS> "
+#define COMMAND_PROMPT APPLICATION_NAME "> "
 #endif
 
 #ifndef VERSION_STRING
-#define VERSION_STRING (char*)"6.30"
+#define VERSION_STRING "0.1"
 #endif
 
 #ifndef CREATION_DATE_STRING
-#define CREATION_DATE_STRING (char*)"3/4/11"
+#define CREATION_DATE_STRING __DATE__
+#endif
+
+#ifndef CREATION_TIME_STAMP
+#define CREATION_TIME_STAMP __TIME__
 #endif
 
 #ifndef BANNER_STRING
-#define BANNER_STRING (char*)"Durandal Expert System Tool (Based off of CLIPS 6.30)\n"
+#define BANNER_STRING APPLICATION_NAME " (Compiled on " CREATION_DATE_STRING " at " CREATION_TIME_STAMP ")\n"
 #endif
 
 /*************************/
 /* TOKEN AND TYPE VALUES */
 /*************************/
 
-#define OBJECT_TYPE_NAME               (char*)"OBJECT"
-#define USER_TYPE_NAME                 (char*)"USER"
-#define PRIMITIVE_TYPE_NAME            (char*)"PRIMITIVE"
-#define NUMBER_TYPE_NAME               (char*)"NUMBER"
-#define INTEGER_TYPE_NAME              (char*)"INTEGER"
-#define FLOAT_TYPE_NAME                (char*)"FLOAT"
-#define SYMBOL_TYPE_NAME               (char*)"SYMBOL"
-#define STRING_TYPE_NAME               (char*)"STRING"
-#define MULTIFIELD_TYPE_NAME           (char*)"MULTIFIELD"
-#define LEXEME_TYPE_NAME               (char*)"LEXEME"
-#define ADDRESS_TYPE_NAME              (char*)"ADDRESS"
-#define EXTERNAL_ADDRESS_TYPE_NAME     (char*)"EXTERNAL-ADDRESS"
-#define FACT_ADDRESS_TYPE_NAME         (char*)"FACT-ADDRESS"
-#define INSTANCE_TYPE_NAME             (char*)"INSTANCE"
-#define INSTANCE_NAME_TYPE_NAME        (char*)"INSTANCE-NAME"
-#define INSTANCE_ADDRESS_TYPE_NAME     (char*)"INSTANCE-ADDRESS"
+#define OBJECT_TYPE_NAME               "OBJECT"
+#define USER_TYPE_NAME                 "USER"
+#define PRIMITIVE_TYPE_NAME            "PRIMITIVE"
+#define NUMBER_TYPE_NAME               "NUMBER"
+#define INTEGER_TYPE_NAME              "INTEGER"
+#define FLOAT_TYPE_NAME                "FLOAT"
+#define SYMBOL_TYPE_NAME               "SYMBOL"
+#define STRING_TYPE_NAME               "STRING"
+#define MULTIFIELD_TYPE_NAME           "MULTIFIELD"
+#define LEXEME_TYPE_NAME               "LEXEME"
+#define ADDRESS_TYPE_NAME              "ADDRESS"
+#define EXTERNAL_ADDRESS_TYPE_NAME     "EXTERNAL-ADDRESS"
+#define FACT_ADDRESS_TYPE_NAME         "FACT-ADDRESS"
+#define INSTANCE_TYPE_NAME             "INSTANCE"
+#define INSTANCE_NAME_TYPE_NAME        "INSTANCE-NAME"
+#define INSTANCE_ADDRESS_TYPE_NAME     "INSTANCE-ADDRESS"
 
 /*************************************************************************/
 /* The values of these constants should not be changed.  They are set to */
@@ -214,13 +222,6 @@
 #define INSTANCE_OR_INSTANCE_NAME     182
 
 typedef long int FACT_ID;
-
-/*************************/
-/* Macintosh Definitions */
-/*************************/
-
-#define CREATOR_STRING (char*)"CLIS"
-#define CREATOR_CODE   'CLIS'
 
 #endif
 

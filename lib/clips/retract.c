@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                   RETRACT MODULE                    */
    /*******************************************************/
@@ -25,7 +25,7 @@
 /*            Rule with exists CE has incorrect activation.  */
 /*            DR0867                                         */
 /*                                                           */
-/*      6.30: Added support for hashed alpha memories.       */
+/*      6.30: Added support for hashed memories.             */
 /*                                                           */
 /*            Added additional developer statistics to help  */
 /*            analyze join network performance.              */
@@ -169,7 +169,7 @@ static void NegEntryRetractAlpha(
           (! joinPtr->patternIsExists) &&
           (! joinPtr->joinFromTheRight))
         {               
-         SystemError(theEnv,(char*)"RETRACT",117);
+         SystemError(theEnv,"RETRACT",117);
          betaMatch = betaMatch->nextBlocked;
          continue;
         }

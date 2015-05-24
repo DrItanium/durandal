@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*           DEFMODULE CONSTRUCTS-TO-C MODULE          */
    /*******************************************************/
@@ -18,6 +18,16 @@
 /* Revision History:                                         */
 /*                                                           */
 /*      6.24: Added environment parameter to GenClose.       */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -49,11 +59,11 @@
 /* LOCAL INTERNAL FUNCTION DEFINITIONS */
 /***************************************/
 
-   static int                     ConstructToCode(void *,char *,char *,char *,int,FILE *,int,int);
+   static int                     ConstructToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
    static void                    InitDefmoduleCode(void *,FILE *,int,int);
    static struct portItem        *GetNextPortItem(void *,struct defmodule **,struct portItem **,
                                                   int *,int *);
-   static int                     PortItemsToCode(void *,char *,char *,char *,int,FILE *,int,int,int *);
+   static int                     PortItemsToCode(void *,const char *,const char *,char *,int,FILE *,int,int,int *);
    static void                    BeforeDefmodulesToCode(void *);
 
 /***************************************************************/
@@ -64,7 +74,7 @@ globle void DefmoduleCompilerSetup(
   void *theEnv)
   {
    DefmoduleData(theEnv)->DefmoduleCodeItem = 
-      AddCodeGeneratorItem(theEnv,(char*)"defmodule",200,BeforeDefmodulesToCode,
+      AddCodeGeneratorItem(theEnv,"defmodule",200,BeforeDefmodulesToCode,
                            InitDefmoduleCode,ConstructToCode,3);
   }
 
@@ -104,18 +114,12 @@ globle void PrintDefmoduleReference(
 /* InitDefmoduleCode: Writes out initialization */
 /*   code for defmodules for a run-time module. */
 /************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void InitDefmoduleCode(
   void *theEnv,
   FILE *initFP,
   int imageID,
   int maxIndices)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(maxIndices)
-#endif
 
    if (EnvGetNextDefmodule(theEnv,NULL) != NULL)
      { fprintf(initFP,"   SetListOfDefmodules(theEnv,(void *) %s%d_1);\n",DefmodulePrefix(),imageID); }
@@ -130,8 +134,8 @@ static void InitDefmoduleCode(
 /***********************************************************/
 static int ConstructToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -180,7 +184,7 @@ static int ConstructToCode(
 
       moduleFile = OpenFileIfNeeded(theEnv,moduleFile,fileName,pathName,fileNameBuffer,fileID,imageID,
                                     &fileCount,moduleArrayVersion,headerFP,
-                                    (char*)"struct defmodule",DefmodulePrefix(),
+                                    "struct defmodule",DefmodulePrefix(),
                                     FALSE,NULL);
 
       if (moduleFile == NULL)
@@ -314,8 +318,8 @@ static int ConstructToCode(
 /************************************************************/
 static int PortItemsToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -346,7 +350,7 @@ static int PortItemsToCode(
 
       portItemsFile = OpenFileIfNeeded(theEnv,portItemsFile,fileName,pathName,fileNameBuffer,fileID,imageID,
                                        fileCount,portItemArrayVersion,headerFP,
-                                       (char*)"struct portItem",PortPrefix(),
+                                       "struct portItem",PortPrefix(),
                                        FALSE,NULL);
 
       if (portItemsFile == NULL)

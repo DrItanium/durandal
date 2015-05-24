@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  05/17/06          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -16,8 +16,15 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.24: Removed IMPERATIVE_MESSAGE_HANDLERS and        */
 /*            AUXILIARY_MESSAGE_HANDLERS compilation flags.  */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
 /*                                                           */
 /*************************************************************/
 
@@ -207,16 +214,16 @@ globle void SetupObjectsBload(
   {
    AllocateEnvironmentData(theEnv,OBJECTBIN_DATA,sizeof(struct objectBinaryData),DeallocateObjectBinaryData);
    
-   AddAbortBloadFunction(theEnv,(char*)"defclass",CreateSystemClasses,0);
+   AddAbortBloadFunction(theEnv,"defclass",CreateSystemClasses,0);
 
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"defclass",0,BsaveObjectsFind,BsaveObjectsExpressions,
+   AddBinaryItem(theEnv,"defclass",0,BsaveObjectsFind,BsaveObjectsExpressions,
                              BsaveStorageObjects,BsaveObjects,
                              BloadStorageObjects,BloadObjects,
                              ClearBloadObjects);
 #endif
 #if BLOAD || BLOAD_ONLY
-   AddBinaryItem(theEnv,(char*)"defclass",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"defclass",0,NULL,NULL,NULL,NULL,
                              BloadStorageObjects,BloadObjects,
                              ClearBloadObjects);
 #endif
@@ -384,17 +391,11 @@ static void BsaveObjectsFind(
                  ephemerals marked
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void MarkDefclassItems(
   void *theEnv,
   struct constructHeader *theDefclass,
   void *buf)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(buf)
-#endif
    DEFCLASS *cls = (DEFCLASS *) theDefclass;
    long i;
    EXPRESSION *tmpexp;
@@ -578,7 +579,7 @@ static void BsaveStorageObjects(
       return;
      }
    space = sizeof(long) * 9;
-   GenWrite((void *) &space,sizeof(long),fp);
+   GenWrite((void *) &space,sizeof(size_t),fp); // 64-bit issue changed long to size_t
    GenWrite((void *) &ObjectBinaryData(theEnv)->ModuleCount,sizeof(long),fp);
    GenWrite((void *) &ObjectBinaryData(theEnv)->ClassCount,sizeof(long),fp);
    GenWrite((void *) &ObjectBinaryData(theEnv)->LinkCount,sizeof(long),fp);
@@ -645,7 +646,7 @@ static void BsaveObjects(
    while (theModule != NULL)
      {
       theModuleItem = (DEFCLASS_MODULE *)
-                      GetModuleItem(theEnv,theModule,FindModuleItem(theEnv,(char*)"defclass")->moduleIndex);
+                      GetModuleItem(theEnv,theModule,FindModuleItem(theEnv,"defclass")->moduleIndex);
       AssignBsaveDefmdlItemHdrVals(&dummy_mitem.header,&theModuleItem->header);
       GenWrite((void *) &dummy_mitem,sizeof(BSAVE_DEFCLASS_MODULE),fp);
       theModule = (struct defmodule *) EnvGetNextDefmodule(theEnv,(void *) theModule);
@@ -902,9 +903,6 @@ static void BsaveSlots(
   SIDE EFFECTS : Defclass instance template binary data written
   NOTES        : None
  **************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void BsaveTemplateSlots(
   void *theEnv,
   struct constructHeader *theDefclass,
@@ -913,9 +911,6 @@ static void BsaveTemplateSlots(
    DEFCLASS *cls = (DEFCLASS *) theDefclass;
    long i;
    long tsp;
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
    
    for (i = 0 ; i < cls->instanceSlotCount ; i++)
      {
@@ -933,18 +928,12 @@ static void BsaveTemplateSlots(
   SIDE EFFECTS : Defclass canonical slot map binary data written
   NOTES        : None
  ***************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void BsaveSlotMap(
   void *theEnv,
   struct constructHeader *theDefclass,
   void *buf)
   {
    DEFCLASS *cls = (DEFCLASS *) theDefclass;
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    if (cls->instanceSlotCount != 0)
      GenWrite((void *) cls->slotNameMap,
@@ -1000,18 +989,12 @@ static void BsaveHandlers(
   SIDE EFFECTS : Defclass message-handler map binary data written
   NOTES        : None
  ****************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void BsaveHandlerMap(
   void *theEnv,
   struct constructHeader *theDefclass,
   void *buf)
   {
    DEFCLASS *cls = (DEFCLASS *) theDefclass;
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    GenWrite((void *) cls->handlerOrderMap,
             (sizeof(unsigned) * cls->handlerCount),(FILE *) buf);
@@ -1042,7 +1025,7 @@ static void BloadStorageObjects(
 
    if ((DefclassData(theEnv)->ClassIDMap != NULL) || (DefclassData(theEnv)->MaxClassID != 0))
      {
-      SystemError(theEnv,(char*)"OBJBIN",1);
+      SystemError(theEnv,"OBJBIN",1);
       EnvExitRouter(theEnv,EXIT_FAILURE);
      }
    GenReadBinary(theEnv,(void *) &space,sizeof(size_t));
@@ -1129,7 +1112,7 @@ static void BloadObjects(
    if (ObjectBinaryData(theEnv)->ClassCount != 0L)
      {
       BloadandRefresh(theEnv,ObjectBinaryData(theEnv)->ClassCount,sizeof(BSAVE_DEFCLASS),UpdateDefclass);
-      BloadandRefresh(theEnv,ObjectBinaryData(theEnv)->LinkCount,sizeof(DEFCLASS *),UpdateLink);
+      BloadandRefresh(theEnv,ObjectBinaryData(theEnv)->LinkCount,sizeof(long),UpdateLink); // 64-bit bug fix: DEFCLASS * replaced with long
       BloadandRefresh(theEnv,ObjectBinaryData(theEnv)->SlotNameCount,sizeof(BSAVE_SLOT_NAME),UpdateSlotName);
       BloadandRefresh(theEnv,ObjectBinaryData(theEnv)->SlotCount,sizeof(BSAVE_SLOT_DESC),UpdateSlot);
       if (ObjectBinaryData(theEnv)->TemplateSlotCount != 0L)

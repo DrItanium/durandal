@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  07/01/05            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                 CONSTRAINT MODULE                   */
    /*******************************************************/
@@ -19,11 +19,20 @@
 /*      Brian Dantes                                         */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*      6.24: Added allowed-classes slot facet.              */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -88,11 +97,11 @@ globle void InitializeConstraints(
 #endif
 
 #if (! RUN_TIME)
-   EnvDefineFunction2(theEnv,(char*)"get-dynamic-constraint-checking",'b',GDCCommand,(char*)"GDCCommand", (char*)"00");
-   EnvDefineFunction2(theEnv,(char*)"set-dynamic-constraint-checking",'b',SDCCommand,(char*)"SDCCommand", (char*)"11");
+   EnvDefineFunction2(theEnv,"get-dynamic-constraint-checking",'b',GDCCommand,"GDCCommand", "00");
+   EnvDefineFunction2(theEnv,"set-dynamic-constraint-checking",'b',SDCCommand,"SDCCommand", "11");
 
-   EnvDefineFunction2(theEnv,(char*)"get-static-constraint-checking",'b',GSCCommand,(char*)"GSCCommand", (char*)"00");
-   EnvDefineFunction2(theEnv,(char*)"set-static-constraint-checking",'b',SSCCommand,(char*)"SSCCommand", (char*)"11");
+   EnvDefineFunction2(theEnv,"get-static-constraint-checking",'b',GSCCommand,"GSCCommand", "00");
+   EnvDefineFunction2(theEnv,"set-static-constraint-checking",'b',SSCCommand,"SSCCommand", "11");
 #endif
   }
   
@@ -121,9 +130,6 @@ static void DeallocateConstraintData(
    rm(theEnv,ConstraintData(theEnv)->ConstraintHashtable,
       (int) sizeof (struct constraintRecord *) * SIZE_CONSTRAINT_HASH);
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
       
 #if (BLOAD || BLOAD_ONLY || BLOAD_AND_BSAVE) && (! RUN_TIME)
@@ -498,7 +504,7 @@ globle int SDCCommand(
 
    oldValue = EnvGetDynamicConstraintChecking(theEnv);
 
-   if (EnvArgCountCheck(theEnv,(char*)"set-dynamic-constraint-checking",EXACTLY,1) == -1)
+   if (EnvArgCountCheck(theEnv,"set-dynamic-constraint-checking",EXACTLY,1) == -1)
      { return(oldValue); }
 
    EnvRtnUnknown(theEnv,1,&arg_ptr);
@@ -522,7 +528,7 @@ globle int GDCCommand(
 
    oldValue = EnvGetDynamicConstraintChecking(theEnv);
 
-   if (EnvArgCountCheck(theEnv,(char*)"get-dynamic-constraint-checking",EXACTLY,0) == -1)
+   if (EnvArgCountCheck(theEnv,"get-dynamic-constraint-checking",EXACTLY,0) == -1)
      { return(oldValue); }
 
    return(oldValue);
@@ -540,7 +546,7 @@ globle int SSCCommand(
 
    oldValue = EnvGetStaticConstraintChecking(theEnv);
 
-   if (EnvArgCountCheck(theEnv,(char*)"set-static-constraint-checking",EXACTLY,1) == -1)
+   if (EnvArgCountCheck(theEnv,"set-static-constraint-checking",EXACTLY,1) == -1)
      { return(oldValue); }
 
    EnvRtnUnknown(theEnv,1,&arg_ptr);
@@ -564,7 +570,7 @@ globle int GSCCommand(
 
    oldValue = EnvGetStaticConstraintChecking(theEnv);
 
-   if (EnvArgCountCheck(theEnv,(char*)"get-static-constraint-checking",EXACTLY,0) == -1)
+   if (EnvArgCountCheck(theEnv,"get-static-constraint-checking",EXACTLY,0) == -1)
      { return(oldValue); }
 
    return(oldValue);
@@ -619,3 +625,32 @@ globle intBool EnvGetStaticConstraintChecking(
    return(ConstraintData(theEnv)->StaticConstraintChecking); 
   }
 
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle intBool SetDynamicConstraintChecking(
+  int value)
+  {
+   return EnvSetDynamicConstraintChecking(GetCurrentEnvironment(),value);
+  }
+
+globle intBool GetDynamicConstraintChecking()
+  { 
+   return EnvGetDynamicConstraintChecking(GetCurrentEnvironment());
+  }
+
+globle intBool SetStaticConstraintChecking(
+  int value)
+  {
+   return EnvSetStaticConstraintChecking(GetCurrentEnvironment(),value);
+  }
+
+globle intBool GetStaticConstraintChecking()
+  {    
+   return EnvGetStaticConstraintChecking(GetCurrentEnvironment());
+  }
+
+#endif

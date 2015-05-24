@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.20  01/31/02          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -14,8 +14,20 @@
 /*                                                           */
 /* Contributing Programmer(s):                               */
 /*                                                           */
-/* Revision History:                                         */
-/*                                                           */
+/* Revision History:                                          */
+/*                                                            */
+/*      6.24: Converted INSTANCE_PATTERN_MATCHING to          */
+/*            DEFRULE_CONSTRUCT.                              */
+/*                                                            */
+/*            Renamed BOOLEAN macro type to intBool.          */
+/*                                                            */
+/*      6.30: Changed integer type/precision.                 */
+/*                                                            */
+/*            Support for long long integers.                 */
+/*                                                            */
+/*            Added const qualifiers to remove C++            */
+/*            deprecation warnings.                           */
+/*                                                            */
 /*************************************************************/
 
 #ifndef _H_clsltpsr
@@ -23,9 +35,9 @@
 
 #if OBJECT_SYSTEM && (! BLOAD_ONLY) && (! RUN_TIME)
 
-#define MATCH_RLN            (char*)"pattern-match"
-#define REACTIVE_RLN         (char*)"reactive"
-#define NONREACTIVE_RLN      (char*)"non-reactive"
+#define MATCH_RLN            "pattern-match"
+#define REACTIVE_RLN         "reactive"
+#define NONREACTIVE_RLN      "non-reactive"
 
 #ifndef _H_object
 #include "object.h"
@@ -47,7 +59,7 @@ typedef struct tempSlotLink
 #define LOCALE extern
 #endif
 
-LOCALE TEMP_SLOT_LINK *ParseSlot(void *,char *,TEMP_SLOT_LINK *,PACKED_CLASS_LINKS *,int,int);
+LOCALE TEMP_SLOT_LINK *ParseSlot(void *,const char *,TEMP_SLOT_LINK *,PACKED_CLASS_LINKS *,int,int);
 LOCALE void DeleteSlots(void *,TEMP_SLOT_LINK *);
 
 #ifndef _CLSLTPSR_SOURCE_

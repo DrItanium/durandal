@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  07/01/05            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*             CONSTRAINT CHECKING MODULE              */
    /*******************************************************/
@@ -17,6 +17,7 @@
 /*      Brian Dantes                                         */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Changed name of variable exp to theExp         */
 /*            because of Unix compiler warnings of shadowed  */
 /*            definitions.                                   */
@@ -24,6 +25,19 @@
 /*      6.24: Added allowed-classes slot facet.              */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Support for long long integers.                */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Dynamic constraint checking for the            */
+/*            allowed-classes constraint now searches        */
+/*            imported modules.                              */
 /*                                                           */
 /*************************************************************/
 
@@ -57,7 +71,7 @@
    static int                     CheckFunctionReturnType(int,CONSTRAINT_RECORD *);
    static intBool                 CheckTypeConstraint(int,CONSTRAINT_RECORD *);
    static intBool                 CheckRangeConstraint(void *,int,void *,CONSTRAINT_RECORD *);
-   static void                    PrintRange(void *,char *,CONSTRAINT_RECORD *);
+   static void                    PrintRange(void *,const char *,CONSTRAINT_RECORD *);
 
 /******************************************************/
 /* CheckFunctionReturnType: Checks a functions return */
@@ -441,7 +455,8 @@ globle intBool CheckAllowedClassesConstraint(
         tmpPtr != NULL;
         tmpPtr = tmpPtr->nextArg)
      {
-      cmpClass = (DEFCLASS *) EnvFindDefclass(theEnv,ValueToString(tmpPtr->value));
+      //cmpClass = (DEFCLASS *) EnvFindDefclass(theEnv,ValueToString(tmpPtr->value));
+      cmpClass = (DEFCLASS *) LookupDefclassByMdlOrScope(theEnv,ValueToString(tmpPtr->value));
       if (cmpClass == NULL) continue;
       if (cmpClass == insClass) return(TRUE);
       if (EnvSubclassP(theEnv,insClass,cmpClass)) return(TRUE);
@@ -454,13 +469,6 @@ globle intBool CheckAllowedClassesConstraint(
 
    return(FALSE);
 #else
-
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#pragma unused(type)
-#pragma unused(vPtr)
-#pragma unused(constraints)
-#endif
 
    return(TRUE);
 #endif     
@@ -532,8 +540,8 @@ static intBool CheckRangeConstraint(
 /************************************************/
 globle void ConstraintViolationErrorMessage(
   void *theEnv,
-  char *theWhat,
-  char *thePlace,
+  const char *theWhat,
+  const char *thePlace,
   int command,
   int thePattern,
   struct symbolHashNode *theSlot,
@@ -556,14 +564,14 @@ globle void ConstraintViolationErrorMessage(
 
       if (violationType == FUNCTION_RETURN_TYPE_VIOLATION)
         {
-         PrintErrorID(theEnv,(char*)"CSTRNCHK",1,TRUE);
-         EnvPrintRouter(theEnv,WERROR,(char*)"The function return value ");
+         PrintErrorID(theEnv,"CSTRNCHK",1,TRUE);
+         EnvPrintRouter(theEnv,WERROR,"The function return value ");
         }
       else if (theWhat != NULL)
         {
-         PrintErrorID(theEnv,(char*)"CSTRNCHK",1,TRUE);
+         PrintErrorID(theEnv,"CSTRNCHK",1,TRUE);
          EnvPrintRouter(theEnv,WERROR,theWhat);
-         EnvPrintRouter(theEnv,WERROR,(char*)" ");
+         EnvPrintRouter(theEnv,WERROR," ");
         }
 
       /*=======================================*/
@@ -573,10 +581,10 @@ globle void ConstraintViolationErrorMessage(
 
       if (thePlace != NULL)
         {
-         EnvPrintRouter(theEnv,WERROR,(char*)"found in ");
-         if (command) EnvPrintRouter(theEnv,WERROR,(char*)"the ");
+         EnvPrintRouter(theEnv,WERROR,"found in ");
+         if (command) EnvPrintRouter(theEnv,WERROR,"the ");
          EnvPrintRouter(theEnv,WERROR,thePlace);
-         if (command) EnvPrintRouter(theEnv,WERROR,(char*)" command");
+         if (command) EnvPrintRouter(theEnv,WERROR," command");
         }
 
       /*================================================*/
@@ -586,7 +594,7 @@ globle void ConstraintViolationErrorMessage(
 
       if (thePattern > 0)
         {
-         EnvPrintRouter(theEnv,WERROR,(char*)"found in CE #");
+         EnvPrintRouter(theEnv,WERROR,"found in CE #");
          PrintLongInteger(theEnv,WERROR,(long int) thePattern);
         }
      }
@@ -597,18 +605,18 @@ globle void ConstraintViolationErrorMessage(
 
    if ((violationType == TYPE_VIOLATION) ||
        (violationType == FUNCTION_RETURN_TYPE_VIOLATION))
-     { EnvPrintRouter(theEnv,WERROR,(char*)"\ndoes not match the allowed types"); }
+     { EnvPrintRouter(theEnv,WERROR,"\ndoes not match the allowed types"); }
    else if (violationType == RANGE_VIOLATION)
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)"\ndoes not fall in the allowed range ");
+      EnvPrintRouter(theEnv,WERROR,"\ndoes not fall in the allowed range ");
       PrintRange(theEnv,WERROR,theConstraint);
      }
    else if (violationType == ALLOWED_VALUES_VIOLATION)
-     { EnvPrintRouter(theEnv,WERROR,(char*)"\ndoes not match the allowed values"); }
+     { EnvPrintRouter(theEnv,WERROR,"\ndoes not match the allowed values"); }
    else if (violationType == CARDINALITY_VIOLATION)
-     { EnvPrintRouter(theEnv,WERROR,(char*)"\ndoes not satisfy the cardinality restrictions"); }
+     { EnvPrintRouter(theEnv,WERROR,"\ndoes not satisfy the cardinality restrictions"); }
    else if (violationType == ALLOWED_CLASSES_VIOLATION)
-     { EnvPrintRouter(theEnv,WERROR,(char*)"\ndoes not match the allowed classes"); }
+     { EnvPrintRouter(theEnv,WERROR,"\ndoes not match the allowed classes"); }
 
    /*==============================================*/
    /* Print either the slot name or field position */
@@ -617,16 +625,16 @@ globle void ConstraintViolationErrorMessage(
 
    if (theSlot != NULL)
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)" for slot ");
+      EnvPrintRouter(theEnv,WERROR," for slot ");
       EnvPrintRouter(theEnv,WERROR,ValueToString(theSlot));
      }
    else if (theField > 0)
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)" for field #");
+      EnvPrintRouter(theEnv,WERROR," for field #");
       PrintLongInteger(theEnv,WERROR,(long long) theField);
      }
 
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /********************************************************************/
@@ -635,13 +643,13 @@ globle void ConstraintViolationErrorMessage(
 /********************************************************************/
 static void PrintRange(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   CONSTRAINT_RECORD *theConstraint)
   {
    if (theConstraint->minValue->value == SymbolData(theEnv)->NegativeInfinity)
      { EnvPrintRouter(theEnv,logicalName,ValueToString(SymbolData(theEnv)->NegativeInfinity)); }
    else PrintExpression(theEnv,logicalName,theConstraint->minValue);
-   EnvPrintRouter(theEnv,logicalName,(char*)" to ");
+   EnvPrintRouter(theEnv,logicalName," to ");
    if (theConstraint->maxValue->value == SymbolData(theEnv)->PositiveInfinity)
      { EnvPrintRouter(theEnv,logicalName,ValueToString(SymbolData(theEnv)->PositiveInfinity)); }
    else PrintExpression(theEnv,logicalName,theConstraint->maxValue);

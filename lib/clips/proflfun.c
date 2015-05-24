@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/02/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*         CONSTRUCT PROFILING FUNCTIONS MODULE        */
    /*******************************************************/
@@ -16,6 +16,7 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Modified OutputProfileInfo to allow a before   */
 /*            and after prefix so that a string buffer does  */
 /*            not need to be created to contain the entire   */
@@ -28,6 +29,14 @@
 /*                                                           */
 /*            Corrected code to remove run-time program      */
 /*            compiler warnings.                             */
+/*                                                           */
+/*      6.30: Used gensprintf instead of sprintf.            */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_TBC).         */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -57,14 +66,14 @@
 #define USER_FUNCTIONS  1
 #define CONSTRUCTS_CODE 2
 
-#define OUTPUT_STRING (char*)"%-40s %7ld %15.6f  %8.2f%%  %15.6f  %8.2f%%\n"
+#define OUTPUT_STRING "%-40s %7ld %15.6f  %8.2f%%  %15.6f  %8.2f%%\n"
 
 /***************************************/
 /* LOCAL INTERNAL FUNCTION DEFINITIONS */
 /***************************************/
 
-   static intBool                     OutputProfileInfo(void *,char *,struct constructProfileInfo *,
-                                                        char *,char *,char *,char **);
+   static intBool                     OutputProfileInfo(void *,const char *,struct constructProfileInfo *,
+                                                        const char *,const char *,const char *,const char **);
    static void                        OutputUserFunctionsInfo(void *);
    static void                        OutputConstructsCodeInfo(void *);
 #if (! RUN_TIME)
@@ -89,20 +98,20 @@ globle void ConstructProfilingFunctionDefinitions(
    ProfileFunctionData(theEnv)->OutputString = OUTPUT_STRING;
 
 #if ! RUN_TIME
-   EnvDefineFunction2(theEnv,(char*)"profile",'v', PTIEF ProfileCommand,(char*)"ProfileCommand",(char*)"11w");
-   EnvDefineFunction2(theEnv,(char*)"profile-info",'v', PTIEF ProfileInfoCommand,(char*)"ProfileInfoCommand",(char*)"01w");
-   EnvDefineFunction2(theEnv,(char*)"profile-reset",'v', PTIEF ProfileResetCommand,(char*)"ProfileResetCommand",(char*)"00");
+   EnvDefineFunction2(theEnv,"profile",'v', PTIEF ProfileCommand,"ProfileCommand","11w");
+   EnvDefineFunction2(theEnv,"profile-info",'v', PTIEF ProfileInfoCommand,"ProfileInfoCommand","01w");
+   EnvDefineFunction2(theEnv,"profile-reset",'v', PTIEF ProfileResetCommand,"ProfileResetCommand","00");
 
-   EnvDefineFunction2(theEnv,(char*)"set-profile-percent-threshold",'d',
+   EnvDefineFunction2(theEnv,"set-profile-percent-threshold",'d',
                    PTIEF SetProfilePercentThresholdCommand,
-                   (char*)"SetProfilePercentThresholdCommand",(char*)"11n");
-   EnvDefineFunction2(theEnv,(char*)"get-profile-percent-threshold",'d',
+                   "SetProfilePercentThresholdCommand","11n");
+   EnvDefineFunction2(theEnv,"get-profile-percent-threshold",'d',
                    PTIEF GetProfilePercentThresholdCommand,
-                   (char*)"GetProfilePercentThresholdCommand",(char*)"00");
+                   "GetProfilePercentThresholdCommand","00");
                    
    ProfileFunctionData(theEnv)->ProfileDataID = InstallUserDataRecord(theEnv,&ProfileFunctionData(theEnv)->ProfileDataInfo);
    
-   EnvAddClearFunction(theEnv,(char*)"profile",ProfileClearFunction,0);
+   EnvAddClearFunction(theEnv,"profile",ProfileClearFunction,0);
 #endif
   }
 
@@ -144,17 +153,17 @@ globle void DeleteProfileData(
 globle void ProfileCommand(
   void *theEnv)
   {
-   char *argument;
+   const char *argument;
    DATA_OBJECT theValue;
 
-   if (EnvArgCountCheck(theEnv,(char*)"profile",EXACTLY,1) == -1) return;
-   if (EnvArgTypeCheck(theEnv,(char*)"profile",1,SYMBOL,&theValue) == FALSE) return;
+   if (EnvArgCountCheck(theEnv,"profile",EXACTLY,1) == -1) return;
+   if (EnvArgTypeCheck(theEnv,"profile",1,SYMBOL,&theValue) == FALSE) return;
 
    argument = DOToString(theValue);
 
    if (! Profile(theEnv,argument))
      {
-      ExpectedTypeError1(theEnv,(char*)"profile",1,(char*)"symbol with value constructs, user-functions, or off");
+      ExpectedTypeError1(theEnv,"profile",1,"symbol with value constructs, user-functions, or off");
       return;
      }
 
@@ -167,7 +176,7 @@ globle void ProfileCommand(
 /******************************/
 globle intBool Profile(
   void *theEnv,
-  char *argument)
+  const char *argument)
   {
    /*======================================================*/
    /* If the argument is the symbol "user-functions", then */
@@ -233,7 +242,7 @@ globle void ProfileInfoCommand(
    /* at most a single symbol argument. */
    /*===================================*/
 
-   if ((argCount = EnvArgCountCheck(theEnv,(char*)"profile",NO_MORE_THAN,1)) == -1) return;
+   if ((argCount = EnvArgCountCheck(theEnv,"profile",NO_MORE_THAN,1)) == -1) return;
 
    /*===========================================*/
    /* The first profile-info argument indicates */
@@ -242,7 +251,7 @@ globle void ProfileInfoCommand(
 
    if (argCount == 1)
      {
-      if (EnvArgTypeCheck(theEnv,(char*)"profile",1,SYMBOL,&theValue) == FALSE) return;
+      if (EnvArgTypeCheck(theEnv,"profile",1,SYMBOL,&theValue) == FALSE) return;
      }
 
    /*==================================*/
@@ -267,18 +276,18 @@ globle void ProfileInfoCommand(
       EnvPrintRouter(theEnv,WDISPLAY,buffer);
 
       if (ProfileFunctionData(theEnv)->LastProfileInfo == USER_FUNCTIONS)
-        { EnvPrintRouter(theEnv,WDISPLAY,(char*)"Function Name                            "); }
+        { EnvPrintRouter(theEnv,WDISPLAY,"Function Name                            "); }
       else if (ProfileFunctionData(theEnv)->LastProfileInfo == CONSTRUCTS_CODE)
-        { EnvPrintRouter(theEnv,WDISPLAY,(char*)"Construct Name                           "); }            
+        { EnvPrintRouter(theEnv,WDISPLAY,"Construct Name                           "); }            
       
-      EnvPrintRouter(theEnv,WDISPLAY,(char*)"Entries         Time           %          Time+Kids     %+Kids\n");
+      EnvPrintRouter(theEnv,WDISPLAY,"Entries         Time           %          Time+Kids     %+Kids\n");
 
       if (ProfileFunctionData(theEnv)->LastProfileInfo == USER_FUNCTIONS)
-        { EnvPrintRouter(theEnv,WDISPLAY,(char*)"-------------                            "); }
+        { EnvPrintRouter(theEnv,WDISPLAY,"-------------                            "); }
       else if (ProfileFunctionData(theEnv)->LastProfileInfo == CONSTRUCTS_CODE)
-        { EnvPrintRouter(theEnv,WDISPLAY,(char*)"--------------                           "); }
+        { EnvPrintRouter(theEnv,WDISPLAY,"--------------                           "); }
 
-      EnvPrintRouter(theEnv,WDISPLAY,(char*)"-------        ------        -----        ---------     ------\n");
+      EnvPrintRouter(theEnv,WDISPLAY,"-------        ------        -----        ---------     ------\n");
      }
 
    if (ProfileFunctionData(theEnv)->LastProfileInfo == USER_FUNCTIONS) OutputUserFunctionsInfo(theEnv);
@@ -366,12 +375,12 @@ globle void EndProfile(
 /******************************************/
 static intBool OutputProfileInfo(
   void *theEnv,
-  char *itemName,
+  const char *itemName,
   struct constructProfileInfo *profileInfo,
-  char *printPrefixBefore,
-  char *printPrefix,
-  char *printPrefixAfter,
-  char **banner)
+  const char *printPrefixBefore,
+  const char *printPrefix,
+  const char *printPrefixAfter,
+  const char **banner)
   {
    double percent = 0.0, percentWithKids = 0.0;
    char buffer[512];
@@ -408,8 +417,8 @@ static intBool OutputProfileInfo(
    if (strlen(itemName) >= 40)
      {
       EnvPrintRouter(theEnv,WDISPLAY,itemName);
-      EnvPrintRouter(theEnv,WDISPLAY,(char*)"\n");
-      itemName = (char*)"";
+      EnvPrintRouter(theEnv,WDISPLAY,"\n");
+      itemName = "";
      }
 
    gensprintf(buffer,ProfileFunctionData(theEnv)->OutputString,
@@ -585,9 +594,6 @@ static void OutputUserFunctionsInfo(
 /*************************************************/
 /* OutputConstructsCodeInfo:       */
 /*************************************************/
-#if WIN_BTC && (! DEFFUNCTION_CONSTRUCT) && (! DEFGENERIC_CONSTRUCT) && (! OBJECT_SYSTEM) && (! DEFRULE_CONSTRUCT)
-#pragma argsused
-#endif
 static void OutputConstructsCodeInfo(
   void *theEnv)
   {
@@ -612,11 +618,11 @@ static void OutputConstructsCodeInfo(
    unsigned handlerIndex;
 #endif
 #if DEFGENERIC_CONSTRUCT || OBJECT_SYSTEM
-   char *prefix, *prefixBefore, *prefixAfter;
+   const char *prefix, *prefixBefore, *prefixAfter;
 #endif
-   char *banner;
+   const char *banner;
 
-   banner = (char*)"\n*** Deffunctions ***\n\n";
+   banner = "\n*** Deffunctions ***\n\n";
 
 #if DEFFUNCTION_CONSTRUCT
    for (theDeffunction = (DEFFUNCTION *) EnvGetNextDeffunction(theEnv,NULL);
@@ -630,15 +636,15 @@ static void OutputConstructsCodeInfo(
      }
 #endif
 
-   banner = (char*)"\n*** Defgenerics ***\n";
+   banner = "\n*** Defgenerics ***\n";
 #if DEFGENERIC_CONSTRUCT
    for (theDefgeneric = (DEFGENERIC *) EnvGetNextDefgeneric(theEnv,NULL);
         theDefgeneric != NULL;
         theDefgeneric = (DEFGENERIC *) EnvGetNextDefgeneric(theEnv,theDefgeneric))
      {
-      prefixBefore = (char*)"\n";
+      prefixBefore = "\n";
       prefix = EnvGetDefgenericName(theEnv,theDefgeneric);
-      prefixAfter = (char*)"\n";
+      prefixAfter = "\n";
 
       for (methodIndex = EnvGetNextDefmethod(theEnv,theDefgeneric,0);
            methodIndex != 0;
@@ -660,15 +666,15 @@ static void OutputConstructsCodeInfo(
      }
 #endif
 
-   banner = (char*)"\n*** Defclasses ***\n";
+   banner = "\n*** Defclasses ***\n";
 #if OBJECT_SYSTEM
    for (theDefclass = (DEFCLASS *) EnvGetNextDefclass(theEnv,NULL);
         theDefclass != NULL;
         theDefclass = (DEFCLASS *) EnvGetNextDefclass(theEnv,theDefclass))
      {
-      prefixAfter = (char*)"\n";
+      prefixAfter = "\n";
       prefix = EnvGetDefclassName(theEnv,theDefclass);
-      prefixBefore = (char*)"\n";
+      prefixBefore = "\n";
       
       for (handlerIndex = EnvGetNextDefmessageHandler(theEnv,theDefclass,0);
            handlerIndex != 0;
@@ -690,7 +696,7 @@ static void OutputConstructsCodeInfo(
      }
 #endif
 
-   banner = (char*)"\n*** Defrules ***\n\n";
+   banner = "\n*** Defrules ***\n\n";
 
 #if DEFRULE_CONSTRUCT
    for (theDefrule = (struct defrule *) EnvGetNextDefrule(theEnv,NULL);
@@ -716,10 +722,10 @@ globle double SetProfilePercentThresholdCommand(
    DATA_OBJECT theValue;
    double newThreshold;
    
-   if (EnvArgCountCheck(theEnv,(char*)"set-profile-percent-threshold",EXACTLY,1) == -1)
+   if (EnvArgCountCheck(theEnv,"set-profile-percent-threshold",EXACTLY,1) == -1)
      { return(ProfileFunctionData(theEnv)->PercentThreshold); }
 
-   if (EnvArgTypeCheck(theEnv,(char*)"set-profile-percent-threshold",1,INTEGER_OR_FLOAT,&theValue) == FALSE)
+   if (EnvArgTypeCheck(theEnv,"set-profile-percent-threshold",1,INTEGER_OR_FLOAT,&theValue) == FALSE)
       { return(ProfileFunctionData(theEnv)->PercentThreshold); }
 
    if (GetType(theValue) == INTEGER)
@@ -729,8 +735,8 @@ globle double SetProfilePercentThresholdCommand(
      
    if ((newThreshold < 0.0) || (newThreshold > 100.0))
      { 
-      ExpectedTypeError1(theEnv,(char*)"set-profile-percent-threshold",1,
-                         (char*)"number in the range 0 to 100");
+      ExpectedTypeError1(theEnv,"set-profile-percent-threshold",1,
+                         "number in the range 0 to 100");
       return(-1.0); 
      }
 
@@ -764,7 +770,7 @@ globle double SetProfilePercentThreshold(
 globle double GetProfilePercentThresholdCommand(
   void *theEnv)
   {   
-   EnvArgCountCheck(theEnv,(char*)"get-profile-percent-threshold",EXACTLY,0);
+   EnvArgCountCheck(theEnv,"get-profile-percent-threshold",EXACTLY,0);
 
    return(ProfileFunctionData(theEnv)->PercentThreshold);
   }
@@ -782,11 +788,11 @@ globle double GetProfilePercentThreshold(
 /**********************************************************/
 /* SetProfileOutputString: Sets the output string global. */
 /**********************************************************/
-globle char *SetProfileOutputString(
+globle const char *SetProfileOutputString(
   void *theEnv,
-  char *value)
+  const char *value)
   {
-   char *oldOutputString;
+   const char *oldOutputString;
 
    if (value == NULL)
      { return(ProfileFunctionData(theEnv)->OutputString); }

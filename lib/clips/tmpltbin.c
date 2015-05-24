@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.21  06/15/03            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*            DEFTEMPLATE BSAVE/BLOAD MODULE           */
    /*******************************************************/
@@ -17,8 +17,13 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Added support for templates maintaining their  */
 /*            own list of facts.                             */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Support for deftemplate slot facets.           */
 /*                                                           */
 /*************************************************************/
 
@@ -70,13 +75,13 @@ globle void DeftemplateBinarySetup(
   {
    AllocateEnvironmentData(theEnv,TMPLTBIN_DATA,sizeof(struct deftemplateBinaryData),DeallocateDeftemplateBloadData);
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"deftemplate",0,BsaveFind,NULL,
+   AddBinaryItem(theEnv,"deftemplate",0,BsaveFind,NULL,
                              BsaveStorage,BsaveBinaryItem,
                              BloadStorage,BloadBinaryItem,
                              ClearBload);
 #endif
 #if (BLOAD || BLOAD_ONLY)
-   AddBinaryItem(theEnv,(char*)"deftemplate",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"deftemplate",0,NULL,NULL,NULL,NULL,
                              BloadStorage,BloadBinaryItem,
                              ClearBload);
 #endif
@@ -248,7 +253,7 @@ static void BsaveBinaryItem(
       EnvSetCurrentModule(theEnv,(void *) theModule);
 
       theModuleItem = (struct deftemplateModule *)
-                      GetModuleItem(theEnv,NULL,FindModuleItem(theEnv,(char*)"deftemplate")->moduleIndex);
+                      GetModuleItem(theEnv,NULL,FindModuleItem(theEnv,"deftemplate")->moduleIndex);
       AssignBsaveDefmdlItemHdrVals(&tempTemplateModule.header,
                                            &theModuleItem->header);
       GenWrite(&tempTemplateModule,sizeof(struct bsaveDeftemplateModule),fp);
@@ -585,7 +590,7 @@ static void ClearBload(
    /*======================================*/
 
 #if (! BLOAD_ONLY)
-   CreateImpliedDeftemplate(theEnv,(SYMBOL_HN *) EnvAddSymbol(theEnv,(char*)"initial-fact"),FALSE);
+   CreateImpliedDeftemplate(theEnv,(SYMBOL_HN *) EnvAddSymbol(theEnv,"initial-fact"),FALSE);
 #endif
   }
 

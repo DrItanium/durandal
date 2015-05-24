@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  06/05/06          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*                 BLOAD HEADER FILE                   */
    /*******************************************************/
@@ -18,6 +18,16 @@
 /* Revision History:                                         */
 /*                                                           */
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Borland C (IBM_TBC) and Metrowerks CodeWarrior */
+/*            (MAC_MCW, IBM_MCW) are no longer supported.    */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -47,8 +57,8 @@
 
 struct bloadData
   { 
-   char *BinaryPrefixID;
-   char *BinaryVersionID;
+   const char *BinaryPrefixID;
+   const char *BinaryVersionID;
    struct FunctionDefinition **FunctionArray;
    int BloadActive;
    struct callFunctionItem *BeforeBloadFunctions;
@@ -70,19 +80,20 @@ struct bloadData
 
 #define FunctionPointer(i) ((struct FunctionDefinition *) (((i) == -1L) ? NULL : BloadData(theEnv)->FunctionArray[i]))
 
-#define Bload(a) EnvBload(GetCurrentEnvironment(),a)
-
    LOCALE void                    InitializeBloadData(void *);
    LOCALE int                     BloadCommand(void *);
-   LOCALE intBool                 EnvBload(void *,char *);
+   LOCALE intBool                 EnvBload(void *,const char *);
    LOCALE void                    BloadandRefresh(void *,long,size_t,void (*)(void *,void *,long));
    LOCALE intBool                 Bloaded(void *);
-   LOCALE void                    AddBeforeBloadFunction(void *,char *,void (*)(void *),int);
-   LOCALE void                    AddAfterBloadFunction(void *,char *,void (*)(void *),int);
-   LOCALE void                    AddBloadReadyFunction(void *,char *,int (*)(void),int);
-   LOCALE void                    AddClearBloadReadyFunction(void *,char *,int (*)(void *),int);
-   LOCALE void                    AddAbortBloadFunction(void *,char *,void (*)(void *),int);
-   LOCALE void                    CannotLoadWithBloadMessage(void *,char *);
+   LOCALE void                    AddBeforeBloadFunction(void *,const char *,void (*)(void *),int);
+   LOCALE void                    AddAfterBloadFunction(void *,const char *,void (*)(void *),int);
+   LOCALE void                    AddClearBloadReadyFunction(void *,const char *,int (*)(void *),int);
+   LOCALE void                    AddAbortBloadFunction(void *,const char *,void (*)(void *),int);
+   LOCALE void                    CannotLoadWithBloadMessage(void *,const char *);
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+   LOCALE int                     Bload(const char *);
+#endif
 
 #endif
 

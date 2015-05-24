@@ -2,7 +2,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  05/17/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*            DEFRULE CONSTRUCTS-TO-C MODULE           */
    /*******************************************************/
@@ -21,6 +21,18 @@
 /*                                                           */
 /*      6.24: Removed DYNAMIC_SALIENCE and                   */
 /*            LOGICAL_DEPENDENCIES compilation flags.        */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Support for join network changes.              */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -44,7 +56,7 @@
 /* LOCAL INTERNAL FUNCTION DEFINITIONS */
 /***************************************/
 
-   static int                     ConstructToCode(void *,char *,char *,char *,int,FILE *,int,int);
+   static int                     ConstructToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
    static void                    JoinToCode(void *,FILE *,struct joinNode *,int,int);
    static void                    LinkToCode(void *,FILE *,struct joinLink *,int,int);
    static void                    DefruleModuleToCode(void *,FILE *,struct defmodule *,int,int,int);
@@ -52,10 +64,10 @@
    static void                    CloseDefruleFiles(void *,FILE *,FILE *,FILE *,FILE*,int);
    static void                    BeforeDefrulesCode(void *);
    static void                    InitDefruleCode(void *,FILE *,int,int);
-   static int                     RuleCompilerTraverseJoins(void *,struct joinNode *,char *,char *,char *,int,
+   static int                     RuleCompilerTraverseJoins(void *,struct joinNode *,const char *,const char *,char *,int,
                                                             FILE *,int,int,FILE **,FILE **,
                                                             int *,int *,int *,int *,int *);
-   static int                     TraverseJoinLinks(void *,struct joinLink *,char *,char *,char *,int,FILE *,
+   static int                     TraverseJoinLinks(void *,struct joinLink *,const char *,const char *,char *,int,FILE *,
                                                     int,int,FILE **,int *,int *, int *);
   
 /***********************************************************/
@@ -65,7 +77,7 @@
 globle void DefruleCompilerSetup(
   void *theEnv)
   {
-   DefruleData(theEnv)->DefruleCodeItem = AddCodeGeneratorItem(theEnv,(char*)"defrules",0,BeforeDefrulesCode,
+   DefruleData(theEnv)->DefruleCodeItem = AddCodeGeneratorItem(theEnv,"defrules",0,BeforeDefrulesCode,
                                           InitDefruleCode,ConstructToCode,4);
   }
 
@@ -79,7 +91,7 @@ static void BeforeDefrulesCode(
   {
    long int moduleCount, ruleCount, joinCount, linkCount;
 
-   TagRuleNetwork(theEnv,&moduleCount,&ruleCount,&joinCount, &linkCount);
+   TagRuleNetwork(theEnv,&moduleCount,&ruleCount,&joinCount,&linkCount);
   }
 
 /*********************************************************/
@@ -88,8 +100,8 @@ static void BeforeDefrulesCode(
 /*********************************************************/
 static int ConstructToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -151,7 +163,7 @@ static int ConstructToCode(
 
       moduleFile = OpenFileIfNeeded(theEnv,moduleFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                     moduleArrayVersion,headerFP,
-                                    (char*)"struct defruleModule",ModulePrefix(DefruleData(theEnv)->DefruleCodeItem),
+                                    "struct defruleModule",ModulePrefix(DefruleData(theEnv)->DefruleCodeItem),
                                     FALSE,NULL);
 
       if (moduleFile == NULL)
@@ -179,7 +191,7 @@ static int ConstructToCode(
 
          defruleFile = OpenFileIfNeeded(theEnv,defruleFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                         defruleArrayVersion,headerFP,
-                                        (char*)"struct defrule",ConstructPrefix(DefruleData(theEnv)->DefruleCodeItem),
+                                        "struct defrule",ConstructPrefix(DefruleData(theEnv)->DefruleCodeItem),
                                         FALSE,NULL);
          if (defruleFile == NULL)
            {
@@ -228,8 +240,8 @@ static int ConstructToCode(
 static int RuleCompilerTraverseJoins(
   void *theEnv,
   struct joinNode *joinPtr,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -251,7 +263,7 @@ static int RuleCompilerTraverseJoins(
         {
          *joinFile = OpenFileIfNeeded(theEnv,*joinFile,fileName,pathName,fileNameBuffer,fileID,imageID,fileCount,
                                       *joinArrayVersion,headerFP,
-                                      (char*)"struct joinNode",JoinPrefix(),FALSE,NULL);
+                                      "struct joinNode",JoinPrefix(),FALSE,NULL);
          if (*joinFile == NULL)
            { return(FALSE); }
 
@@ -285,8 +297,8 @@ static int RuleCompilerTraverseJoins(
 static int TraverseJoinLinks(
   void *theEnv,
   struct joinLink *linkPtr,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -303,7 +315,7 @@ static int TraverseJoinLinks(
      {
       *linkFile = OpenFileIfNeeded(theEnv,*linkFile,fileName,pathName,fileNameBuffer,fileID,imageID,fileCount,
                                    *linkArrayVersion,headerFP,
-                                   (char*)"struct joinLink",LinkPrefix(),FALSE,NULL);
+                                   "struct joinLink",LinkPrefix(),FALSE,NULL);
            
       if (*linkFile == NULL)
         { return(FALSE); }
@@ -362,9 +374,6 @@ static void CloseDefruleFiles(
 /* DefruleModuleToCode: Writes the C code representation */
 /*   of a single defrule module to the specified file.   */
 /*********************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void DefruleModuleToCode(
   void *theEnv,
   FILE *theFile,
@@ -373,9 +382,6 @@ static void DefruleModuleToCode(
   int maxIndices,
   int moduleCount)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(moduleCount)
-#endif
 
    fprintf(theFile,"{");
 
@@ -494,11 +500,19 @@ static void JoinToCode(
    /* Flags and Integer Values. */
    /*===========================*/
 
-   fprintf(joinFile,"{%d,%d,%d,%d,%d,0,0,%d,%d,0,0,0,0,",
+   fprintf(joinFile,"{%d,%d,%d,%d,%d,0,0,%d,%d,0,0,0,0,0,0,",
                    theJoin->firstJoin,theJoin->logicalJoin,
                    theJoin->joinFromTheRight,theJoin->patternIsNegated,
                    theJoin->patternIsExists,
+                   // initialize,
+                   // marked
                    theJoin->rhsType,theJoin->depth);
+                   // bsaveID
+                   // memoryLeftAdds
+                   // memoryRightAdds
+                   // memoryLeftDeletes
+                   // memoryRightDeletes
+                   // memoryCompares
 
    /*==========================*/
    /* Left and right Memories. */
@@ -671,20 +685,12 @@ globle void DefruleCModuleReference(
 /*****************************************************************/
 /* InitDefruleCode: Writes out initialization code for defrules. */
 /*****************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void InitDefruleCode(
   void *theEnv,
   FILE *initFP,
   int imageID,
   int maxIndices)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(maxIndices)
-#pragma unused(theEnv)
-#pragma unused(imageID)
-#endif
 
    fprintf(initFP,"   DefruleRunTimeInitialize(theEnv,");
 

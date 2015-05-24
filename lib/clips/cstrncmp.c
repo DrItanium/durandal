@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  07/01/05            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*          CONSTRAINT CONSTRUCTS-TO-C MODULE          */
    /*******************************************************/
@@ -21,6 +21,12 @@
 /*      6.24: Added allowed-classes slot facet.              */
 /*                                                           */
 /*            Added environment parameter to GenClose.       */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -47,8 +53,8 @@
 /***********************************************/
 globle int ConstraintsToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -84,9 +90,9 @@ globle int ConstraintsToCode(
    if ((! EnvGetDynamicConstraintChecking(theEnv)) && (numberOfConstraints != 0))
      {
       numberOfConstraints = 0;
-      PrintWarningID(theEnv,(char*)"CSTRNCMP",1,FALSE);
-      EnvPrintRouter(theEnv,WWARNING,(char*)"Constraints are not saved with a constructs-to-c image\n");
-      EnvPrintRouter(theEnv,WWARNING,(char*)"  when dynamic constraint checking is disabled.\n");
+      PrintWarningID(theEnv,"CSTRNCMP",1,FALSE);
+      EnvPrintRouter(theEnv,WWARNING,"Constraints are not saved with a constructs-to-c image\n");
+      EnvPrintRouter(theEnv,WWARNING,"  when dynamic constraint checking is disabled.\n");
      }
 
    if (numberOfConstraints == 0) return(-1);

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.20  01/31/02            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*               PRETTY PRINT HEADER FILE              */
    /*******************************************************/
@@ -16,6 +16,13 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Used genstrcpy instead of strcpy.              */
+/*                                                           */             
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -51,7 +58,7 @@ struct prettyPrintData
    LOCALE void                           InitializePrettyPrintData(void *);
    LOCALE void                           FlushPPBuffer(void *);
    LOCALE void                           DestroyPPBuffer(void *);
-   LOCALE void                           SavePPBuffer(void *,char *);
+   LOCALE void                           SavePPBuffer(void *,const char *);
    LOCALE void                           PPBackup(void *);
    LOCALE char                          *CopyPPBuffer(void *);
    LOCALE char                          *GetPPBuffer(void *);

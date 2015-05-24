@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  07/01/05            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -18,6 +18,18 @@
 /*                                                           */
 /*      6.24: Added pragmas to remove unused parameter       */
 /*            warnings.                                      */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -74,7 +86,7 @@
    ***************************************** */
 
 static void ReadyDefgenericsForCode(void *);
-static int DefgenericsToCode(void *,char *,char *,char *,int,FILE *,int,int);
+static int DefgenericsToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
 static void CloseDefgenericFiles(void *,FILE *[SAVE_ITEMS],int [SAVE_ITEMS],
                                  struct CodeGeneratorFile [SAVE_ITEMS],int);
 static void DefgenericModuleToCode(void *,FILE *,struct defmodule *,int,int);
@@ -101,7 +113,7 @@ static void TypeToCode(void *,FILE *,int,void *,int);
 globle void SetupGenericsCompiler(
   void *theEnv)
   {
-   DefgenericData(theEnv)->DefgenericCodeItem = AddCodeGeneratorItem(theEnv,(char*)"generics",0,ReadyDefgenericsForCode,
+   DefgenericData(theEnv)->DefgenericCodeItem = AddCodeGeneratorItem(theEnv,"generics",0,ReadyDefgenericsForCode,
                                              NULL,DefgenericsToCode,5);
   }
 
@@ -199,8 +211,8 @@ static void ReadyDefgenericsForCode(
  *******************************************************/
 static int DefgenericsToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -249,7 +261,7 @@ static int DefgenericsToCode(
       itemFiles[MODULEI] =
          OpenFileIfNeeded(theEnv,itemFiles[MODULEI],fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                           itemArrayVersions[MODULEI],headerFP,
-                          (char*)"DEFGENERIC_MODULE",ModulePrefix(DefgenericData(theEnv)->DefgenericCodeItem),
+                          "DEFGENERIC_MODULE",ModulePrefix(DefgenericData(theEnv)->DefgenericCodeItem),
                           itemReopenFlags[MODULEI],&itemCodeFiles[MODULEI]);
       if (itemFiles[MODULEI] == NULL)
         goto GenericCodeError;
@@ -267,7 +279,7 @@ static int DefgenericsToCode(
          itemFiles[GENERICI] =
             OpenFileIfNeeded(theEnv,itemFiles[GENERICI],fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                              itemArrayVersions[GENERICI],headerFP,
-                             (char*)"DEFGENERIC",ConstructPrefix(DefgenericData(theEnv)->DefgenericCodeItem),
+                             "DEFGENERIC",ConstructPrefix(DefgenericData(theEnv)->DefgenericCodeItem),
                              itemReopenFlags[GENERICI],&itemCodeFiles[GENERICI]);
          if (itemFiles[GENERICI] == NULL)
            goto GenericCodeError;
@@ -290,7 +302,7 @@ static int DefgenericsToCode(
             itemFiles[METHODI] =
                 OpenFileIfNeeded(theEnv,itemFiles[METHODI],fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                  itemArrayVersions[METHODI],headerFP,
-                                 (char*)"DEFMETHOD",MethodPrefix(),
+                                 "DEFMETHOD",MethodPrefix(),
                                  itemReopenFlags[METHODI],&itemCodeFiles[METHODI]);
             if (itemFiles[METHODI] == NULL)
               goto GenericCodeError;
@@ -312,7 +324,7 @@ static int DefgenericsToCode(
                      OpenFileIfNeeded(theEnv,itemFiles[RESTRICTIONI],fileName,pathName,fileNameBuffer,fileID,
                                       imageID,&fileCount,
                                       itemArrayVersions[RESTRICTIONI],headerFP,
-                                      (char*)"RESTRICTION",RestrictionPrefix(),
+                                      "RESTRICTION",RestrictionPrefix(),
                                       itemReopenFlags[RESTRICTIONI],&itemCodeFiles[RESTRICTIONI]);
                   if (itemFiles[RESTRICTIONI] == NULL)
                     goto GenericCodeError;
@@ -334,7 +346,7 @@ static int DefgenericsToCode(
                            OpenFileIfNeeded(theEnv,itemFiles[TYPEI],fileName,pathName,fileNameBuffer,fileID,
                                             imageID,&fileCount,
                                             itemArrayVersions[TYPEI],headerFP,
-                                            (char*)"void *",TypePrefix(),
+                                            "void *",TypePrefix(),
                                             itemReopenFlags[TYPEI],&itemCodeFiles[TYPEI]);
                         if (itemFiles[TYPEI] == NULL)
                           goto GenericCodeError;
@@ -584,10 +596,6 @@ static void TypeToCode(
    PrintClassReference(theEnv,theFile,(DEFCLASS *) theType,imageID,maxIndices);
 #else
 
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(imageID)
-#pragma unused(maxIndices)
-#endif
 
    PrintIntegerReference(theEnv,theFile,(INTEGER_HN *) theType);
 #endif

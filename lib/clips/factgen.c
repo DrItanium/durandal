@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.20  01/31/02            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*          FACT RETE FUNCTION GENERATION MODULE       */
    /*******************************************************/
@@ -20,6 +20,11 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Support for performance optimizations.         */
+/*                                                           */
+/*            Increased maximum values for pattern/slot      */
+/*            indices.                                       */
 /*                                                           */
 /*************************************************************/
 
@@ -94,81 +99,81 @@ globle void InitializeFactReteFunctions(
   void *theEnv)
   {
 #if DEFRULE_CONSTRUCT
-   struct entityRecord   factJNGV1Info = { (char*)"FACT_JN_VAR1", FACT_JN_VAR1,0,1,0,
+   struct entityRecord   factJNGV1Info = { "FACT_JN_VAR1", FACT_JN_VAR1,0,1,0,
                                                   PrintFactJNGetVar1,
                                                   PrintFactJNGetVar1,NULL,
                                                   FactJNGetVar1,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factJNGV2Info = { (char*)"FACT_JN_VAR2", FACT_JN_VAR2,0,1,0,
+   struct entityRecord   factJNGV2Info = { "FACT_JN_VAR2", FACT_JN_VAR2,0,1,0,
                                                   PrintFactJNGetVar2,
                                                   PrintFactJNGetVar2,NULL,
                                                   FactJNGetVar2,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factJNGV3Info = { (char*)"FACT_JN_VAR3", FACT_JN_VAR3,0,1,0,
+   struct entityRecord   factJNGV3Info = { "FACT_JN_VAR3", FACT_JN_VAR3,0,1,0,
                                                   PrintFactJNGetVar3,
                                                   PrintFactJNGetVar3,NULL,
                                                   FactJNGetVar3,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factPNGV1Info = { (char*)"FACT_PN_VAR1", FACT_PN_VAR1,0,1,0,
+   struct entityRecord   factPNGV1Info = { "FACT_PN_VAR1", FACT_PN_VAR1,0,1,0,
                                                   PrintFactPNGetVar1,
                                                   PrintFactPNGetVar1,NULL,
                                                   FactPNGetVar1,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factPNGV2Info = { (char*)"FACT_PN_VAR2", FACT_PN_VAR2,0,1,0,
+   struct entityRecord   factPNGV2Info = { "FACT_PN_VAR2", FACT_PN_VAR2,0,1,0,
                                                   PrintFactPNGetVar2,
                                                   PrintFactPNGetVar2,NULL,
                                                   FactPNGetVar2,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factPNGV3Info = { (char*)"FACT_PN_VAR3", FACT_PN_VAR3,0,1,0,
+   struct entityRecord   factPNGV3Info = { "FACT_PN_VAR3", FACT_PN_VAR3,0,1,0,
                                                   PrintFactPNGetVar3,
                                                   PrintFactPNGetVar3,NULL,
                                                   FactPNGetVar3,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factJNCV1Info = { (char*)"FACT_JN_CMP1", FACT_JN_CMP1,0,1,1,
+   struct entityRecord   factJNCV1Info = { "FACT_JN_CMP1", FACT_JN_CMP1,0,1,1,
                                                   PrintFactJNCompVars1,
                                                   PrintFactJNCompVars1,NULL,
                                                   FactJNCompVars1,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factJNCV2Info = { (char*)"FACT_JN_CMP2", FACT_JN_CMP2,0,1,1,
+   struct entityRecord   factJNCV2Info = { "FACT_JN_CMP2", FACT_JN_CMP2,0,1,1,
                                                   PrintFactJNCompVars2,
                                                   PrintFactJNCompVars2,NULL,
                                                   FactJNCompVars2,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factPNCV1Info = { (char*)"FACT_PN_CMP1", FACT_PN_CMP1,0,1,1,
+   struct entityRecord   factPNCV1Info = { "FACT_PN_CMP1", FACT_PN_CMP1,0,1,1,
                                                   PrintFactPNCompVars1,
                                                   PrintFactPNCompVars1,NULL,
                                                   FactPNCompVars1,
                                                   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factStoreMFInfo = { (char*)"FACT_STORE_MULTIFIELD",
+   struct entityRecord   factStoreMFInfo = { "FACT_STORE_MULTIFIELD",
                                                     FACT_STORE_MULTIFIELD,0,1,0,
                                                     NULL,NULL,NULL,
                                                     FactStoreMultifield,
                                                     NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factSlotLengthInfo = { (char*)"FACT_SLOT_LENGTH",
+   struct entityRecord   factSlotLengthInfo = { "FACT_SLOT_LENGTH",
                                                        FACT_SLOT_LENGTH,0,1,0,
                                                        PrintFactSlotLength,
                                                        PrintFactSlotLength,NULL,
                                                        FactSlotLength,
                                                        NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factPNConstant1Info = { (char*)"FACT_PN_CONSTANT1",
+   struct entityRecord   factPNConstant1Info = { "FACT_PN_CONSTANT1",
                                                         FACT_PN_CONSTANT1,0,1,1,
                                                         PrintFactPNConstant1,
                                                         PrintFactPNConstant1,NULL,
                                                         FactPNConstant1,
                                                         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
-   struct entityRecord   factPNConstant2Info = { (char*)"FACT_PN_CONSTANT2",
+   struct entityRecord   factPNConstant2Info = { "FACT_PN_CONSTANT2",
                                                         FACT_PN_CONSTANT2,0,1,1,
                                                         PrintFactPNConstant2,
                                                         PrintFactPNConstant2,NULL,
@@ -1115,6 +1120,7 @@ globle struct expr *FactJNVariableComparison(
    struct expr *top;
    struct factCompVarsJN1Call hack1;
    struct factCompVarsJN2Call hack2;
+   struct lhsParseNode *firstNode;
 
    /*================================================================*/
    /* If two single field slots of a deftemplate are being compared, */
@@ -1129,18 +1135,21 @@ globle struct expr *FactJNVariableComparison(
       ClearBitString(&hack1,sizeof(struct factCompVarsJN1Call));
       hack1.pass = 0;
       hack1.fail = 0;
-      hack1.slot1 = (unsigned short) (selfNode->slotNumber - 1);
+
+      if (nandJoin)
+        { firstNode = referringNode; }
+      else
+        { firstNode = selfNode; }
+      
+      hack1.slot1 = (unsigned short) (firstNode->slotNumber - 1);
         
       if (nandJoin)
-        { hack1.pattern1 = (unsigned short) selfNode->joinDepth; }
+        { hack1.pattern1 = (unsigned short) referringNode->joinDepth; }
       else
         { hack1.pattern1 = 0; }
+        
       hack1.p1rhs = TRUE;
-
-      if (nandJoin && (selfNode->beginNandDepth == referringNode->beginNandDepth))
-        { hack1.p2rhs = TRUE; }
-      else
-        { hack1.p2lhs = TRUE; }
+      hack1.p2lhs = TRUE;
 
       hack1.pattern2 = (unsigned short) referringNode->joinDepth; 
       
@@ -1174,31 +1183,34 @@ globle struct expr *FactJNVariableComparison(
       ClearBitString(&hack2,sizeof(struct factCompVarsJN2Call));
       hack2.pass = 0;
       hack2.fail = 0;
-      hack2.slot1 = (unsigned short) (selfNode->slotNumber - 1);
-      
+
       if (nandJoin)
-        { hack2.pattern1 = (unsigned short) selfNode->joinDepth; }
+        { firstNode = referringNode; }
+      else
+        { firstNode = selfNode; }
+
+      hack2.slot1 = (unsigned short) (firstNode->slotNumber - 1);
+
+      if (nandJoin)
+        { hack2.pattern1 = (unsigned short) referringNode->joinDepth; }
       else
         { hack2.pattern1 = 0; }
+      
       hack2.p1rhs = TRUE;
-
-      if (nandJoin && (selfNode->beginNandDepth == referringNode->beginNandDepth))
-        { hack2.p2rhs = TRUE; }
-      else
-        { hack2.p2lhs = TRUE; }
+      hack2.p2lhs = TRUE;
         
       hack2.pattern2 = (unsigned short) referringNode->joinDepth; 
       hack2.slot2 = (unsigned short) (referringNode->slotNumber - 1);
 
-      if (selfNode->multiFieldsBefore == 0)
+      if (firstNode->multiFieldsBefore == 0)
         {
          hack2.fromBeginning1 = 1;
-         hack2.offset1 = selfNode->singleFieldsBefore;
+         hack2.offset1 = firstNode->singleFieldsBefore;
         }
       else
         {
          hack2.fromBeginning1 = 0;
-         hack2.offset1 = selfNode->singleFieldsAfter;
+         hack2.offset1 = firstNode->singleFieldsAfter;
         }
 
       if (referringNode->multiFieldsBefore == 0)
@@ -1236,10 +1248,7 @@ globle struct expr *FactJNVariableComparison(
       else
         { top->argList = FactGenGetvar(theEnv,selfNode,RHS); }
         
-      if (nandJoin && (selfNode->beginNandDepth == referringNode->beginNandDepth))
-        { top->argList->nextArg = FactGenGetvar(theEnv,referringNode,NESTED_RHS); }
-      else
-        { top->argList->nextArg = FactGenGetvar(theEnv,referringNode,LHS); }
+      top->argList->nextArg = FactGenGetvar(theEnv,referringNode,LHS);
      }
 
    /*======================================*/

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.22  06/15/04          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -15,6 +15,12 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Changed integer type/precision.                */
 /*                                                           */
 /*************************************************************/
 
@@ -103,12 +109,12 @@ globle void SetupDefinstancesBload(
   {
    AllocateEnvironmentData(theEnv,DFINSBIN_DATA,sizeof(struct definstancesBinaryData),DeallocateDefinstancesBinaryData);
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"definstances",0,BsaveDefinstancesFind,BsaveDefinstancesExpressions,
+   AddBinaryItem(theEnv,"definstances",0,BsaveDefinstancesFind,BsaveDefinstancesExpressions,
                              BsaveStorageDefinstances,BsaveDefinstancesDriver,
                              BloadStorageDefinstances,BloadDefinstances,
                              ClearDefinstancesBload);
 #else
-   AddBinaryItem(theEnv,(char*)"definstances",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"definstances",0,NULL,NULL,NULL,NULL,
                              BloadStorageDefinstances,BloadDefinstances,
                              ClearDefinstancesBload);
 #endif
@@ -194,17 +200,11 @@ static void BsaveDefinstancesFind(
   SIDE EFFECTS : Needed items marked
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void MarkDefinstancesItems(
   void *theEnv,
   struct constructHeader *theDefinstances,
   void *userBuffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(userBuffer)
-#endif
 
    MarkConstructHeaderNeededItems(theDefinstances,DefinstancesBinaryData(theEnv)->DefinstancesCount++);
    ExpressionData(theEnv)->ExpressionCount += ExpressionSize(((DEFINSTANCES *) theDefinstances)->mkinstance);
@@ -299,7 +299,7 @@ static void BsaveDefinstancesDriver(
    while (theModule != NULL)
      {
       theModuleItem = (DEFINSTANCES_MODULE *)
-                      GetModuleItem(theEnv,theModule,FindModuleItem(theEnv,(char*)"definstances")->moduleIndex);
+                      GetModuleItem(theEnv,theModule,FindModuleItem(theEnv,"definstances")->moduleIndex);
       AssignBsaveDefmdlItemHdrVals(&dummy_mitem.header,&theModuleItem->header);
       GenWrite((void *) &dummy_mitem,sizeof(BSAVE_DEFINSTANCES_MODULE),fp);
       theModule = (struct defmodule *) EnvGetNextDefmodule(theEnv,(void *) theModule);

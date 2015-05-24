@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                    MEMORY MODULE                    */
    /*******************************************************/
@@ -24,6 +24,17 @@
 /*                                                           */
 /*            Corrected code to remove compiler warnings.    */
 /*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems.                   */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Removed genlongalloc/genlongfree functions.    */
+/*                                                           */
+/*            Added get_mem and rtn_mem macros.              */
+/*                                                           */
+/*            Converted API macros to function calls.        */
+/*                                                           */
 /*************************************************************/
 
 #define _MEMORY_SOURCE_
@@ -41,9 +52,6 @@
 
 #include <stdlib.h>
 
-#if WIN_BTC
-#include <alloc.h>
-#endif
 #if WIN_MVC
 #include <malloc.h>
 #endif
@@ -80,8 +88,8 @@ globle void InitializeMemory(
 
    if (MemoryData(theEnv)->MemoryTable == NULL)
      {
-      PrintErrorID(theEnv,(char*)"MEMORY",1,TRUE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Out of memory.\n");
+      PrintErrorID(theEnv,"MEMORY",1,TRUE);
+      EnvPrintRouter(theEnv,WERROR,"Out of memory.\n");
       EnvExitRouter(theEnv,EXIT_FAILURE);
      }
 
@@ -96,7 +104,7 @@ globle void *genalloc(
   size_t size)
   {
    char *memPtr;
-               
+      
 #if   BLOCK_MEMORY
    memPtr = (char *) RequestChunk(theEnv,size);
    if (memPtr == NULL)
@@ -146,19 +154,13 @@ globle void *genalloc(
 /* DefaultOutOfMemoryFunction: Function called */
 /*   when the KB runs out of memory.           */
 /***********************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle int DefaultOutOfMemoryFunction(
   void *theEnv,
   size_t size)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(size)
-#endif
 
-   PrintErrorID(theEnv,(char*)"MEMORY",1,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Out of memory.\n");
+   PrintErrorID(theEnv,"MEMORY",1,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"Out of memory.\n");
    EnvExitRouter(theEnv,EXIT_FAILURE);
    return(TRUE);
   }
@@ -187,8 +189,8 @@ globle int genfree(
 #if BLOCK_MEMORY
    if (ReturnChunk(theEnv,waste,size) == FALSE)
      {
-      PrintErrorID(theEnv,(char*)"MEMORY",2,TRUE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Release error in genfree.\n");
+      PrintErrorID(theEnv,"MEMORY",2,TRUE);
+      EnvPrintRouter(theEnv,WERROR,"Release error in genfree.\n");
       return(-1);
      }
 #else
@@ -288,7 +290,7 @@ globle long int EnvReleaseMem(
    long int amount = 0;
 
    if (printMessage == TRUE)
-     { EnvPrintRouter(theEnv,WDIALOG,(char*)"\n*** DEALLOCATING MEMORY ***\n"); }
+     { EnvPrintRouter(theEnv,WDIALOG,"\n*** DEALLOCATING MEMORY ***\n"); }
 
    for (i = (MEM_TABLE_SIZE - 1) ; i >= (int) sizeof(char *) ; i--)
      {
@@ -308,13 +310,13 @@ globle long int EnvReleaseMem(
       if ((amount > maximum) && (maximum > 0))
         {
          if (printMessage == TRUE)
-           { EnvPrintRouter(theEnv,WDIALOG,(char*)"*** MEMORY  DEALLOCATED ***\n"); }
+           { EnvPrintRouter(theEnv,WDIALOG,"*** MEMORY  DEALLOCATED ***\n"); }
          return(amount);
         }
      }
 
    if (printMessage == TRUE)
-     { EnvPrintRouter(theEnv,WDIALOG,(char*)"*** MEMORY  DEALLOCATED ***\n"); }
+     { EnvPrintRouter(theEnv,WDIALOG,"*** MEMORY  DEALLOCATED ***\n"); }
 
    return(amount);
   }
@@ -417,7 +419,7 @@ globle int rm(
 
    if (size == 0)
      {
-      SystemError(theEnv,(char*)"MEMORY",1);
+      SystemError(theEnv,"MEMORY",1);
       EnvExitRouter(theEnv,EXIT_FAILURE);
      }
 
@@ -445,7 +447,7 @@ globle int rm3(
 
    if (size == 0)
      {
-      SystemError(theEnv,(char*)"MEMORY",1);
+      SystemError(theEnv,"MEMORY",1);
       EnvExitRouter(theEnv,EXIT_FAILURE);
      }
 
@@ -489,30 +491,7 @@ globle unsigned long PoolSize(
 globle unsigned long ActualPoolSize(
   void *theEnv)
   {
-#if WIN_BTC
-   register int i;
-   struct memoryPtr *memPtr;
-   unsigned long cnt = 0;
-
-   for (i = sizeof(char *) ; i < MEM_TABLE_SIZE ; i++)
-     {
-      memPtr = MemoryData(theEnv)->MemoryTable[i];
-      while (memPtr != NULL)
-        {
-         /*==============================================================*/
-         /* For a block of size n, the Turbo-C Library routines require  */
-         /* a header of size 8 bytes and further require that all memory */
-         /* allotments be paragraph (16-bytes) aligned.                  */
-         /*==============================================================*/
-
-         cnt += (((unsigned long) i) + 19L) & 0xfffffff0L;
-         memPtr = memPtr->next;
-        }
-     }
-   return(cnt);
-#else
    return(PoolSize(theEnv));
-#endif
   }
 
 /********************************************/
@@ -748,7 +727,7 @@ globle void *RequestChunk(
       blockPtr = blockPtr->nextBlock;
      }
 
-   SystemError(theEnv,(char*)"MEMORY",2);
+   SystemError(theEnv,"MEMORY",2);
    EnvExitRouter(theEnv,EXIT_FAILURE);
    return(NULL); /* Unreachable, but prevents warning. */
   }
@@ -996,4 +975,47 @@ globle void ReturnAllBlocks(
 
    MemoryData(theEnv)->TopMemoryBlock = NULL;
   }
-#endif
+
+#endif /* BLOCK_MEMORY */
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle intBool GetConserveMemory()
+  {
+   return EnvGetConserveMemory(GetCurrentEnvironment());
+  }
+
+globle long int MemRequests()
+  {
+   return EnvMemRequests(GetCurrentEnvironment());
+  }
+
+globle long int MemUsed()
+  {
+   return EnvMemUsed(GetCurrentEnvironment());
+  }
+
+globle long int ReleaseMem(
+  long int maximum,
+  int printMessage)
+  {
+   return EnvReleaseMem(GetCurrentEnvironment(),maximum,printMessage);
+  }
+
+globle intBool SetConserveMemory(
+  intBool value)
+  {
+   return EnvSetConserveMemory(GetCurrentEnvironment(),value);
+  }
+
+globle int (*SetOutOfMemoryFunction(void *theEnv,int (*functionPtr)(void *,size_t)))(void *,size_t)
+  {
+   return EnvSetOutOfMemoryFunction(GetCurrentEnvironment(),functionPtr);
+  }
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
+

@@ -1,8 +1,7 @@
-
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                FACT BSAVE/BLOAD MODULE              */
    /*******************************************************/
@@ -20,6 +19,8 @@
 /* Revision History:                                         */
 /*                                                           */
 /*      6.30: Added support for hashed alpha memories.       */
+/*                                                           */
+/*            Changed integer type/precision.                */
 /*                                                           */
 /*************************************************************/
 
@@ -90,13 +91,13 @@ globle void FactBinarySetup(
    AllocateEnvironmentData(theEnv,FACTBIN_DATA,sizeof(struct factBinaryData),DeallocateFactBloadData);
    
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"facts",0,BsaveFind,NULL,
+   AddBinaryItem(theEnv,"facts",0,BsaveFind,NULL,
                             BsaveStorage,BsaveFactPatterns,
                             BloadStorage,BloadBinaryItem,
                             ClearBload);
 #endif
 #if BLOAD || BLOAD_ONLY
-   AddBinaryItem(theEnv,(char*)"facts",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"facts",0,NULL,NULL,NULL,NULL,
                             BloadStorage,BloadBinaryItem,
                             ClearBload);
 #endif

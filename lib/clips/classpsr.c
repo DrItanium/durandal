@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.30  03/04/08          */
+   /*               CLIPS Version 6.30  08/22/14          */
    /*                                                     */
    /*                  CLASS PARSER MODULE                */
    /*******************************************************/
@@ -15,6 +15,7 @@
 /* Contributing Programmer(s):                                */
 /*                                                            */
 /* Revision History:                                          */
+/*                                                            */
 /*      6.24: Added allowed-classes slot facet.               */
 /*                                                            */
 /*            Converted INSTANCE_PATTERN_MATCHING to          */
@@ -24,6 +25,15 @@
 /*                                                            */
 /*      6.30: Added support to allow CreateClassScopeMap to   */
 /*            be used by other functions.                     */
+/*                                                            */
+/*            Changed integer type/precision.                 */
+/*                                                            */
+/*            GetConstructNameAndComment API change.          */
+/*                                                            */
+/*            Added const qualifiers to remove C++            */
+/*            deprecation warnings.                           */
+/*                                                            */
+/*            Converted API macros to function calls.         */
 /*                                                            */
 /**************************************************************/
 
@@ -61,15 +71,15 @@
                    CONSTANTS
    =========================================
    ***************************************** */
-#define ROLE_RLN             (char*)"role"
-#define ABSTRACT_RLN         (char*)"abstract"
-#define CONCRETE_RLN         (char*)"concrete"
+#define ROLE_RLN             "role"
+#define ABSTRACT_RLN         "abstract"
+#define CONCRETE_RLN         "concrete"
 
-#define HANDLER_DECL         (char*)"message-handler"
+#define HANDLER_DECL         "message-handler"
 
-#define SLOT_RLN             (char*)"slot"
-#define SGL_SLOT_RLN         (char*)"single-slot"
-#define MLT_SLOT_RLN         (char*)"multislot"
+#define SLOT_RLN             "slot"
+#define SGL_SLOT_RLN         "single-slot"
+#define MLT_SLOT_RLN         "multislot"
 
 #define DIRECT               0
 #define INHERIT              1
@@ -80,9 +90,9 @@
    =========================================
    ***************************************** */
 
-static intBool ValidClassName(void *,char *,DEFCLASS **);
-static intBool ParseSimpleQualifier(void *,char *,char *,char *,char *,intBool *,intBool *);
-static intBool ReadUntilClosingParen(void *,char *,struct token *);
+static intBool ValidClassName(void *,const char *,DEFCLASS **);
+static intBool ParseSimpleQualifier(void *,const char *,const char *,const char *,const char *,intBool *,intBool *);
+static intBool ReadUntilClosingParen(void *,const char *,struct token *);
 static void AddClass(void *,DEFCLASS *);
 static void BuildSubclassLinks(void *,DEFCLASS *);
 static void FormInstanceTemplate(void *,DEFCLASS *);
@@ -145,7 +155,7 @@ static void CreatePublicSlotMessageHandlers(void *,DEFCLASS *);
   ***************************************************************************************/
 globle int ParseDefclass(
   void *theEnv,
-  char *readSource)
+  const char *readSource)
   {
    SYMBOL_HN *cname;
    DEFCLASS *cls;
@@ -162,19 +172,19 @@ globle int ParseDefclass(
    SetPPBufferStatus(theEnv,ON);
    FlushPPBuffer(theEnv);
    SetIndentDepth(theEnv,3);
-   SavePPBuffer(theEnv,(char*)"(defclass ");
+   SavePPBuffer(theEnv,"(defclass ");
 
 #if BLOAD || BLOAD_ONLY || BLOAD_AND_BSAVE
    if ((Bloaded(theEnv)) && (! ConstructData(theEnv)->CheckSyntaxMode))
      {
-      CannotLoadWithBloadMessage(theEnv,(char*)"defclass");
+      CannotLoadWithBloadMessage(theEnv,"defclass");
       return(TRUE);
      }
 #endif
 
-   cname = GetConstructNameAndComment(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken,(char*)"defclass",
-                                      EnvFindDefclass,NULL,(char*)"#",TRUE,
-                                      TRUE,TRUE);
+   cname = GetConstructNameAndComment(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken,"defclass",
+                                      EnvFindDefclass,NULL,"#",TRUE,
+                                      TRUE,TRUE,FALSE);
    if (cname == NULL)
      return(TRUE);
 
@@ -196,17 +206,17 @@ globle int ParseDefclass(
      {
       if (GetType(DefclassData(theEnv)->ObjectParseToken) != LPAREN)
         {
-         SyntaxErrorMessage(theEnv,(char*)"defclass");
+         SyntaxErrorMessage(theEnv,"defclass");
          parseError = TRUE;
          break;
         }
       PPBackup(theEnv);
       PPCRAndIndent(theEnv);
-      SavePPBuffer(theEnv,(char*)"(");
+      SavePPBuffer(theEnv,"(");
       GetToken(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken);
       if (GetType(DefclassData(theEnv)->ObjectParseToken) != SYMBOL)
         {
-         SyntaxErrorMessage(theEnv,(char*)"defclass");
+         SyntaxErrorMessage(theEnv,"defclass");
          parseError = TRUE;
          break;
         }
@@ -267,7 +277,7 @@ globle int ParseDefclass(
         }
       else
         {
-         SyntaxErrorMessage(theEnv,(char*)"defclass");
+         SyntaxErrorMessage(theEnv,"defclass");
          parseError = TRUE;
          break;
         }
@@ -281,7 +291,7 @@ globle int ParseDefclass(
       DeleteSlots(theEnv,slots);
       return(TRUE);
      }
-   SavePPBuffer(theEnv,(char*)"\n");
+   SavePPBuffer(theEnv,"\n");
 
    /* =========================================================================
       The abstract/reactive qualities of a class are inherited if not specified
@@ -312,8 +322,8 @@ globle int ParseDefclass(
       ================================================================ */
    if (abstract && reactive)
      {
-      PrintErrorID(theEnv,(char*)"CLASSPSR",1,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"An abstract class cannot be reactive.\n");
+      PrintErrorID(theEnv,"CLASSPSR",1,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"An abstract class cannot be reactive.\n");
       DeletePackedClassLinks(theEnv,sclasses,TRUE);
       DeletePackedClassLinks(theEnv,preclist,TRUE);
       DeleteSlots(theEnv,slots);
@@ -386,7 +396,7 @@ globle int ParseDefclass(
  ***********************************************************/
 static intBool ValidClassName(
   void *theEnv,
-  char *theClassName,
+  const char *theClassName,
   DEFCLASS **theDefclass)
   {
    *theDefclass = (DEFCLASS *) EnvFindDefclass(theEnv,theClassName);
@@ -398,8 +408,8 @@ static intBool ValidClassName(
          =================================== */
       if ((*theDefclass)->system)
         {
-         PrintErrorID(theEnv,(char*)"CLASSPSR",2,FALSE);
-         EnvPrintRouter(theEnv,WERROR,(char*)"Cannot redefine a predefined system class.\n");
+         PrintErrorID(theEnv,"CLASSPSR",2,FALSE);
+         EnvPrintRouter(theEnv,WERROR,"Cannot redefine a predefined system class.\n");
          return(FALSE);
         }
 
@@ -411,10 +421,10 @@ static intBool ValidClassName(
       if ((EnvIsDefclassDeletable(theEnv,(void *) *theDefclass) == FALSE) &&
           (! ConstructData(theEnv)->CheckSyntaxMode))
         {
-         PrintErrorID(theEnv,(char*)"CLASSPSR",3,FALSE);
+         PrintErrorID(theEnv,"CLASSPSR",3,FALSE);
          EnvPrintRouter(theEnv,WERROR,EnvGetDefclassName(theEnv,(void *) *theDefclass));
-         EnvPrintRouter(theEnv,WERROR,(char*)" class cannot be redefined while\n");
-         EnvPrintRouter(theEnv,WERROR,(char*)"    outstanding references to it still exist.\n");
+         EnvPrintRouter(theEnv,WERROR," class cannot be redefined while\n");
+         EnvPrintRouter(theEnv,WERROR,"    outstanding references to it still exist.\n");
          return(FALSE);
         }
      }
@@ -441,22 +451,22 @@ static intBool ValidClassName(
  ***************************************************************/
 static intBool ParseSimpleQualifier(
   void *theEnv,
-  char *readSource,
-  char *classQualifier,
-  char *clearRelation,
-  char *setRelation,
+  const char *readSource,
+  const char *classQualifier,
+  const char *clearRelation,
+  const char *setRelation,
   intBool *alreadyTestedFlag,
   intBool *binaryFlag)
   {
    if (*alreadyTestedFlag)
      {
-      PrintErrorID(theEnv,(char*)"CLASSPSR",4,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Class ");
+      PrintErrorID(theEnv,"CLASSPSR",4,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Class ");
       EnvPrintRouter(theEnv,WERROR,classQualifier);
-      EnvPrintRouter(theEnv,WERROR,(char*)" already declared.\n");
+      EnvPrintRouter(theEnv,WERROR," already declared.\n");
       return(FALSE);
      }
-   SavePPBuffer(theEnv,(char*)" ");
+   SavePPBuffer(theEnv," ");
    GetToken(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken);
    if (GetType(DefclassData(theEnv)->ObjectParseToken) != SYMBOL)
      goto ParseSimpleQualifierError;
@@ -473,7 +483,7 @@ static intBool ParseSimpleQualifier(
    return(TRUE);
 
 ParseSimpleQualifierError:
-   SyntaxErrorMessage(theEnv,(char*)"defclass");
+   SyntaxErrorMessage(theEnv,"defclass");
    return(FALSE);
   }
 
@@ -491,7 +501,7 @@ ParseSimpleQualifierError:
  ***************************************************/
 static intBool ReadUntilClosingParen(
   void *theEnv,
-  char *readSource,
+  const char *readSource,
   struct token *inputToken)
   {
    int cnt = 1,lparen_read = FALSE;
@@ -499,11 +509,11 @@ static intBool ReadUntilClosingParen(
    do
      {
       if (lparen_read == FALSE)
-        SavePPBuffer(theEnv,(char*)" ");
+        SavePPBuffer(theEnv," ");
       GetToken(theEnv,readSource,inputToken);
       if (inputToken->type == STOP)
         {
-         SyntaxErrorMessage(theEnv,(char*)"message-handler declaration");
+         SyntaxErrorMessage(theEnv,"message-handler declaration");
          return(FALSE);
         }
       else if (inputToken->type == LPAREN)
@@ -518,7 +528,7 @@ static intBool ReadUntilClosingParen(
            {
             PPBackup(theEnv);
             PPBackup(theEnv);
-            SavePPBuffer(theEnv,(char*)")");
+            SavePPBuffer(theEnv,")");
            }
          lparen_read = FALSE;
         }
@@ -600,7 +610,7 @@ static void AddClass(
 
 #if DEBUGGING_FUNCTIONS
    if (EnvGetConserveMemory(theEnv) == FALSE)
-     SetDefclassPPForm((void *) cls,CopyPPBuffer(theEnv));
+     EnvSetDefclassPPForm(theEnv,(void *) cls,CopyPPBuffer(theEnv));
 #endif
 
 #if DEFMODULE_CONSTRUCT
@@ -850,7 +860,7 @@ globle void *CreateClassScopeMap(
   {
    unsigned scopeMapSize;
    char *scopeMap;
-   char *className;
+   const char *className;
    struct defmodule *matchModule,
                     *theModule;
    int moduleID,count;
@@ -870,7 +880,7 @@ globle void *CreateClassScopeMap(
      {
       EnvSetCurrentModule(theEnv,(void *) theModule);
       moduleID = (int) theModule->bsaveID;
-      if (FindImportedConstruct(theEnv,(char*)"defclass",matchModule,
+      if (FindImportedConstruct(theEnv,"defclass",matchModule,
                                 className,&count,TRUE,NULL) != NULL)
         SetBitMap(scopeMap,moduleID);
      }

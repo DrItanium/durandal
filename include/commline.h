@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*              COMMAND LINE HEADER FILE               */
    /*******************************************************/
@@ -23,6 +23,32 @@
 /*            additional functions for use by an interface   */
 /*            layered on top of CLIPS.                       */
 /*                                                           */
+/*      6.30: Local variables set with the bind function     */
+/*            persist until a reset/clear command is issued. */
+/*                                                           */
+/*            Changed garbage collection algorithm.          */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Metrowerks CodeWarrior (MAC_MCW, IBM_MCW) is   */
+/*            no longer supported.                           */
+/*                                                           */
+/*            UTF-8 support.                                 */
+/*                                                           */
+/*            Command history and editing support            */
+/*                                                           */
+/*            Used genstrcpy instead of strcpy.              */
+/*                                                           */             
+/*            Added before command execution callback        */
+/*            function.                                      */
+/*                                                           */  
+/*            Fixed RouteCommand return value.               */           
+/*                                                           */             
+/*            Added AwaitingInput flag.                      */
+/*                                                           */             
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
 /*************************************************************/
 
 #ifndef _H_commline
@@ -40,7 +66,7 @@ struct commandLineData
    char *CommandString;
    size_t MaximumCharacters;
    int ParsingTopLevelCommand;
-   char *BannerString;
+   const char *BannerString;
    int (*EventFunction)(void *);
    int (*AfterPromptFunction)(void *);
    int (*BeforeCommandExecutionFunction)(void *);
@@ -62,11 +88,11 @@ struct commandLineData
    LOCALE void                           InitializeCommandLineData(void *);
    LOCALE int                            ExpandCommandString(void *,int);
    LOCALE void                           FlushCommandString(void *);
-   LOCALE void                           SetCommandString(void *,char *);
-   LOCALE void                           AppendCommandString(void *,char *);
-   LOCALE void                           InsertCommandString(void *,char *,unsigned);
+   LOCALE void                           SetCommandString(void *,const char *);
+   LOCALE void                           AppendCommandString(void *,const char *);
+   LOCALE void                           InsertCommandString(void *,const char *,unsigned);
    LOCALE char                          *GetCommandString(void *);
-   LOCALE int                            CompleteCommand(char *);
+   LOCALE int                            CompleteCommand(const char *);
    LOCALE void                           CommandLoop(void *);
    LOCALE void                           CommandLoopBatch(void *);
    LOCALE void                           CommandLoopBatchDriver(void *);
@@ -74,12 +100,12 @@ struct commandLineData
    LOCALE void                           PrintBanner(void *);
    LOCALE void                           SetAfterPromptFunction(void *,int (*)(void *));
    LOCALE void                           SetBeforeCommandExecutionFunction(void *,int (*)(void *));
-   LOCALE intBool                        RouteCommand(void *,char *,int);
+   LOCALE intBool                        RouteCommand(void *,const char *,int);
    LOCALE int                          (*SetEventFunction(void *,int (*)(void *)))(void *);
    LOCALE intBool                        TopLevelCommand(void *);
-   LOCALE void                           AppendNCommandString(void *,char *,unsigned);
-   LOCALE void                           SetNCommandString(void *,char *,unsigned);
-   LOCALE char                          *GetCommandCompletionString(void *,char *,size_t);
+   LOCALE void                           AppendNCommandString(void *,const char *,unsigned);
+   LOCALE void                           SetNCommandString(void *,const char *,unsigned);
+   LOCALE const char                    *GetCommandCompletionString(void *,const char *,size_t);
    LOCALE intBool                        ExecuteIfCommandComplete(void *);
    LOCALE void                           CommandLoopOnceThenBatch(void *);
    LOCALE intBool                        CommandCompleteAndNotEmpty(void *);

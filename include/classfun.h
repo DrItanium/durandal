@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  05/17/06          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -21,6 +21,19 @@
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
 /*                                                           */
+/*      6.30: Borland C (IBM_TBC) and Metrowerks CodeWarrior */
+/*            (MAC_MCW, IBM_MCW) are no longer supported.    */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Changed garbage collection algorithm.          */
+/*                                                           */
+/*            Used genstrcpy and genstrcat instead of strcpy */
+/*            and strcat.                                    */
+/*                                                           */             
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
 /*************************************************************/
 
 #ifndef _H_classfun
@@ -37,7 +50,7 @@
 #define CLASS_TABLE_HASH_SIZE     167
 #define SLOT_NAME_TABLE_HASH_SIZE 167
 
-#define INITIAL_OBJECT_CLASS_NAME (char*)"INITIAL-OBJECT"
+#define INITIAL_OBJECT_CLASS_NAME "INITIAL-OBJECT"
 
 #define ISA_ID  0
 #define NAME_ID 1
@@ -60,12 +73,12 @@ LOCALE intBool InstancesPurge(void *theEnv);
 LOCALE void InitializeClasses(void *);
 #endif
 LOCALE SLOT_DESC *FindClassSlot(DEFCLASS *,SYMBOL_HN *);
-LOCALE void ClassExistError(void *,char *,char *);
+LOCALE void ClassExistError(void *,const char *,const char *);
 LOCALE void DeleteClassLinks(void *,CLASS_LINK *);
-LOCALE void PrintClassName(void *,char *,DEFCLASS *,intBool);
+LOCALE void PrintClassName(void *,const char *,DEFCLASS *,intBool);
 
 #if DEBUGGING_FUNCTIONS || ((! BLOAD_ONLY) && (! RUN_TIME))
-LOCALE void PrintPackedClassLinks(void *,char *,char *,PACKED_CLASS_LINKS *);
+LOCALE void PrintPackedClassLinks(void *,const char *,const char *,PACKED_CLASS_LINKS *);
 #endif
 
 #if ! RUN_TIME

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.23  01/31/05            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*          DEFTEMPLATE CONSTRUCTS-TO-C MODULE         */
    /*******************************************************/
@@ -17,8 +17,25 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Added support for templates maintaining their  */
 /*            own list of facts.                             */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Support for deftemplate slot facets.           */
+/*                                                           */
+/*            Added code for deftemplate run time            */
+/*            initialization of hashed comparisons to        */
+/*            constants.                                     */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -45,7 +62,7 @@
 /* LOCAL INTERNAL FUNCTION DEFINITIONS */
 /***************************************/
 
-   static int                     ConstructToCode(void *,char *,char *,char *,int,FILE *,int,int);
+   static int                     ConstructToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
    static void                    SlotToCode(void *,FILE *,struct templateSlot *,int,int,int);
    static void                    DeftemplateModuleToCode(void *,FILE *,struct defmodule *,int,int,int);
    static void                    DeftemplateToCode(void *,FILE *,struct deftemplate *,
@@ -60,7 +77,7 @@
 globle void DeftemplateCompilerSetup(
   void *theEnv)
   {
-   DeftemplateData(theEnv)->DeftemplateCodeItem = AddCodeGeneratorItem(theEnv,(char*)"deftemplate",0,NULL,InitDeftemplateCode,ConstructToCode,3);
+   DeftemplateData(theEnv)->DeftemplateCodeItem = AddCodeGeneratorItem(theEnv,"deftemplate",0,NULL,InitDeftemplateCode,ConstructToCode,3);
   }
 
 /*************************************************************/
@@ -69,8 +86,8 @@ globle void DeftemplateCompilerSetup(
 /*************************************************************/
 static int ConstructToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -106,7 +123,7 @@ static int ConstructToCode(
 
       moduleFile = OpenFileIfNeeded(theEnv,moduleFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                     moduleArrayVersion,headerFP,
-                                    (char*)"struct deftemplateModule",ModulePrefix(DeftemplateData(theEnv)->DeftemplateCodeItem),
+                                    "struct deftemplateModule",ModulePrefix(DeftemplateData(theEnv)->DeftemplateCodeItem),
                                     FALSE,NULL);
 
       if (moduleFile == NULL)
@@ -129,7 +146,7 @@ static int ConstructToCode(
         {
          templateFile = OpenFileIfNeeded(theEnv,templateFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                          templateArrayVersion,headerFP,
-                                         (char*)"struct deftemplate",ConstructPrefix(DeftemplateData(theEnv)->DeftemplateCodeItem),
+                                         "struct deftemplate",ConstructPrefix(DeftemplateData(theEnv)->DeftemplateCodeItem),
                                          FALSE,NULL);
          if (templateFile == NULL)
            {
@@ -152,7 +169,7 @@ static int ConstructToCode(
            {
             slotFile = OpenFileIfNeeded(theEnv,slotFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                         slotArrayVersion,headerFP,
-                                       (char*)"struct templateSlot",SlotPrefix(),FALSE,NULL);
+                                       "struct templateSlot",SlotPrefix(),FALSE,NULL);
             if (slotFile == NULL)
               {
                CloseDeftemplateFiles(theEnv,moduleFile,templateFile,slotFile,maxIndices);
@@ -219,9 +236,6 @@ static void CloseDeftemplateFiles(
 /* DeftemplateModuleToCode: Writes the C code representation */
 /*   of a single deftemplate module to the specified file.   */
 /*************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void DeftemplateModuleToCode(
   void *theEnv,
   FILE *theFile,
@@ -230,9 +244,6 @@ static void DeftemplateModuleToCode(
   int maxIndices,
   int moduleCount)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(moduleCount)
-#endif
 
    fprintf(theFile,"{");
 
@@ -411,20 +422,12 @@ globle void DeftemplateCConstructReference(
 /* InitDeftemplateCode: Writes out runtime */
 /*   initialization code for deftemplates. */
 /*******************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void InitDeftemplateCode(
   void *theEnv,
   FILE *initFP,
   int imageID,
   int maxIndices)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#pragma unused(imageID)
-#pragma unused(maxIndices)
-#endif
 
    fprintf(initFP,"   DeftemplateRunTimeInitialize(theEnv);\n");
   }

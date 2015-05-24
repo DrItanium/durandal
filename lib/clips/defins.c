@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/02/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                  DEFINSTANCES MODULE                */
    /*******************************************************/
@@ -17,6 +17,7 @@
 /*                                                           */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*            Corrected compilation errors for files         */
@@ -30,6 +31,17 @@
 /*            DEFRULE_CONSTRUCT.                             */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            GetConstructNameAndComment API change.         */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -87,12 +99,12 @@
    ***************************************** */
 
 #if (! BLOAD_ONLY) && (! RUN_TIME)
-static int ParseDefinstances(void *,char *);
-static SYMBOL_HN *ParseDefinstancesName(void *,char *,int *);
+static int ParseDefinstances(void *,const char *);
+static SYMBOL_HN *ParseDefinstancesName(void *,const char *,int *);
 static void RemoveDefinstances(void *,void *);
-static void SaveDefinstances(void *,void *,char *);
+static void SaveDefinstances(void *,void *,const char *);
 static intBool RemoveAllDefinstances(void *);
-static void DefinstancesDeleteError(void *,char *);
+static void DefinstancesDeleteError(void *,const char *);
 
 #if DEFRULE_CONSTRUCT
 static void CreateInitialDefinstances(void *);
@@ -132,7 +144,7 @@ globle void SetupDefinstances(
    AllocateEnvironmentData(theEnv,DEFINSTANCES_DATA,sizeof(struct definstancesData),DeallocateDefinstancesData);
 
    DefinstancesData(theEnv)->DefinstancesModuleIndex =
-                RegisterModuleItem(theEnv,(char*)"definstances",
+                RegisterModuleItem(theEnv,"definstances",
 #if (! RUN_TIME)
                                     AllocateModule,ReturnModule,
 #else
@@ -151,7 +163,7 @@ globle void SetupDefinstances(
                                     EnvFindDefinstances);
 
    DefinstancesData(theEnv)->DefinstancesConstruct =
-      AddConstruct(theEnv,(char*)"definstances",(char*)"definstances",
+      AddConstruct(theEnv,"definstances","definstances",
 #if (! BLOAD_ONLY) && (! RUN_TIME)
                    ParseDefinstances,
 #else
@@ -169,30 +181,30 @@ globle void SetupDefinstances(
                    );
 
 #if ! RUN_TIME
-   AddClearReadyFunction(theEnv,(char*)"definstances",ClearDefinstancesReady,0);
+   AddClearReadyFunction(theEnv,"definstances",ClearDefinstancesReady,0);
 
 #if ! BLOAD_ONLY
-   EnvDefineFunction2(theEnv,(char*)"undefinstances",'v',PTIEF UndefinstancesCommand,(char*)"UndefinstancesCommand",(char*)"11w");
-   AddSaveFunction(theEnv,(char*)"definstances",SaveDefinstances,0);
+   EnvDefineFunction2(theEnv,"undefinstances",'v',PTIEF UndefinstancesCommand,"UndefinstancesCommand","11w");
+   AddSaveFunction(theEnv,"definstances",SaveDefinstances,0);
 
 #if DEFRULE_CONSTRUCT
-   EnvAddClearFunction(theEnv,(char*)"definstances",CreateInitialDefinstances,-1000);
+   EnvAddClearFunction(theEnv,"definstances",CreateInitialDefinstances,-1000);
 #endif
 
 #endif
 
 #if DEBUGGING_FUNCTIONS
-   EnvDefineFunction2(theEnv,(char*)"ppdefinstances",'v',PTIEF PPDefinstancesCommand ,(char*)"PPDefinstancesCommand",(char*)"11w");
-   EnvDefineFunction2(theEnv,(char*)"list-definstances",'v',PTIEF ListDefinstancesCommand,(char*)"ListDefinstancesCommand",(char*)"01");
+   EnvDefineFunction2(theEnv,"ppdefinstances",'v',PTIEF PPDefinstancesCommand ,"PPDefinstancesCommand","11w");
+   EnvDefineFunction2(theEnv,"list-definstances",'v',PTIEF ListDefinstancesCommand,"ListDefinstancesCommand","01");
 #endif
 
-   EnvDefineFunction2(theEnv,(char*)"get-definstances-list",'m',PTIEF GetDefinstancesListFunction,
-                   (char*)"GetDefinstancesListFunction",(char*)"01");
-   EnvDefineFunction2(theEnv,(char*)"definstances-module",'w',PTIEF GetDefinstancesModuleCommand,
-                   (char*)"GetDefinstancesModuleCommand",(char*)"11w");
+   EnvDefineFunction2(theEnv,"get-definstances-list",'m',PTIEF GetDefinstancesListFunction,
+                   "GetDefinstancesListFunction","01");
+   EnvDefineFunction2(theEnv,"definstances-module",'w',PTIEF GetDefinstancesModuleCommand,
+                   "GetDefinstancesModuleCommand","11w");
 
 #endif
-   EnvAddResetFunction(theEnv,(char*)"definstances",(void (*)(void *)) ResetDefinstances,0);
+   EnvAddResetFunction(theEnv,"definstances",(void (*)(void *)) ResetDefinstances,0);
 
 #if BLOAD || BLOAD_ONLY || BLOAD_AND_BSAVE
    SetupDefinstancesBload(theEnv);
@@ -230,9 +242,6 @@ static void DeallocateDefinstancesData(
       rtn_struct(theEnv,definstancesModule,theModuleItem);
      }
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
   }
 
@@ -241,17 +250,11 @@ static void DeallocateDefinstancesData(
 /* DestroyDefinstancesAction: Action used to remove  */
 /*   definstances as a result of DestroyEnvironment. */
 /*****************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void DestroyDefinstancesAction(
   void *theEnv,
   struct constructHeader *theConstruct,
   void *buffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(buffer)
-#endif
 #if (! BLOAD_ONLY) && (! RUN_TIME)
    struct definstances *theDefinstances = (struct definstances *) theConstruct;
    
@@ -263,9 +266,6 @@ static void DestroyDefinstancesAction(
 
    rtn_struct(theEnv,definstances,theDefinstances);
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theConstruct,theEnv)
-#endif
 #endif
   }
 #endif
@@ -300,7 +300,7 @@ globle void *EnvGetNextDefinstances(
  ***************************************************/
 globle void *EnvFindDefinstances(
   void *theEnv,
-  char *name)
+  const char *name)
   {
    return(FindNamedConstruct(theEnv,name,DefinstancesData(theEnv)->DefinstancesConstruct));
   }
@@ -335,7 +335,7 @@ globle int EnvIsDefinstancesDeletable(
 globle void UndefinstancesCommand(
   void *theEnv)
   {
-   UndefconstructCommand(theEnv,(char*)"undefinstances",DefinstancesData(theEnv)->DefinstancesConstruct);
+   UndefconstructCommand(theEnv,"undefinstances",DefinstancesData(theEnv)->DefinstancesConstruct);
   }
 
 /*****************************************************************
@@ -349,7 +349,7 @@ globle void UndefinstancesCommand(
 globle void *GetDefinstancesModuleCommand(
   void *theEnv)
   {
-   return(GetConstructModuleCommand(theEnv,(char*)"definstances-module",DefinstancesData(theEnv)->DefinstancesConstruct));
+   return(GetConstructModuleCommand(theEnv,"definstances-module",DefinstancesData(theEnv)->DefinstancesConstruct));
   }
 
 /***********************************************************
@@ -366,9 +366,6 @@ globle intBool EnvUndefinstances(
   void *vptr)
   {
 #if RUN_TIME || BLOAD_ONLY
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv,vptr)
-#endif
    return(FALSE);
 #else
    DEFINSTANCES *dptr;
@@ -402,7 +399,7 @@ globle intBool EnvUndefinstances(
 globle void PPDefinstancesCommand(
   void *theEnv)
   {
-   PPConstructCommand(theEnv,(char*)"ppdefinstances",DefinstancesData(theEnv)->DefinstancesConstruct);
+   PPConstructCommand(theEnv,"ppdefinstances",DefinstancesData(theEnv)->DefinstancesConstruct);
   }
 
 /***************************************************
@@ -416,7 +413,7 @@ globle void PPDefinstancesCommand(
 globle void ListDefinstancesCommand(
   void *theEnv)
   {
-   ListConstructCommand(theEnv,(char*)"list-definstances",DefinstancesData(theEnv)->DefinstancesConstruct);
+   ListConstructCommand(theEnv,"list-definstances",DefinstancesData(theEnv)->DefinstancesConstruct);
   }
 
 /***************************************************
@@ -430,7 +427,7 @@ globle void ListDefinstancesCommand(
  ***************************************************/
 globle void EnvListDefinstances(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   struct defmodule *theModule)
   {
    ListConstruct(theEnv,DefinstancesData(theEnv)->DefinstancesConstruct,logicalName,theModule);
@@ -452,7 +449,7 @@ globle void GetDefinstancesListFunction(
   void *theEnv,
   DATA_OBJECT*returnValue)
   {
-   GetConstructListFunction(theEnv,(char*)"get-definstances-list",returnValue,DefinstancesData(theEnv)->DefinstancesConstruct);
+   GetConstructListFunction(theEnv,"get-definstances-list",returnValue,DefinstancesData(theEnv)->DefinstancesConstruct);
   }
 
 /***************************************************************
@@ -500,7 +497,7 @@ globle void EnvGetDefinstancesList(
  *********************************************************************/
 static int ParseDefinstances(
   void *theEnv,
-  char *readSource)
+  const char *readSource)
   {
    SYMBOL_HN *dname;
    void *mkinsfcall;
@@ -511,12 +508,12 @@ static int ParseDefinstances(
    SetPPBufferStatus(theEnv,ON);
    FlushPPBuffer(theEnv);
    SetIndentDepth(theEnv,3);
-   SavePPBuffer(theEnv,(char*)"(definstances ");
+   SavePPBuffer(theEnv,"(definstances ");
 
 #if BLOAD || BLOAD_AND_BSAVE
    if ((Bloaded(theEnv)) && (! ConstructData(theEnv)->CheckSyntaxMode))
      {
-      CannotLoadWithBloadMessage(theEnv,(char*)"definstances");
+      CannotLoadWithBloadMessage(theEnv,"definstances");
       return(TRUE);
      }
 #endif
@@ -525,16 +522,16 @@ static int ParseDefinstances(
      return(TRUE);
 
    dobj = get_struct(theEnv,definstances);
-   InitializeConstructHeader(theEnv,(char*)"definstances",(struct constructHeader *) dobj,dname);
+   InitializeConstructHeader(theEnv,"definstances",(struct constructHeader *) dobj,dname);
    dobj->busy = 0;
    dobj->mkinstance = NULL;
 #if DEFRULE_CONSTRUCT
    if (active)
-     mkinsfcall = (void *) FindFunction(theEnv,(char*)"active-make-instance");
+     mkinsfcall = (void *) FindFunction(theEnv,"active-make-instance");
    else
-     mkinsfcall = (void *) FindFunction(theEnv,(char*)"make-instance");
+     mkinsfcall = (void *) FindFunction(theEnv,"make-instance");
 #else
-   mkinsfcall = (void *) FindFunction(theEnv,(char*)"make-instance");
+   mkinsfcall = (void *) FindFunction(theEnv,"make-instance");
 #endif
    while (GetType(DefclassData(theEnv)->ObjectParseToken) == LPAREN)
      {
@@ -548,7 +545,7 @@ static int ParseDefinstances(
         }
       if (ExpressionContainsVariables(mkinstance,FALSE) == TRUE)
         {
-         LocalVariableErrorMessage(theEnv,(char*)"definstances");
+         LocalVariableErrorMessage(theEnv,"definstances");
          ReturnExpression(theEnv,mkinstance);
          ReturnExpression(theEnv,dobj->mkinstance);
          rtn_struct(theEnv,definstances,dobj);
@@ -569,7 +566,7 @@ static int ParseDefinstances(
      {
       ReturnExpression(theEnv,dobj->mkinstance);
       rtn_struct(theEnv,definstances,dobj);
-      SyntaxErrorMessage(theEnv,(char*)"definstances");
+      SyntaxErrorMessage(theEnv,"definstances");
       return(TRUE);
      }
    else
@@ -586,14 +583,14 @@ static int ParseDefinstances(
          if (dobj->mkinstance != NULL)
            PPBackup(theEnv);
          PPBackup(theEnv);
-         SavePPBuffer(theEnv,(char*)")\n");
-         SetDefinstancesPPForm((void *) dobj,CopyPPBuffer(theEnv));
+         SavePPBuffer(theEnv,")\n");
+         EnvSetDefinstancesPPForm(theEnv,(void *) dobj,CopyPPBuffer(theEnv));
         }
 #endif
       mkinstance = dobj->mkinstance;
       dobj->mkinstance = PackExpression(theEnv,mkinstance);
       ReturnExpression(theEnv,mkinstance);
-      IncrementSymbolCount(GetDefinstancesNamePointer((void *) dobj));
+      IncrementSymbolCount(EnvGetDefinstancesNamePointer(theEnv,(void *) dobj));
       ExpressionInstall(theEnv,dobj->mkinstance);
      }
 
@@ -617,15 +614,15 @@ static int ParseDefinstances(
  *************************************************************/
 static SYMBOL_HN *ParseDefinstancesName(
   void *theEnv,
-  char *readSource,
+  const char *readSource,
   int *active)
   {
    SYMBOL_HN *dname;
 
    *active = FALSE;
-   dname = GetConstructNameAndComment(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken,(char*)"definstances",
-                                      EnvFindDefinstances,EnvUndefinstances,(char*)"@",
-                                      TRUE,FALSE,TRUE);
+   dname = GetConstructNameAndComment(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken,"definstances",
+                                      EnvFindDefinstances,EnvUndefinstances,"@",
+                                      TRUE,FALSE,TRUE,FALSE);
    if (dname == NULL)
      return(NULL);
 
@@ -635,7 +632,7 @@ static SYMBOL_HN *ParseDefinstancesName(
      {
       PPBackup(theEnv);
       PPBackup(theEnv);
-      SavePPBuffer(theEnv,(char*)" ");
+      SavePPBuffer(theEnv," ");
       SavePPBuffer(theEnv,DefclassData(theEnv)->ObjectParseToken.printForm);
       PPCRAndIndent(theEnv);
       GetToken(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken);
@@ -646,7 +643,7 @@ static SYMBOL_HN *ParseDefinstancesName(
      {
       PPBackup(theEnv);
       PPBackup(theEnv);
-      SavePPBuffer(theEnv,(char*)" ");
+      SavePPBuffer(theEnv," ");
       SavePPBuffer(theEnv,DefclassData(theEnv)->ObjectParseToken.printForm);
       PPCRAndIndent(theEnv);
       GetToken(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken);
@@ -668,10 +665,10 @@ static void RemoveDefinstances(
   {
    DEFINSTANCES *dptr = (DEFINSTANCES *) vdptr;
 
-   DecrementSymbolCount(theEnv,GetDefinstancesNamePointer((void *) dptr));
+   DecrementSymbolCount(theEnv,EnvGetDefinstancesNamePointer(theEnv,(void *) dptr));
    ExpressionDeinstall(theEnv,dptr->mkinstance);
    ReturnPackedExpression(theEnv,dptr->mkinstance);
-   SetDefinstancesPPForm((void *) dptr,NULL);
+   EnvSetDefinstancesPPForm(theEnv,(void *) dptr,NULL);
    ClearUserDataList(theEnv,dptr->header.usrData);
    rtn_struct(theEnv,definstances,dptr);
   }
@@ -688,7 +685,7 @@ static void RemoveDefinstances(
 static void SaveDefinstances(
   void *theEnv,
   void *theModule,
-  char *logName)
+  const char *logName)
   {
    SaveConstruct(theEnv,theModule,logName,DefinstancesData(theEnv)->DefinstancesConstruct);
   }
@@ -744,9 +741,9 @@ static intBool RemoveAllDefinstances(
  ***************************************************/
 static void DefinstancesDeleteError(
   void *theEnv,
-  char *dname)
+  const char *dname)
   {
-   CantDeleteItemErrorMessage(theEnv,(char*)"definstances",dname);
+   CantDeleteItemErrorMessage(theEnv,"definstances",dname);
   }
 
 #if DEFRULE_CONSTRUCT
@@ -769,16 +766,16 @@ static void CreateInitialDefinstances(
    DEFINSTANCES *theDefinstances;
 
    theDefinstances = get_struct(theEnv,definstances);
-   InitializeConstructHeader(theEnv,(char*)"definstances",(struct constructHeader *) theDefinstances,
+   InitializeConstructHeader(theEnv,"definstances",(struct constructHeader *) theDefinstances,
                              DefclassData(theEnv)->INITIAL_OBJECT_SYMBOL);
    theDefinstances->busy = 0;
-   tmp = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,(char*)"make-instance"));
+   tmp = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,"make-instance"));
    tmp->argList = GenConstant(theEnv,INSTANCE_NAME,(void *) DefclassData(theEnv)->INITIAL_OBJECT_SYMBOL);
    tmp->argList->nextArg =
        GenConstant(theEnv,DEFCLASS_PTR,(void *) LookupDefclassInScope(theEnv,INITIAL_OBJECT_CLASS_NAME));
    theDefinstances->mkinstance = PackExpression(theEnv,tmp);
    ReturnExpression(theEnv,tmp);
-   IncrementSymbolCount(GetDefinstancesNamePointer((void *) theDefinstances));
+   IncrementSymbolCount(EnvGetDefinstancesNamePointer(theEnv,(void *) theDefinstances));
    ExpressionInstall(theEnv,theDefinstances->mkinstance);
    AddConstructToModule((struct constructHeader *) theDefinstances);
   }
@@ -859,17 +856,11 @@ static intBool ClearDefinstancesReady(
                  if definstances is not busy
                  (assumed to be initialized to 1)
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void CheckDefinstancesBusy(
   void *theEnv,
   struct constructHeader *theDefinstances,
   void *userBuffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    if (((DEFINSTANCES *) theDefinstances)->busy > 0)
      * (int *) userBuffer = FALSE;
@@ -907,17 +898,11 @@ static void ResetDefinstances(
   SIDE EFFECTS : Instances created
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void ResetDefinstancesAction(
   void *theEnv,
   struct constructHeader *vDefinstances,
   void *userBuffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(userBuffer)
-#endif
    DEFINSTANCES *theDefinstances = (DEFINSTANCES *) vDefinstances;
    EXPRESSION *theExp;
    DATA_OBJECT temp;
@@ -942,6 +927,121 @@ static void ResetDefinstancesAction(
    theDefinstances->busy--;
    RestoreCurrentModule(theEnv);
   }
+
+/*##################################*/
+/* Additional Environment Functions */
+/*##################################*/
+
+globle const char *EnvGetDefinstancesName(
+  void *theEnv,
+  void *theDefinstances)
+  {
+   return GetConstructNameString((struct constructHeader *) theDefinstances);
+  }
+
+globle const char *EnvGetDefinstancesPPForm(
+  void *theEnv,
+  void *theDefinstances)
+  {
+   return GetConstructPPForm(theEnv,(struct constructHeader *) theDefinstances);
+  }
+
+globle void EnvSetDefinstancesPPForm(
+  void *theEnv,
+  void *theDefinstances,
+  const char *thePPForm)
+  {
+   SetConstructPPForm(theEnv,(struct constructHeader *) theDefinstances,thePPForm);
+  }
+
+globle const char *EnvDefinstancesModule(
+  void *theEnv,
+  void *theDefinstances)
+  {
+   return GetConstructModuleName((struct constructHeader *) theDefinstances);
+  }
+
+globle SYMBOL_HN *EnvGetDefinstancesNamePointer(
+  void *theEnv,
+  void *theDefinstances)
+  {
+   return GetConstructNamePointer((struct constructHeader *) theDefinstances);
+  }
+
+globle const char *EnvDefinstancesModuleName(
+  void *theEnv,
+  void *theDefinstances)
+  {
+   return GetConstructModuleName((struct constructHeader *) theDefinstances);
+  }
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle const char *DefinstancesModule(
+  void *theDefinstances)
+  {
+   return EnvDefinstancesModule(GetCurrentEnvironment(),theDefinstances);
+  }
+
+globle void *FindDefinstances(
+  const char *name)
+  {
+   return EnvFindDefinstances(GetCurrentEnvironment(),name);
+  }
+
+globle void GetDefinstancesList(
+  DATA_OBJECT *returnValue,
+  struct defmodule *theModule)
+  {
+   EnvGetDefinstancesList(GetCurrentEnvironment(),returnValue,theModule);
+  }
+
+globle const char *GetDefinstancesName(
+  void *theDefinstances)
+  {
+   return EnvGetDefinstancesName(GetCurrentEnvironment(),theDefinstances);
+  }
+
+globle const char *GetDefinstancesPPForm(
+  void *theEnv,
+  void *theDefinstances)
+  {
+   return EnvGetDefinstancesPPForm(GetCurrentEnvironment(),theDefinstances);
+  }
+
+globle void *GetNextDefinstances(
+  void *ptr)
+  {
+   return EnvGetNextDefinstances(GetCurrentEnvironment(),ptr);
+  }
+
+globle int IsDefinstancesDeletable(
+  void *ptr)
+  {
+   return EnvIsDefinstancesDeletable(GetCurrentEnvironment(),ptr);
+  }
+
+globle intBool Undefinstances(
+  void *vptr)
+  {
+   return EnvUndefinstances(GetCurrentEnvironment(),vptr);
+  }
+
+#if DEBUGGING_FUNCTIONS
+
+globle void ListDefinstances(
+  const char *logicalName,
+  struct defmodule *theModule)
+  {
+   EnvListDefinstances(GetCurrentEnvironment(),logicalName,theModule);
+  }
+#endif
+
+#endif
 
 #endif
 

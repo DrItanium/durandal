@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*           SYMBOL CONSTRUCT COMPILER MODULE          */
    /*******************************************************/
@@ -23,6 +23,14 @@
 /*      6.24: Added environment parameter to GenClose.       */
 /*                                                           */
 /*            Corrected code to remove compiler warnings.    */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Support for long long integers.                */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -56,13 +64,13 @@
 /* LOCAL INTERNAL FUNCTION DEFINITIONS */
 /***************************************/
 
-   static int                         SymbolHashNodesToCode(void *,char *,char *,char *,int);
-   static int                         BitMapHashNodesToCode(void *,char *,char *,char *,int);
-   static int                         BitMapValuesToCode(void *,char *,char *, char *,int);
-   static int                         FloatHashNodesToCode(void *,char *,char *,char *,int);
-   static int                         IntegerHashNodesToCode(void *,char *,char *,char *,int);
-   static int                         HashTablesToCode(void *,char *,char *,char *);
-   static void                        PrintCString(FILE *,char *);
+   static int                         SymbolHashNodesToCode(void *,const char *,const char *,char *,int);
+   static int                         BitMapHashNodesToCode(void *,const char *,const char *,char *,int);
+   static int                         BitMapValuesToCode(void *,const char *,const char *, char *,int);
+   static int                         FloatHashNodesToCode(void *,const char *,const char *,char *,int);
+   static int                         IntegerHashNodesToCode(void *,const char *,const char *,char *,int);
+   static int                         HashTablesToCode(void *,const char *,const char *,char *);
+   static void                        PrintCString(FILE *,const char *);
 
 /**************************************************************/
 /* AtomicValuesToCode: Driver routine for generating the code */
@@ -70,11 +78,11 @@
 /**************************************************************/
 globle void AtomicValuesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer)
   {
-   int version;
+   int version; // TBD Necessary?
 
    SetAtomicValueIndices(theEnv,TRUE);
 
@@ -94,8 +102,8 @@ globle void AtomicValuesToCode(
 /*****************************************************/
 static int SymbolHashNodesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int version)
   {
@@ -162,7 +170,7 @@ static int SymbolHashNodesToCode(
               { fprintf(fp,"{&S%d_%d[%ld],",ConstructCompilerData(theEnv)->ImageID,arrayVersion,j + 1); }
            }
 
-         fprintf(fp,"%ld,0,1,0,0,%ld,",hashPtr->count + 1,i);
+         fprintf(fp,"%ld,1,0,0,%ld,",hashPtr->count + 1,i);
          PrintCString(fp,hashPtr->contents);
 
          count++;
@@ -196,8 +204,8 @@ static int SymbolHashNodesToCode(
 /******************************************************/
 static int BitMapHashNodesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int version)
   {
@@ -265,7 +273,7 @@ static int BitMapHashNodesToCode(
               { fprintf(fp,"{&B%d_%d[%d],",ConstructCompilerData(theEnv)->ImageID,arrayVersion,j + 1); }
            }
 
-         fprintf(fp,"%ld,0,1,0,0,%d,(char *) &L%d_%d[%d],%d",
+         fprintf(fp,"%ld,1,0,0,%d,(char *) &L%d_%d[%d],%d",
                      hashPtr->count + 1,i,
                      ConstructCompilerData(theEnv)->ImageID,longsReqdPartition,longsReqdPartitionCount,
                      hashPtr->size);
@@ -310,8 +318,8 @@ static int BitMapHashNodesToCode(
 /*****************************************************/
 static int BitMapValuesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int version)
   {
@@ -423,8 +431,8 @@ static int BitMapValuesToCode(
 /****************************************************/
 static int FloatHashNodesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int version)
   {
@@ -491,7 +499,7 @@ static int FloatHashNodesToCode(
               { fprintf(fp,"{&F%d_%d[%d],",ConstructCompilerData(theEnv)->ImageID,arrayVersion,j + 1); }
            }
 
-         fprintf(fp,"%ld,0,1,0,0,%d,",hashPtr->count + 1,i);
+         fprintf(fp,"%ld,1,0,0,%d,",hashPtr->count + 1,i);
          fprintf(fp,"%s",FloatToString(theEnv,hashPtr->contents));
 
          count++;
@@ -525,8 +533,8 @@ static int FloatHashNodesToCode(
 /******************************************************/
 static int IntegerHashNodesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int version)
   {
@@ -593,7 +601,7 @@ static int IntegerHashNodesToCode(
               { fprintf(fp,"{&I%d_%d[%d],",ConstructCompilerData(theEnv)->ImageID,arrayVersion,j + 1); }
            }
 
-         fprintf(fp,"%ld,0,1,0,0,%d,",hashPtr->count + 1,i);
+         fprintf(fp,"%ld,1,0,0,%d,",hashPtr->count + 1,i);
          fprintf(fp,"%lldLL",hashPtr->contents);
 
          count++;
@@ -627,8 +635,8 @@ static int IntegerHashNodesToCode(
 /****************************************************************/
 static int HashTablesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer)
   {
    unsigned long i;
@@ -801,7 +809,7 @@ globle void PrintBitMapReference(
 /*********************************************************/
 static void PrintCString(
   FILE *theFile,
-  char *str)
+  const char *str)
   {
    unsigned i;
    size_t slen;

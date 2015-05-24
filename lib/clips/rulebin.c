@@ -1,8 +1,7 @@
-
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*              DEFRULE BSAVE/BLOAD MODULE             */
    /*******************************************************/
@@ -24,7 +23,9 @@
 /*            DYNAMIC_SALIENCE, and LOGICAL_DEPENDENCIES     */
 /*            compilation flags.                             */
 /*                                                           */
-/*      6.30: Added support for hashed alpha memories.       */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Added support for alpha memories.              */
 /*                                                           */
 /*            Added salience groups to improve performance   */
 /*            with large numbers of activations of different */
@@ -92,13 +93,13 @@ globle void DefruleBinarySetup(
    AllocateEnvironmentData(theEnv,RULEBIN_DATA,sizeof(struct defruleBinaryData),DeallocateDefruleBloadData);
 
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"defrule",20,BsaveFind,BsaveExpressions,
+   AddBinaryItem(theEnv,"defrule",20,BsaveFind,BsaveExpressions,
                              BsaveStorage,BsaveBinaryItem,
                              BloadStorage,BloadBinaryItem,
                              ClearBload);
 #endif
 #if BLOAD || BLOAD_ONLY
-   AddBinaryItem(theEnv,(char*)"defrule",20,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"defrule",20,NULL,NULL,NULL,NULL,
                              BloadStorage,BloadBinaryItem,
                              ClearBload);
 #endif
@@ -392,7 +393,7 @@ static void BsaveBinaryItem(
       EnvSetCurrentModule(theEnv,(void *) theModule);
 
       theModuleItem = (struct defruleModule *)
-                      GetModuleItem(theEnv,NULL,FindModuleItem(theEnv,(char*)"defrule")->moduleIndex);
+                      GetModuleItem(theEnv,NULL,FindModuleItem(theEnv,"defrule")->moduleIndex);
       AssignBsaveDefmdlItemHdrVals(&tempDefruleModule.header,
                                            &theModuleItem->header);
       GenWrite(&tempDefruleModule,sizeof(struct bsaveDefruleModule),fp);
@@ -539,7 +540,7 @@ static void BsaveJoins(
   void *theEnv,
   FILE *fp)
   {
-   struct defrule *rulePtr;
+   struct defrule *rulePtr, *disjunctPtr;
    struct defmodule *theModule;
 
    /*===========================*/
@@ -563,14 +564,14 @@ static void BsaveJoins(
          /* Loop through each join of the disjunct. */
          /*=========================================*/
 
-         BsaveTraverseJoins(theEnv,fp,rulePtr->lastJoin);
+         for (disjunctPtr = rulePtr; disjunctPtr != NULL; disjunctPtr = disjunctPtr->disjunct)
+           { BsaveTraverseJoins(theEnv,fp,disjunctPtr->lastJoin); }
          
-         /*=======================================*/
-         /* Move on to the next rule or disjunct. */
-         /*=======================================*/
-
-         if (rulePtr->disjunct != NULL) rulePtr = rulePtr->disjunct;
-         else rulePtr = (struct defrule *) EnvGetNextDefrule(theEnv,rulePtr);
+         /*===========================*/
+         /* Move on to the next rule. */
+         /*===========================*/
+         
+         rulePtr = (struct defrule *) EnvGetNextDefrule(theEnv,rulePtr);
         }
      }
   }
@@ -646,7 +647,7 @@ static void BsaveLinks(
   void *theEnv,
   FILE *fp)
   {
-   struct defrule *rulePtr;
+   struct defrule *rulePtr, *disjunctPtr;
    struct defmodule *theModule;
    struct joinLink *theLink;
 
@@ -681,14 +682,14 @@ static void BsaveLinks(
          /* Loop through each join of the disjunct. */
          /*=========================================*/
 
-         BsaveTraverseLinks(theEnv,fp,rulePtr->lastJoin);
+         for (disjunctPtr = rulePtr; disjunctPtr != NULL; disjunctPtr = disjunctPtr->disjunct)
+           { BsaveTraverseLinks(theEnv,fp,disjunctPtr->lastJoin); }
          
          /*=======================================*/
          /* Move on to the next rule or disjunct. */
          /*=======================================*/
 
-         if (rulePtr->disjunct != NULL) rulePtr = rulePtr->disjunct;
-         else rulePtr = (struct defrule *) EnvGetNextDefrule(theEnv,rulePtr);
+         rulePtr = (struct defrule *) EnvGetNextDefrule(theEnv,rulePtr);
         }
      }
   }

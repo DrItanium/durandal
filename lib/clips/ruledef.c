@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                   DEFRULE MODULE                    */
    /*******************************************************/
@@ -18,7 +18,11 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
-/*      6.24: Removed CONFLICT_RESOLUTION_STRATEGIES         */
+/*                                                           */
+/*      6.24: Removed DYNAMIC_SALIENCE and                   */
+/*            LOGICAL_DEPENDENCIES compilation flags.        */
+/*                                                           */
+/*            Removed CONFLICT_RESOLUTION_STRATEGIES         */
 /*            compilation flag.                              */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
@@ -26,7 +30,11 @@
 /*            Corrected code to remove run-time program      */
 /*            compiler warnings.                             */
 /*                                                           */
-/*      6.30: Added support for hashed alpha memories.       */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Added support for hashed memories.             */
 /*                                                           */
 /*            Added additional developer statistics to help  */
 /*            analyze join network performance.              */
@@ -34,6 +42,14 @@
 /*            Added salience groups to improve performance   */
 /*            with large numbers of activations of different */
 /*            saliences.                                     */
+/*                                                           */
+/*            Added EnvGetDisjunctCount and                  */
+/*            EnvGetNthDisjunct functions.                   */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -97,20 +113,20 @@ globle void InitializeDefrules(
    InitializePatterns(theEnv);
    InitializeDefruleModules(theEnv);
 
-   AddReservedPatternSymbol(theEnv,(char*)"and",NULL);
-   AddReservedPatternSymbol(theEnv,(char*)"not",NULL);
-   AddReservedPatternSymbol(theEnv,(char*)"or",NULL);
-   AddReservedPatternSymbol(theEnv,(char*)"test",NULL);
-   AddReservedPatternSymbol(theEnv,(char*)"logical",NULL);
-   AddReservedPatternSymbol(theEnv,(char*)"exists",NULL);
-   AddReservedPatternSymbol(theEnv,(char*)"forall",NULL);
+   AddReservedPatternSymbol(theEnv,"and",NULL);
+   AddReservedPatternSymbol(theEnv,"not",NULL);
+   AddReservedPatternSymbol(theEnv,"or",NULL);
+   AddReservedPatternSymbol(theEnv,"test",NULL);
+   AddReservedPatternSymbol(theEnv,"logical",NULL);
+   AddReservedPatternSymbol(theEnv,"exists",NULL);
+   AddReservedPatternSymbol(theEnv,"forall",NULL);
 
    DefruleBasicCommands(theEnv);
 
    DefruleCommands(theEnv);
 
    DefruleData(theEnv)->DefruleConstruct =
-      AddConstruct(theEnv,(char*)"defrule",(char*)"defrules",
+      AddConstruct(theEnv,"defrule","defrules",
                    ParseDefrule,EnvFindDefrule,
                    GetConstructNamePointer,GetConstructPPForm,
                    GetConstructModuleItem,EnvGetNextDefrule,SetNextConstruct,
@@ -186,17 +202,11 @@ static void DeallocateDefruleData(
 /* DestroyDefruleAction: Action used to remove defrules */
 /*   as a result of DestroyEnvironment.                 */
 /********************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void DestroyDefruleAction(
   void *theEnv,
   struct constructHeader *theConstruct,
   void *buffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(buffer)
-#endif
    struct defrule *theDefrule = (struct defrule *) theConstruct;
    
    DestroyDefrule(theEnv,theDefrule);
@@ -209,7 +219,7 @@ static void DestroyDefruleAction(
 static void InitializeDefruleModules(
   void *theEnv)
   {
-   DefruleData(theEnv)->DefruleModuleIndex = RegisterModuleItem(theEnv,(char*)"defrule",
+   DefruleData(theEnv)->DefruleModuleIndex = RegisterModuleItem(theEnv,"defrule",
                                     AllocateModule,
                                     ReturnModule,
 #if BLOAD_AND_BSAVE || BLOAD || BLOAD_ONLY
@@ -267,7 +277,7 @@ globle struct defruleModule *GetDefruleModuleItem(
 /*******************************************************************/
 globle void *EnvFindDefrule(
   void *theEnv,
-  char *defruleName)
+  const char *defruleName)
   {   
    return(FindNamedConstruct(theEnv,defruleName,DefruleData(theEnv)->DefruleConstruct)); 
   }
@@ -308,6 +318,50 @@ globle intBool EnvIsDefruleDeletable(
    return(TRUE);
   }
 
+/***********************************************************/
+/* EnvGetDisjunctCount: Returns the number of disjuncts of */
+/*   a rule (permutations caused by the use of or CEs).    */
+/***********************************************************/
+globle long EnvGetDisjunctCount(
+  void *theEnv,
+  void *vTheDefrule)
+  {
+   struct defrule *theDefrule;
+   long count = 0;
+
+   for (theDefrule = (struct defrule *) vTheDefrule;
+        theDefrule != NULL;
+        theDefrule = theDefrule->disjunct)
+     { count++; }
+
+   return(count);
+  }
+
+/**********************************************************/
+/* EnvGetNthDisjunct: Returns the nth disjunct of a rule. */
+/*   The disjunct indices run from 1 to N rather than 0   */
+/*   to N - 1.                                            */
+/**********************************************************/
+globle void *EnvGetNthDisjunct(
+  void *theEnv,
+  void *vTheDefrule,
+  long index)
+  {
+   struct defrule *theDefrule;
+   long count = 0;
+
+   for (theDefrule = (struct defrule *) vTheDefrule;
+        theDefrule != NULL;
+        theDefrule = theDefrule->disjunct)
+     {
+      count++;
+      if (count == index)
+        { return theDefrule; }
+     }
+
+   return(NULL);
+  }
+
 #if RUN_TIME
 
 /******************************************/
@@ -332,9 +386,9 @@ globle void DefruleRunTimeInitialize(
         theModule = (struct defmodule *) EnvGetNextDefmodule(theEnv,theModule))
      {
       EnvSetCurrentModule(theEnv,(void *) theModule);
-      for (theRule = EnvGetNextDefrule(theEnv,NULL);
+      for (theRule = (struct defrule *) EnvGetNextDefrule(theEnv,NULL);
            theRule != NULL;
-           theRule = EnvGetNextDefrule(theEnv,theRule))
+           theRule = (struct defrule *) EnvGetNextDefrule(theEnv,theRule))
         { 
          for (theDisjunct = theRule;
               theDisjunct != NULL;
@@ -360,24 +414,22 @@ static void AddBetaMemoriesToRule(
      { AddBetaMemoriesToRule(theEnv,theNode->lastLevel); }
      
    if (theNode->joinFromTheRight)
-     { AddBetaMemoriesToRule(theEnv,theNode->rightSideEntryStructure); }
+     { AddBetaMemoriesToRule(theEnv,(struct joinNode *) theNode->rightSideEntryStructure); }
   }
   
-#endif
+#endif /* RUN_TIME */
 
 #if RUN_TIME || BLOAD_ONLY || BLOAD || BLOAD_AND_BSAVE
 
-/******************************************/
-/* AddBetaMemoriesToJoin:     */
-/******************************************/
+/**************************/
+/* AddBetaMemoriesToJoin: */
+/**************************/
 globle void AddBetaMemoriesToJoin(
   void *theEnv,
   struct joinNode *theNode)
   {   
    if ((theNode->leftMemory != NULL) || (theNode->rightMemory != NULL))
      { return; }
-
-   //if ((! theNode->firstJoin) || theNode->patternIsExists)
 
    if ((! theNode->firstJoin) || theNode->patternIsExists || theNode-> patternIsNegated || theNode->joinFromTheRight)
      {
@@ -400,7 +452,6 @@ globle void AddBetaMemoriesToJoin(
          theNode->leftMemory->last = NULL;
         }
 
- //     if (theNode->firstJoin && theNode->patternIsExists)
       if (theNode->firstJoin && (theNode->patternIsExists || theNode-> patternIsNegated || theNode->joinFromTheRight))
         {
          theNode->leftMemory->beta[0] = CreateEmptyPartialMatch(theEnv); 
@@ -433,8 +484,7 @@ globle void AddBetaMemoriesToJoin(
          theNode->rightMemory->count = 0;
         }
      }
-
-   else if (theNode->firstJoin && (theNode->rightSideEntryStructure == NULL))
+   else if (theNode->rightSideEntryStructure == NULL)
      {
       theNode->rightMemory = get_struct(theEnv,betaMemory); 
       theNode->rightMemory->beta = (struct partialMatch **) genalloc(theEnv,sizeof(struct partialMatch *));
@@ -446,12 +496,80 @@ globle void AddBetaMemoriesToJoin(
       theNode->rightMemory->size = 1;
       theNode->rightMemory->count = 1;    
      }
-
    else
      { theNode->rightMemory = NULL; }
   }
 
-#endif
+#endif /* RUN_TIME || BLOAD_ONLY || BLOAD || BLOAD_AND_BSAVE */
+
+/*##################################*/
+/* Additional Environment Functions */
+/*##################################*/
+
+globle const char *EnvDefruleModule(
+  void *theEnv,
+  void *theDefrule)
+  {
+   return GetConstructModuleName((struct constructHeader *) theDefrule);
+  }
+
+globle const char *EnvGetDefruleName(
+  void *theEnv,
+  void *theDefrule)
+  {
+   return GetConstructNameString((struct constructHeader *) theDefrule);
+  }
+
+globle const char *EnvGetDefrulePPForm(
+  void *theEnv,
+  void *theDefrule)
+  {
+   return GetConstructPPForm(theEnv,(struct constructHeader *) theDefrule);
+  }
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle const char *DefruleModule(
+  void *theDefrule)
+  {
+   return EnvDefruleModule(GetCurrentEnvironment(),theDefrule);
+  }
+
+globle void *FindDefrule(
+  const char *defruleName)
+  {
+   return EnvFindDefrule(GetCurrentEnvironment(),defruleName);
+  }
+
+globle const char *GetDefruleName(
+  void *theDefrule)
+  {
+   return EnvGetDefruleName(GetCurrentEnvironment(),theDefrule);
+  }
+
+globle const char *GetDefrulePPForm(
+  void *theDefrule)
+  {
+   return EnvGetDefrulePPForm(GetCurrentEnvironment(),theDefrule);
+  }
+
+globle void *GetNextDefrule(
+  void *defrulePtr)
+  {
+   return EnvGetNextDefrule(GetCurrentEnvironment(),defrulePtr);
+  }
+
+globle intBool IsDefruleDeletable(
+  void *vTheDefrule)
+  {
+   return EnvIsDefruleDeletable(GetCurrentEnvironment(),vTheDefrule);
+  }
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
 
 #endif /* DEFRULE_CONSTRUCT */
 

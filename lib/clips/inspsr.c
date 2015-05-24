@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*              CLIPS Version 6.24  06/05/06           */
+   /*              CLIPS Version 6.30  08/22/14           */
    /*                                                     */
    /*                INSTANCE PARSER MODULE               */
    /*******************************************************/
@@ -15,6 +15,7 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*            Changed name of variable exp to theExp         */
@@ -22,6 +23,11 @@
 /*            definitions.                                   */
 /*                                                           */
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Fixed ParseSlotOverrides memory release issue. */
 /*                                                           */
 /*************************************************************/
 
@@ -163,20 +169,20 @@ static intBool ReplaceClassNameWithReference(void *,EXPRESSION *);
 globle EXPRESSION *ParseInitializeInstance(
   void *theEnv,
   EXPRESSION *top,
-  char *readSource)
+  const char *readSource)
   {
    int error,fcalltype,readclass;
 
-   if ((top->value == (void *) FindFunction(theEnv,(char*)"make-instance")) ||
-       (top->value == (void *) FindFunction(theEnv,(char*)"active-make-instance")))
+   if ((top->value == (void *) FindFunction(theEnv,"make-instance")) ||
+       (top->value == (void *) FindFunction(theEnv,"active-make-instance")))
      fcalltype = MAKE_TYPE;
-   else if ((top->value == (void *) FindFunction(theEnv,(char*)"initialize-instance")) ||
-            (top->value == (void *) FindFunction(theEnv,(char*)"active-initialize-instance")))
+   else if ((top->value == (void *) FindFunction(theEnv,"initialize-instance")) ||
+            (top->value == (void *) FindFunction(theEnv,"active-initialize-instance")))
      fcalltype = INITIALIZE_TYPE;
-   else if ((top->value == (void *) FindFunction(theEnv,(char*)"modify-instance")) ||
-            (top->value == (void *) FindFunction(theEnv,(char*)"active-modify-instance")) ||
-            (top->value == (void *) FindFunction(theEnv,(char*)"message-modify-instance")) ||
-            (top->value == (void *) FindFunction(theEnv,(char*)"active-message-modify-instance")))
+   else if ((top->value == (void *) FindFunction(theEnv,"modify-instance")) ||
+            (top->value == (void *) FindFunction(theEnv,"active-modify-instance")) ||
+            (top->value == (void *) FindFunction(theEnv,"message-modify-instance")) ||
+            (top->value == (void *) FindFunction(theEnv,"active-message-modify-instance")))
      fcalltype = MODIFY_TYPE;
    else
      fcalltype = DUPLICATE_TYPE;
@@ -185,16 +191,16 @@ globle EXPRESSION *ParseInitializeInstance(
    if (top->type == UNKNOWN_VALUE)
      top->type = FCALL;
    else
-     SavePPBuffer(theEnv,(char*)" ");
+     SavePPBuffer(theEnv," ");
    top->argList = ArgumentParse(theEnv,readSource,&error);
    if (error)
      goto ParseInitializeInstanceError;
    else if (top->argList == NULL)
      {
-      SyntaxErrorMessage(theEnv,(char*)"instance");
+      SyntaxErrorMessage(theEnv,"instance");
       goto ParseInitializeInstanceError;
      }
-   SavePPBuffer(theEnv,(char*)" ");
+   SavePPBuffer(theEnv," ");
 
    if (fcalltype == MAKE_TYPE)
      {
@@ -210,14 +216,14 @@ globle EXPRESSION *ParseInitializeInstance(
            goto ParseInitializeInstanceError;
          if (top->argList->nextArg == NULL)
            {
-            SyntaxErrorMessage(theEnv,(char*)"instance class");
+            SyntaxErrorMessage(theEnv,"instance class");
             goto ParseInitializeInstanceError;
            }
          if ((top->argList->nextArg->type != SYMBOL) ? TRUE :
              (strcmp(ValueToString(top->argList->nextArg->value),CLASS_RLN) != 0))
            {
             top->argList->type = FCALL;
-            top->argList->value = (void *) FindFunction(theEnv,(char*)"gensym*");
+            top->argList->value = (void *) FindFunction(theEnv,"gensym*");
             readclass = FALSE;
            }
          else
@@ -229,10 +235,10 @@ globle EXPRESSION *ParseInitializeInstance(
          if ((GetType(DefclassData(theEnv)->ObjectParseToken) != SYMBOL) ? TRUE :
              (strcmp(CLASS_RLN,DOToString(DefclassData(theEnv)->ObjectParseToken)) != 0))
            {
-            SyntaxErrorMessage(theEnv,(char*)"make-instance");
+            SyntaxErrorMessage(theEnv,"make-instance");
             goto ParseInitializeInstanceError;
            }
-         SavePPBuffer(theEnv,(char*)" ");
+         SavePPBuffer(theEnv," ");
          readclass = TRUE;
         }
       if (readclass)
@@ -242,7 +248,7 @@ globle EXPRESSION *ParseInitializeInstance(
            goto ParseInitializeInstanceError;
          if (top->argList->nextArg == NULL)
            {
-            SyntaxErrorMessage(theEnv,(char*)"instance class");
+            SyntaxErrorMessage(theEnv,"instance class");
             goto ParseInitializeInstanceError;
            }
         }
@@ -271,20 +277,20 @@ globle EXPRESSION *ParseInitializeInstance(
             PPBackup(theEnv);
             PPBackup(theEnv);
             SavePPBuffer(theEnv,DefclassData(theEnv)->ObjectParseToken.printForm);
-            SavePPBuffer(theEnv,(char*)" ");
+            SavePPBuffer(theEnv," ");
             top->argList->nextArg = ArgumentParse(theEnv,readSource,&error);
             if (error)
               goto ParseInitializeInstanceError;
             if (top->argList->nextArg == NULL)
               {
-               SyntaxErrorMessage(theEnv,(char*)"instance name");
+               SyntaxErrorMessage(theEnv,"instance name");
                goto ParseInitializeInstanceError;
               }
             PPCRAndIndent(theEnv);
             GetToken(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken);
            }
          else
-           top->argList->nextArg = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,(char*)"gensym*"));
+           top->argList->nextArg = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,"gensym*"));
          top->argList->nextArg->nextArg = ParseSlotOverrides(theEnv,readSource,&error);
         }
       else
@@ -294,7 +300,7 @@ globle EXPRESSION *ParseInitializeInstance(
       goto ParseInitializeInstanceError;
    if (GetType(DefclassData(theEnv)->ObjectParseToken) != RPAREN)
      {
-      SyntaxErrorMessage(theEnv,(char*)"slot-override");
+      SyntaxErrorMessage(theEnv,"slot-override");
       goto ParseInitializeInstanceError;
      }
    DecrementIndentDepth(theEnv,3);
@@ -329,10 +335,11 @@ ParseInitializeInstanceError:
  ********************************************************************************/
 globle EXPRESSION *ParseSlotOverrides(
   void *theEnv,
-  char *readSource,
+  const char *readSource,
   int *error)
   {
    EXPRESSION *top = NULL,*bot = NULL,*theExp;
+   EXPRESSION *theExpNext;
 
    while (GetType(DefclassData(theEnv)->ObjectParseToken) == LPAREN)
      {
@@ -345,19 +352,21 @@ globle EXPRESSION *ParseSlotOverrides(
         }
       else if (theExp == NULL)
         {
-         SyntaxErrorMessage(theEnv,(char*)"slot-override");
+         SyntaxErrorMessage(theEnv,"slot-override");
          *error = TRUE;
          ReturnExpression(theEnv,top);
          SetEvaluationError(theEnv,TRUE);
          return(NULL);
         }
-      theExp->nextArg = GenConstant(theEnv,SYMBOL,EnvTrueSymbol(theEnv));
-      if (CollectArguments(theEnv,theExp->nextArg,readSource) == NULL)
+      theExpNext = GenConstant(theEnv,SYMBOL,EnvTrueSymbol(theEnv));
+      if (CollectArguments(theEnv,theExpNext,readSource) == NULL)
         {
          *error = TRUE;
          ReturnExpression(theEnv,top);
+         ReturnExpression(theEnv,theExp);
          return(NULL);
         }
+      theExp->nextArg = theExpNext;
       if (top == NULL)
         top = theExp;
       else
@@ -410,7 +419,7 @@ globle EXPRESSION *ParseSlotOverrides(
 globle EXPRESSION *ParseSimpleInstance(
   void *theEnv,
   EXPRESSION *top,
-  char *readSource)
+  const char *readSource)
   {
    EXPRESSION *theExp,*vals = NULL,*vbot,*tval;
    unsigned short type;
@@ -424,7 +433,7 @@ globle EXPRESSION *ParseSimpleInstance(
        (strcmp(CLASS_RLN,DOToString(DefclassData(theEnv)->ObjectParseToken)) == 0))
      {
       top->argList = GenConstant(theEnv,FCALL,
-                                 (void *) FindFunction(theEnv,(char*)"gensym*"));
+                                 (void *) FindFunction(theEnv,"gensym*"));
      }
    else
      {
@@ -467,7 +476,7 @@ globle EXPRESSION *ParseSimpleInstance(
             GetToken(theEnv,readSource,&DefclassData(theEnv)->ObjectParseToken);
             if (GetType(DefclassData(theEnv)->ObjectParseToken) != RPAREN)
               goto SlotOverrideError;
-            tval = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,(char*)"create$"));
+            tval = GenConstant(theEnv,FCALL,(void *) FindFunction(theEnv,"create$"));
            }
          else
            {
@@ -492,13 +501,13 @@ globle EXPRESSION *ParseSimpleInstance(
    return(top);
 
 MakeInstanceError:
-   SyntaxErrorMessage(theEnv,(char*)"make-instance");
+   SyntaxErrorMessage(theEnv,"make-instance");
    SetEvaluationError(theEnv,TRUE);
    ReturnExpression(theEnv,top);
    return(NULL);
 
 SlotOverrideError:
-   SyntaxErrorMessage(theEnv,(char*)"slot-override");
+   SyntaxErrorMessage(theEnv,"slot-override");
    SetEvaluationError(theEnv,TRUE);
    ReturnExpression(theEnv,top);
    ReturnExpression(theEnv,vals);
@@ -529,7 +538,7 @@ static intBool ReplaceClassNameWithReference(
   void *theEnv,
   EXPRESSION *theExp)
   {
-   char *theClassName;
+   const char *theClassName;
    void *theDefclass;
 
    if (theExp->type == SYMBOL)
@@ -538,15 +547,15 @@ static intBool ReplaceClassNameWithReference(
       theDefclass = (void *) LookupDefclassInScope(theEnv,theClassName);
       if (theDefclass == NULL)
         {
-         CantFindItemErrorMessage(theEnv,(char*)"class",theClassName);
+         CantFindItemErrorMessage(theEnv,"class",theClassName);
          return(FALSE);
         }
       if (EnvClassAbstractP(theEnv,theDefclass))
         {
-         PrintErrorID(theEnv,(char*)"INSMNGR",3,FALSE);
-         EnvPrintRouter(theEnv,WERROR,(char*)"Cannot create instances of abstract class ");
+         PrintErrorID(theEnv,"INSMNGR",3,FALSE);
+         EnvPrintRouter(theEnv,WERROR,"Cannot create instances of abstract class ");
          EnvPrintRouter(theEnv,WERROR,theClassName);
-         EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+         EnvPrintRouter(theEnv,WERROR,".\n");
          return(FALSE);
         }
       theExp->type = DEFCLASS_PTR;

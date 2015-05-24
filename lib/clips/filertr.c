@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*               FILE I/O ROUTER MODULE                */
    /*******************************************************/
@@ -22,6 +22,20 @@
 /*            Added environment parameter to GenOpen.        */
 /*                                                           */
 /*            Added pragmas to remove compilation warnings.  */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Used gengetc and genungetchar rather than      */
+/*            getc and ungetc.                               */
+/*                                                           */
+/*            Replaced BASIC_IO and ADVANCED_IO compiler     */
+/*            flags with the single IO_FUNCTIONS compiler    */
+/*            flag.                                          */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -46,9 +60,9 @@
 /***************************************/
 
    static int                     ExitFile(void *,int);
-   static int                     PrintFile(void *,char *,char *);
-   static int                     GetcFile(void *,char *);
-   static int                     UngetcFile(void *,int,char *);
+   static int                     PrintFile(void *,const char *,const char *);
+   static int                     GetcFile(void *,const char *);
+   static int                     UngetcFile(void *,int,const char *);
    static void                    DeallocateFileRouterData(void *);
 
 /***************************************************************/
@@ -59,7 +73,7 @@ globle void InitializeFileRouter(
   {
    AllocateEnvironmentData(theEnv,FILE_ROUTER_DATA,sizeof(struct fileRouterData),DeallocateFileRouterData);
 
-   EnvAddRouter(theEnv,(char*)"fileio",0,FindFile,
+   EnvAddRouter(theEnv,"fileio",0,FindFile,
              PrintFile,GetcFile,
              UngetcFile,ExitFile);
   }
@@ -78,7 +92,7 @@ static void DeallocateFileRouterData(
      {
       nextPtr = tmpPtr->next;
       GenClose(theEnv,tmpPtr->stream);
-      rm(theEnv,tmpPtr->logicalName,strlen(tmpPtr->logicalName) + 1);
+      rm(theEnv,(void *) tmpPtr->logicalName,strlen(tmpPtr->logicalName) + 1);
       rtn_struct(theEnv,fileRouter,tmpPtr);
       tmpPtr = nextPtr;
      }
@@ -90,7 +104,7 @@ static void DeallocateFileRouterData(
 /*****************************************/
 globle FILE *FindFptr(
   void *theEnv,
-  char *logicalName)
+  const char *logicalName)
   {
    struct fileRouter *fptr;
 
@@ -137,7 +151,7 @@ globle FILE *FindFptr(
 /*****************************************************/
 globle int FindFile(
   void *theEnv,
-  char *logicalName)
+  const char *logicalName)
   {
    if (FindFptr(theEnv,logicalName) != NULL) return(TRUE);
 
@@ -147,22 +161,13 @@ globle int FindFile(
 /********************************************/
 /* ExitFile:  Exit routine for file router. */
 /********************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static int ExitFile(
   void *theEnv,
   int num)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(num)
-#endif
 #if IO_FUNCTIONS
    CloseAllFiles(theEnv);
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
    return(1);
   }
@@ -172,8 +177,8 @@ static int ExitFile(
 /*********************************************/
 static int PrintFile(
   void *theEnv,
-  char *logicalName,
-  char *str)
+  const char *logicalName,
+  const char *str)
   {
    FILE *fptr;
 
@@ -189,7 +194,7 @@ static int PrintFile(
 /*******************************************/
 static int GetcFile(
   void *theEnv,
-  char *logicalName)
+  const char *logicalName)
   {
    FILE *fptr;
    int theChar;
@@ -217,7 +222,7 @@ static int GetcFile(
 static int UngetcFile(
   void *theEnv,
   int ch,
-  char *logicalName)
+  const char *logicalName)
   {
    FILE *fptr;
 
@@ -237,12 +242,13 @@ static int UngetcFile(
 /*********************************************************/
 globle int OpenAFile(
   void *theEnv,
-  char *fileName,
-  char *accessMode,
-  char *logicalName)
+  const char *fileName,
+  const char *accessMode,
+  const char *logicalName)
   {
    FILE *newstream;
    struct fileRouter *newRouter;
+   char *theName;
 
    /*==================================*/
    /* Make sure the file can be opened */
@@ -257,8 +263,9 @@ globle int OpenAFile(
    /*===========================*/
 
    newRouter = get_struct(theEnv,fileRouter);
-   newRouter->logicalName = (char *) gm2(theEnv,strlen(logicalName) + 1);
-   genstrcpy(newRouter->logicalName,logicalName);
+   theName = (char *) gm2(theEnv,strlen(logicalName) + 1);
+   genstrcpy(theName,logicalName);
+   newRouter->logicalName = theName;
    newRouter->stream = newstream;
 
    /*==========================================*/
@@ -284,7 +291,7 @@ globle int OpenAFile(
 /*************************************************************/
 globle int CloseFile(
   void *theEnv,
-  char *fid)
+  const char *fid)
   {
    struct fileRouter *fptr, *prev;
 
@@ -295,7 +302,7 @@ globle int CloseFile(
       if (strcmp(fptr->logicalName,fid) == 0)
         {
          GenClose(theEnv,fptr->stream);
-         rm(theEnv,fptr->logicalName,strlen(fptr->logicalName) + 1);
+         rm(theEnv,(void *) fptr->logicalName,strlen(fptr->logicalName) + 1);
          if (prev == NULL)
            { FileRouterData(theEnv)->ListOfFileRouters = fptr->next; }
          else
@@ -329,7 +336,7 @@ globle int CloseAllFiles(
      {
       GenClose(theEnv,fptr->stream);
       prev = fptr;
-      rm(theEnv,fptr->logicalName,strlen(fptr->logicalName) + 1);
+      rm(theEnv,(void *) fptr->logicalName,strlen(fptr->logicalName) + 1);
       fptr = fptr->next;
       rm(theEnv,prev,(int) sizeof(struct fileRouter));
      }

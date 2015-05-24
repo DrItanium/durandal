@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                 AGENDA HEADER FILE                  */
    /*******************************************************/
@@ -30,6 +30,16 @@
 /*      6.30: Added salience groups to improve performance   */
 /*            with large numbers of activations of different */
 /*            saliences.                                     */
+/*                                                           */
+/*            Borland C (IBM_TBC) and Metrowerks CodeWarrior */
+/*            (MAC_MCW, IBM_MCW) are no longer supported.    */
+/*                                                           */
+/*            Support for long long integers.                */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -94,9 +104,6 @@ struct agendaData
    int Strategy;
   };
 
-#define EnvGetActivationSalience(theEnv,actPtr) (((struct activation *) actPtr)->salience)
-#define GetActivationRule(actPtr) (((struct activation *) actPtr)->theRule)
-#define GetActivationBasis(actPtr) (((struct activation *) actPtr)->basis)
 #define AgendaData(theEnv) ((struct agendaData *) GetEnvironmentData(theEnv,AGENDA_DATA))
 
 #ifdef LOCALE
@@ -113,32 +120,20 @@ struct agendaData
 /* GLOBAL EXTERNAL FUNCTION DEFINITIONS */
 /****************************************/
 
-#define Agenda(a,b) EnvAgenda(GetCurrentEnvironment(),a,b)
-#define DeleteActivation(a) EnvDeleteActivation(GetCurrentEnvironment(),a)
-#define GetActivationName(a) EnvGetActivationName(GetCurrentEnvironment(),a)
-#define GetActivationPPForm(a,b,c) EnvGetActivationPPForm(GetCurrentEnvironment(),a,b,c)
-#define GetActivationSalience(actPtr) (((struct activation *) actPtr)->salience)
-#define GetAgendaChanged() EnvGetAgendaChanged(GetCurrentEnvironment())
-#define GetNextActivation(a) EnvGetNextActivation(GetCurrentEnvironment(),a)
-#define GetSalienceEvaluation() EnvGetSalienceEvaluation(GetCurrentEnvironment())
-#define Refresh(a) EnvRefresh(GetCurrentEnvironment(),a)
-#define RefreshAgenda(a) EnvRefreshAgenda(GetCurrentEnvironment(),a)
-#define ReorderAgenda(a) EnvReorderAgenda(GetCurrentEnvironment(),a)
-#define SetActivationSalience(a,b) EnvSetActivationSalience(GetCurrentEnvironment(),a,b)
-#define SetAgendaChanged(a) EnvSetAgendaChanged(GetCurrentEnvironment(),a)
-#define SetSalienceEvaluation(a) EnvSetSalienceEvaluation(GetCurrentEnvironment(),a)
-
    LOCALE void                    AddActivation(void *,void *,void *);
    LOCALE void                    ClearRuleFromAgenda(void *,void *);
    LOCALE void                   *EnvGetNextActivation(void *,void *);
-   LOCALE char                   *EnvGetActivationName(void *,void *);
+   LOCALE struct partialMatch    *EnvGetActivationBasis(void *,void *);
+   LOCALE const char             *EnvGetActivationName(void *,void *);
+   LOCALE struct defrule         *EnvGetActivationRule(void *,void *);
+   LOCALE int                     EnvGetActivationSalience(void *,void *);
    LOCALE int                     EnvSetActivationSalience(void *,void *,int);
-   LOCALE void                    EnvGetActivationPPForm(void *,char *,unsigned,void *);
-   LOCALE void                    EnvGetActivationBasisPPForm(void *,char *,unsigned,void *);
+   LOCALE void                    EnvGetActivationPPForm(void *,char *,size_t,void *);
+   LOCALE void                    EnvGetActivationBasisPPForm(void *,char *,size_t,void *);
    LOCALE intBool                 MoveActivationToTop(void *,void *);
    LOCALE intBool                 EnvDeleteActivation(void *,void *);
    LOCALE intBool                 DetachActivation(void *,void *);
-   LOCALE void                    EnvAgenda(void *,char *,void *);
+   LOCALE void                    EnvAgenda(void *,const char *,void *);
    LOCALE void                    RemoveActivation(void *,void *,int,int);
    LOCALE void                    RemoveAllActivations(void *);
    LOCALE int                     EnvGetAgendaChanged(void *);
@@ -156,6 +151,27 @@ struct agendaData
    LOCALE intBool                 EnvRefresh(void *,void *);
 #if DEBUGGING_FUNCTIONS
    LOCALE void                    AgendaCommand(void *);
+#endif
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+   LOCALE void                    Agenda(const char *,void *);
+   LOCALE intBool                 DeleteActivation(void *);
+   LOCALE struct partialMatch    *GetActivationBasis(void *);
+   LOCALE const char             *GetActivationName(void *);
+   LOCALE void                    GetActivationPPForm(char *,unsigned,void *);
+   LOCALE struct defrule         *GetActivationRule(void *);
+   LOCALE int                     GetActivationSalience(void *);
+   LOCALE int                     GetAgendaChanged(void);
+   LOCALE void                   *GetNextActivation(void *);
+   LOCALE intBool                 GetSalienceEvaluation(void);
+   LOCALE intBool                 Refresh(void *);
+   LOCALE void                    RefreshAgenda(void *);
+   LOCALE void                    ReorderAgenda(void *);
+   LOCALE int                     SetActivationSalience(void *,int);
+   LOCALE void                    SetAgendaChanged(int);
+   LOCALE intBool                 SetSalienceEvaluation(int);
+
 #endif
 
 #endif

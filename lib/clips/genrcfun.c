@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  05/17/06          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -15,6 +15,7 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Changed name of variable log to logName        */
 /*            because of Unix compiler warnings of shadowed  */
 /*            definitions.                                   */
@@ -22,6 +23,24 @@
 /*      6.24: Removed IMPERATIVE_METHODS compilation flag.   */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
+/*                                                           */
+/*            Fixed linkage issue when DEBUGGING_FUNCTIONS   */
+/*            is set to 0 and PROFILING_FUNCTIONS is set to  */
+/*            1.                                             */
+/*                                                           */
+/*            Fixed typing issue when OBJECT_SYSTEM          */
+/*            compiler flag is set to 0.                     */
 /*                                                           */
 /*************************************************************/
 
@@ -249,7 +268,7 @@ globle void RemoveDefgeneric(
    if (gfunc->mcnt != 0)
      rm(theEnv,(void *) gfunc->methods,(sizeof(DEFMETHOD) * gfunc->mcnt));
    DecrementSymbolCount(theEnv,GetDefgenericNamePointer((void *) gfunc));
-   SetDefgenericPPForm((void *) gfunc,NULL);
+   EnvSetDefgenericPPForm(theEnv,(void *) gfunc,NULL);
    ClearUserDataList(theEnv,gfunc->header.usrData);
    rtn_struct(theEnv,defgeneric,gfunc);
   }
@@ -280,7 +299,7 @@ globle int ClearDefgenerics(
       gfunc = (DEFGENERIC *) EnvGetNextDefgeneric(theEnv,(void *) gfunc);
       if (RemoveAllExplicitMethods(theEnv,gtmp) == FALSE)
         {
-         CantDeleteItemErrorMessage(theEnv,(char*)"generic function",EnvGetDefgenericName(theEnv,gtmp));
+         CantDeleteItemErrorMessage(theEnv,"generic function",EnvGetDefgenericName(theEnv,gtmp));
          success = FALSE;
         }
       else
@@ -307,10 +326,10 @@ globle void MethodAlterError(
   void *theEnv,
   DEFGENERIC *gfunc)
   {
-   PrintErrorID(theEnv,(char*)"GENRCFUN",1,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Defgeneric ");
+   PrintErrorID(theEnv,"GENRCFUN",1,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Defgeneric ");
    EnvPrintRouter(theEnv,WERROR,EnvGetDefgenericName(theEnv,(void *) gfunc));
-   EnvPrintRouter(theEnv,WERROR,(char*)" cannot be modified while one of its methods is executing.\n");
+   EnvPrintRouter(theEnv,WERROR," cannot be modified while one of its methods is executing.\n");
   }
 
 /***************************************************
@@ -371,9 +390,6 @@ globle void DeleteMethodInfo(
   SIDE EFFECTS : Nodes deallocated
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle void DestroyMethodInfo(
   void *theEnv,
   DEFGENERIC *gfunc,
@@ -381,9 +397,6 @@ globle void DestroyMethodInfo(
   {
    register int j;
    register RESTRICTION *rptr;
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(gfunc)
-#endif
 
    ReturnPackedExpression(theEnv,meth->actions);
    
@@ -486,66 +499,7 @@ globle long FindMethodByIndex(
    return(-1);
   }
 
-#if DEBUGGING_FUNCTIONS
-
-/*************************************************************
-  NAME         : PreviewGeneric
-  DESCRIPTION  : Allows the user to see a printout of all the
-                   applicable methods for a particular generic
-                   function call
-  INPUTS       : None
-  RETURNS      : Nothing useful
-  SIDE EFFECTS : Any side-effects of evaluating the generic
-                   function arguments
-                 and evaluating query-functions to determine
-                   the set of applicable methods
-  NOTES        : H/L Syntax: (preview-generic <func> <args>)
- *************************************************************/
-globle void PreviewGeneric(
-  void *theEnv)
-  {
-   DEFGENERIC *gfunc;
-   DEFGENERIC *previousGeneric;
-   int oldce;
-   DATA_OBJECT temp;
-
-   EvaluationData(theEnv)->EvaluationError = FALSE;
-   if (EnvArgTypeCheck(theEnv,(char*)"preview-generic",1,SYMBOL,&temp) == FALSE)
-     return;
-   gfunc = LookupDefgenericByMdlOrScope(theEnv,DOToString(temp));
-   if (gfunc == NULL)
-     {
-      PrintErrorID(theEnv,(char*)"GENRCFUN",3,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Unable to find generic function ");
-      EnvPrintRouter(theEnv,WERROR,DOToString(temp));
-      EnvPrintRouter(theEnv,WERROR,(char*)" in function preview-generic.\n");
-      return;
-     }
-   oldce = ExecutingConstruct(theEnv);
-   SetExecutingConstruct(theEnv,TRUE);
-   previousGeneric = DefgenericData(theEnv)->CurrentGeneric;
-   DefgenericData(theEnv)->CurrentGeneric = gfunc;
-   EvaluationData(theEnv)->CurrentEvaluationDepth++;
-   PushProcParameters(theEnv,GetFirstArgument()->nextArg,
-                          CountArguments(GetFirstArgument()->nextArg),
-                          EnvGetDefgenericName(theEnv,(void *) gfunc),(char*)"generic function",
-                          UnboundMethodErr);
-   if (EvaluationData(theEnv)->EvaluationError)
-     {
-      PopProcParameters(theEnv);
-      DefgenericData(theEnv)->CurrentGeneric = previousGeneric;
-      EvaluationData(theEnv)->CurrentEvaluationDepth--;
-      SetExecutingConstruct(theEnv,oldce);
-      return;
-     }
-   gfunc->busy++;
-   DisplayGenericCore(theEnv,gfunc);
-   gfunc->busy--;
-   PopProcParameters(theEnv);
-   DefgenericData(theEnv)->CurrentGeneric = previousGeneric;
-   EvaluationData(theEnv)->CurrentEvaluationDepth--;
-   SetExecutingConstruct(theEnv,oldce);
-  }
+#if DEBUGGING_FUNCTIONS || PROFILING_FUNCTIONS
 
 /******************************************************************
   NAME         : PrintMethod
@@ -557,18 +511,12 @@ globle void PreviewGeneric(
   SIDE EFFECTS : None
   NOTES        : A terminating newline is NOT included
  ******************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle void PrintMethod(
   void *theEnv,
   char *buf,
-  int buflen,
+  size_t buflen,
   DEFMETHOD *meth)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
    long j,k;
    register RESTRICTION *rptr;
    char numbuf[15];
@@ -614,7 +562,70 @@ globle void PrintMethod(
      }
   }
 
-#endif
+#endif /* DEBUGGING_FUNCTIONS || PROFILING_FUNCTIONS */
+
+#if DEBUGGING_FUNCTIONS
+
+/*************************************************************
+  NAME         : PreviewGeneric
+  DESCRIPTION  : Allows the user to see a printout of all the
+                   applicable methods for a particular generic
+                   function call
+  INPUTS       : None
+  RETURNS      : Nothing useful
+  SIDE EFFECTS : Any side-effects of evaluating the generic
+                   function arguments
+                 and evaluating query-functions to determine
+                   the set of applicable methods
+  NOTES        : H/L Syntax: (preview-generic <func> <args>)
+ *************************************************************/
+globle void PreviewGeneric(
+  void *theEnv)
+  {
+   DEFGENERIC *gfunc;
+   DEFGENERIC *previousGeneric;
+   int oldce;
+   DATA_OBJECT temp;
+
+   EvaluationData(theEnv)->EvaluationError = FALSE;
+   if (EnvArgTypeCheck(theEnv,"preview-generic",1,SYMBOL,&temp) == FALSE)
+     return;
+   gfunc = LookupDefgenericByMdlOrScope(theEnv,DOToString(temp));
+   if (gfunc == NULL)
+     {
+      PrintErrorID(theEnv,"GENRCFUN",3,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Unable to find generic function ");
+      EnvPrintRouter(theEnv,WERROR,DOToString(temp));
+      EnvPrintRouter(theEnv,WERROR," in function preview-generic.\n");
+      return;
+     }
+   oldce = ExecutingConstruct(theEnv);
+   SetExecutingConstruct(theEnv,TRUE);
+   previousGeneric = DefgenericData(theEnv)->CurrentGeneric;
+   DefgenericData(theEnv)->CurrentGeneric = gfunc;
+   EvaluationData(theEnv)->CurrentEvaluationDepth++;
+   PushProcParameters(theEnv,GetFirstArgument()->nextArg,
+                          CountArguments(GetFirstArgument()->nextArg),
+                          EnvGetDefgenericName(theEnv,(void *) gfunc),"generic function",
+                          UnboundMethodErr);
+   if (EvaluationData(theEnv)->EvaluationError)
+     {
+      PopProcParameters(theEnv);
+      DefgenericData(theEnv)->CurrentGeneric = previousGeneric;
+      EvaluationData(theEnv)->CurrentEvaluationDepth--;
+      SetExecutingConstruct(theEnv,oldce);
+      return;
+     }
+   gfunc->busy++;
+   DisplayGenericCore(theEnv,gfunc);
+   gfunc->busy--;
+   PopProcParameters(theEnv);
+   DefgenericData(theEnv)->CurrentGeneric = previousGeneric;
+   EvaluationData(theEnv)->CurrentEvaluationDepth--;
+   SetExecutingConstruct(theEnv,oldce);
+  }
+
+#endif /* DEBUGGING_FUNCTIONS */
 
 /***************************************************
   NAME         : CheckGenericExists
@@ -630,20 +641,20 @@ globle void PrintMethod(
  ***************************************************/
 globle DEFGENERIC *CheckGenericExists(
   void *theEnv,
-  char *fname,
-  char *gname)
+  const char *fname,
+  const char *gname)
   {
    DEFGENERIC *gfunc;
 
    gfunc = LookupDefgenericByMdlOrScope(theEnv,gname);
    if (gfunc == NULL)
      {
-      PrintErrorID(theEnv,(char*)"GENRCFUN",3,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Unable to find generic function ");
+      PrintErrorID(theEnv,"GENRCFUN",3,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Unable to find generic function ");
       EnvPrintRouter(theEnv,WERROR,gname);
-      EnvPrintRouter(theEnv,WERROR,(char*)" in function ");
+      EnvPrintRouter(theEnv,WERROR," in function ");
       EnvPrintRouter(theEnv,WERROR,fname);
-      EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+      EnvPrintRouter(theEnv,WERROR,".\n");
       SetEvaluationError(theEnv,TRUE);
      }
    return(gfunc);
@@ -663,7 +674,7 @@ globle DEFGENERIC *CheckGenericExists(
  ***************************************************/
 globle long CheckMethodExists(
   void *theEnv,
-  char *fname,
+  const char *fname,
   DEFGENERIC *gfunc,
   long mi)
   {
@@ -672,14 +683,14 @@ globle long CheckMethodExists(
    fi = FindMethodByIndex(gfunc,mi);
    if (fi == -1)
      {
-      PrintErrorID(theEnv,(char*)"GENRCFUN",2,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Unable to find method ");
+      PrintErrorID(theEnv,"GENRCFUN",2,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Unable to find method ");
       EnvPrintRouter(theEnv,WERROR,EnvGetDefgenericName(theEnv,(void *) gfunc));
-      EnvPrintRouter(theEnv,WERROR,(char*)" #");
+      EnvPrintRouter(theEnv,WERROR," #");
       PrintLongInteger(theEnv,WERROR,mi);
-      EnvPrintRouter(theEnv,WERROR,(char*)" in function ");
+      EnvPrintRouter(theEnv,WERROR," in function ");
       EnvPrintRouter(theEnv,WERROR,fname);
-      EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+      EnvPrintRouter(theEnv,WERROR,".\n");
       SetEvaluationError(theEnv,TRUE);
      }
    return(fi);
@@ -700,7 +711,7 @@ globle long CheckMethodExists(
                  printed for unrecognized types
   NOTES        : Used only when COOL is not present
  *******************************************************/
-globle char *TypeName(
+globle const char *TypeName(
   void *theEnv,
   int tcode)
   {
@@ -721,8 +732,8 @@ globle char *TypeName(
       case LEXEME_TYPE_CODE    : return(LEXEME_TYPE_NAME);
       case ADDRESS_TYPE_CODE   : return(ADDRESS_TYPE_NAME);
       case INSTANCE_TYPE_CODE  : return(INSTANCE_TYPE_NAME);
-      default                  : PrintErrorID(theEnv,(char*)"INSCOM",1,FALSE);
-                                 EnvPrintRouter(theEnv,WERROR,(char*)"Undefined type in function type.\n");
+      default                  : PrintErrorID(theEnv,"INSCOM",1,FALSE);
+                                 EnvPrintRouter(theEnv,WERROR,"Undefined type in function type.\n");
                                  SetEvaluationError(theEnv,TRUE);
                                  return("<UNKNOWN-TYPE>");
      }
@@ -743,14 +754,14 @@ globle char *TypeName(
  ******************************************************/
 globle void PrintGenericName(
   void *theEnv,
-  char *logName,
+  const char *logName,
   DEFGENERIC *gfunc)
   {
    if (gfunc->header.whichModule->theModule != ((struct defmodule *) EnvGetCurrentModule(theEnv)))
      {
       EnvPrintRouter(theEnv,logName,EnvGetDefmoduleName(theEnv,(void *)
                         gfunc->header.whichModule->theModule));
-      EnvPrintRouter(theEnv,logName,(char*)"::");
+      EnvPrintRouter(theEnv,logName,"::");
      }
    EnvPrintRouter(theEnv,logName,ValueToString((void *) gfunc->header.name));
   }
@@ -788,18 +799,18 @@ static void DisplayGenericCore(
         {
          rtn = TRUE;
          EnvPrintRouter(theEnv,WDISPLAY,EnvGetDefgenericName(theEnv,(void *) gfunc));
-         EnvPrintRouter(theEnv,WDISPLAY,(char*)" #");
+         EnvPrintRouter(theEnv,WDISPLAY," #");
          PrintMethod(theEnv,buf,255,&gfunc->methods[i]);
          EnvPrintRouter(theEnv,WDISPLAY,buf);
-         EnvPrintRouter(theEnv,WDISPLAY,(char*)"\n");
+         EnvPrintRouter(theEnv,WDISPLAY,"\n");
         }
       gfunc->methods[i].busy--;
      }
    if (rtn == FALSE)
      {
-      EnvPrintRouter(theEnv,WDISPLAY,(char*)"No applicable methods for ");
+      EnvPrintRouter(theEnv,WDISPLAY,"No applicable methods for ");
       EnvPrintRouter(theEnv,WDISPLAY,EnvGetDefgenericName(theEnv,(void *) gfunc));
-      EnvPrintRouter(theEnv,WDISPLAY,(char*)".\n");
+      EnvPrintRouter(theEnv,WDISPLAY,".\n");
      }
   }
 

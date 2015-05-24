@@ -1,27 +1,36 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  05/17/06          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*    OBJECT PATTERN NETWORK CONSTRUCTS-TO-C MODULE    */
    /*******************************************************/
 
-/**************************************************************/
-/* Purpose: Saves object pattern network for constructs-to-c  */
-/*                                                            */
-/* Principal Programmer(s):                                   */
-/*      Brian L. Dantes                                       */
-/*                                                            */
-/* Contributing Programmer(s):                                */
-/*                                                            */
-/* Revision History:                                          */
-/*                                                            */
-/*      6.24: Converted INSTANCE_PATTERN_MATCHING to          */
-/*            DEFRULE_CONSTRUCT.                              */
-/*                                                            */
-/*            Added environment parameter to GenClose.        */
-/*                                                            */
-/**************************************************************/
+/*************************************************************/
+/* Purpose: Saves object pattern network for constructs-to-c */
+/*                                                           */
+/* Principal Programmer(s):                                  */
+/*      Brian L. Dantes                                      */
+/*                                                           */
+/* Contributing Programmer(s):                               */
+/*                                                           */
+/* Revision History:                                         */
+/*                                                           */
+/*      6.24: Converted INSTANCE_PATTERN_MATCHING to         */
+/*            DEFRULE_CONSTRUCT.                             */
+/*                                                           */
+/*            Added environment parameter to GenClose.       */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Added support for hashed comparisons to        */
+/*            constants.                                     */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*************************************************************/
 /* =========================================
    *****************************************
                EXTERNAL DEFINITIONS
@@ -61,10 +70,10 @@
 static void BeforeObjectPatternsToCode(void *);
 static OBJECT_PATTERN_NODE *GetNextObjectPatternNode(OBJECT_PATTERN_NODE *);
 static void InitObjectPatternsCode(void *,FILE *,int,int);
-static int ObjectPatternsToCode(void *,char *,char *,char *,int,FILE *,int,int);
+static int ObjectPatternsToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
 static void IntermediatePatternNodeReference(void *,OBJECT_PATTERN_NODE *,FILE *,int,int);
-static int IntermediatePatternNodesToCode(void *,char *,char *,char *,int,FILE *,int,int,int);
-static int AlphaPatternNodesToCode(void *,char *,char *,char *,int,FILE *,int,int,int);
+static int IntermediatePatternNodesToCode(void *,const char *,const char *,char *,int,FILE *,int,int,int);
+static int AlphaPatternNodesToCode(void *,const char *,const char *,char *,int,FILE *,int,int,int);
 
 /* =========================================
    *****************************************
@@ -85,7 +94,7 @@ globle void ObjectPatternsCompilerSetup(
   void *theEnv)
   {
    ObjectReteData(theEnv)->ObjectPatternCodeItem =
-         AddCodeGeneratorItem(theEnv,(char*)"object-patterns",0,BeforeObjectPatternsToCode,
+         AddCodeGeneratorItem(theEnv,"object-patterns",0,BeforeObjectPatternsToCode,
                               InitObjectPatternsCode,ObjectPatternsToCode,2);
   }
 
@@ -251,8 +260,8 @@ static void InitObjectPatternsCode(
  ***********************************************************/
 static int ObjectPatternsToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -321,8 +330,8 @@ static void IntermediatePatternNodeReference(
  *************************************************************/
 static int IntermediatePatternNodesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -426,8 +435,8 @@ static int IntermediatePatternNodesToCode(
  ***********************************************************/
 static int AlphaPatternNodesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,

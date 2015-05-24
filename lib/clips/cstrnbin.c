@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  07/01/05            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*            CONSTRAINT BLOAD/BSAVE MODULE            */
    /*******************************************************/
@@ -17,7 +17,10 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.24: Added allowed-classes slot facet.              */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
 /*                                                           */
 /*************************************************************/
 
@@ -123,9 +126,9 @@ globle void WriteNeededConstraints(
    if ((! EnvGetDynamicConstraintChecking(theEnv)) && (numberOfUsedConstraints != 0))
      {
       numberOfUsedConstraints = 0;
-      PrintWarningID(theEnv,(char*)"CSTRNBIN",1,FALSE);
-      EnvPrintRouter(theEnv,WWARNING,(char*)"Constraints are not saved with a binary image\n");
-      EnvPrintRouter(theEnv,WWARNING,(char*)"  when dynamic constraint checking is disabled.\n");
+      PrintWarningID(theEnv,"CSTRNBIN",1,FALSE);
+      EnvPrintRouter(theEnv,WWARNING,"Constraints are not saved with a binary image\n");
+      EnvPrintRouter(theEnv,WWARNING,"  when dynamic constraint checking is disabled.\n");
      }
 
    /*============================================*/

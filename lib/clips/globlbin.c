@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.21  06/15/03            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*            DEFGLOBAL BSAVE/BLOAD MODULE             */
    /*******************************************************/
@@ -17,6 +17,10 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Moved WatchGlobals global to defglobalData.    */
 /*                                                           */
 /*************************************************************/
 
@@ -65,18 +69,18 @@ globle void DefglobalBinarySetup(
   {
    AllocateEnvironmentData(theEnv,GLOBLBIN_DATA,sizeof(struct defglobalBinaryData),DeallocateDefglobalBloadData);
 #if (BLOAD_AND_BSAVE || BLOAD)
-   AddAfterBloadFunction(theEnv,(char*)"defglobal",ResetDefglobals,50);
+   AddAfterBloadFunction(theEnv,"defglobal",ResetDefglobals,50);
 #endif
 
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"defglobal",0,BsaveFind,NULL,
+   AddBinaryItem(theEnv,"defglobal",0,BsaveFind,NULL,
                              BsaveStorage,BsaveBinaryItem,
                              BloadStorageDefglobals,BloadBinaryItem,
                              ClearBload);
 #endif
 
 #if (BLOAD || BLOAD_ONLY)
-   AddBinaryItem(theEnv,(char*)"defglobal",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"defglobal",0,NULL,NULL,NULL,NULL,
                              BloadStorageDefglobals,BloadBinaryItem,
                              ClearBload);
 #endif
@@ -227,7 +231,7 @@ static void BsaveBinaryItem(
       EnvSetCurrentModule(theEnv,(void *) theModule);
 
       theModuleItem = (struct defglobalModule *)
-                      GetModuleItem(theEnv,NULL,FindModuleItem(theEnv,(char*)"defglobal")->moduleIndex);
+                      GetModuleItem(theEnv,NULL,FindModuleItem(theEnv,"defglobal")->moduleIndex);
       AssignBsaveDefmdlItemHdrVals(&tempDefglobalModule.header,
                                            &theModuleItem->header);
       GenWrite(&tempDefglobalModule,sizeof(struct bsaveDefglobalModule),fp);
@@ -387,7 +391,7 @@ static void UpdateDefglobal(
                          (int) sizeof(struct defglobal),(void *) DefglobalBinaryData(theEnv)->DefglobalArray);
 
 #if DEBUGGING_FUNCTIONS
-   DefglobalBinaryData(theEnv)->DefglobalArray[obji].watch = WatchGlobals;
+   DefglobalBinaryData(theEnv)->DefglobalArray[obji].watch = DefglobalData(theEnv)->WatchGlobals;
 #endif
    DefglobalBinaryData(theEnv)->DefglobalArray[obji].initial = HashedExpressionPointer(bdp->initial);
    DefglobalBinaryData(theEnv)->DefglobalArray[obji].current.type = RVOID;

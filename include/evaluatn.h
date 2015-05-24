@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*               EVALUATION HEADER FILE                */
    /*******************************************************/
@@ -16,9 +16,30 @@
 /*                                                           */
 /* Revision History:                                         */
 /*                                                           */
+/*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
+/*                                                           */
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
 /*                                                           */
 /*            Added EvaluateAndStoreInDataObject function.   */
+/*                                                           */
+/*      6.30: Added support for passing context information  */ 
+/*            to user defined functions.                     */
+/*                                                           */
+/*            Added support for external address hash table  */
+/*            and subtyping.                                 */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Support for long long integers.                */
+/*                                                           */
+/*            Changed garbage collection algorithm.          */
+/*                                                           */
+/*            Support for DATA_OBJECT_ARRAY primitive.       */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -56,17 +77,19 @@ typedef struct expr FUNCTION_REFERENCE;
 
 #define DATA_OBJECT_PTR_ARG DATA_OBJECT_PTR
 
+#define C_POINTER_EXTERNAL_ADDRESS 0
+
 #include "userdata.h"
 
 struct entityRecord
   {
-   char *name;
+   const char *name;
    unsigned int type : 13;
    unsigned int copyToEvaluate : 1;
    unsigned int bitMap : 1;
    unsigned int addsToRuleComplexity : 1;
-   void (*shortPrintFunction)(void *,char *,void *);
-   void (*longPrintFunction)(void *,char *,void *);
+   void (*shortPrintFunction)(void *,const char *,void *);
+   void (*longPrintFunction)(void *,const char *,void *);
    intBool (*deleteFunction)(void *,void *);
    intBool (*evaluateFunction)(void *,void *,DATA_OBJECT *);
    void *(*getNextFunction)(void *,void *);
@@ -81,9 +104,9 @@ struct entityRecord
 
 struct externalAddressType
   {
-   char *name;
-   void (*shortPrintFunction)(void *,char *,void *);
-   void (*longPrintFunction)(void *,char *,void *);
+   const  char *name;
+   void (*shortPrintFunction)(void *,const char *,void *);
+   void (*longPrintFunction)(void *,const char *,void *);
    intBool (*discardFunction)(void *,void *);
    void (*newFunction)(void *,DATA_OBJECT *);
    intBool (*callFunction)(void *,DATA_OBJECT *,DATA_OBJECT *);
@@ -136,7 +159,7 @@ typedef struct entityRecord * ENTITY_RECORD_PTR;
 #define DOToLong(target) (((struct integerHashNode *) ((target).value))->contents)
 #define DOToInteger(target) ((int) (((struct integerHashNode *) ((target).value))->contents))
 #define DOToPointer(target)        ((target).value)
-#define DOToExternalAddress(target) (((struct externalAddressHashNode *) ((target).value))->externalAddress))
+#define DOToExternalAddress(target) (((struct externalAddressHashNode *) ((target).value))->externalAddress)
 
 #define EnvDOToString(theEnv,target) (((struct symbolHashNode *) ((target).value))->contents)
 #define EnvDOToDouble(theEnv,target) (((struct floatHashNode *) ((target).value))->contents)
@@ -144,7 +167,7 @@ typedef struct entityRecord * ENTITY_RECORD_PTR;
 #define EnvDOToLong(theEnv,target) (((struct integerHashNode *) ((target).value))->contents)
 #define EnvDOToInteger(theEnv,target) ((int) (((struct integerHashNode *) ((target).value))->contents))
 #define EnvDOToPointer(theEnv,target)        ((target).value)
-#define EnvDOToExternalAddress(target) (((struct externalAddressHashNode *) ((target).value))->externalAddress))
+#define EnvDOToExternalAddress(target) (((struct externalAddressHashNode *) ((target).value))->externalAddress)
 
 #define CoerceToLongInteger(t,v) ((t == INTEGER) ? ValueToLong(v) : (long int) ValueToDouble(v))
 #define CoerceToInteger(t,v) ((t == INTEGER) ? (int) ValueToLong(v) : (int) ValueToDouble(v))
@@ -191,9 +214,6 @@ struct evaluationData
 #define LOCALE extern
 #endif
 
-#define SetMultifieldErrorValue(a) EnvSetMultifieldErrorValue(GetCurrentEnvironment(),a)
-#define FunctionCall(a,b,c) EnvFunctionCall(GetCurrentEnvironment(),a,b,c)
-
    LOCALE void                           InitializeEvaluationData(void *);
    LOCALE int                            EvaluateExpression(void *,struct expr *,struct dataObject *);
    LOCALE void                           SetEvaluationError(void *,intBool);
@@ -201,14 +221,13 @@ struct evaluationData
    LOCALE void                           SetHaltExecution(void *,int);
    LOCALE int                            GetHaltExecution(void *);
    LOCALE void                           ReturnValues(void *,struct dataObject *,intBool);
-   LOCALE void                           PrintDataObject(void *,char *,struct dataObject *);
+   LOCALE void                           PrintDataObject(void *,const char *,struct dataObject *);
    LOCALE void                           EnvSetMultifieldErrorValue(void *,struct dataObject *);
    LOCALE void                           ValueInstall(void *,struct dataObject *);
    LOCALE void                           ValueDeinstall(void *,struct dataObject *);
-   LOCALE void                           PropagateReturnValue(void *,struct dataObject *);
 #if DEFFUNCTION_CONSTRUCT || DEFGENERIC_CONSTRUCT
-   LOCALE int                            EnvFunctionCall(void *,char *,char *,DATA_OBJECT *);
-   LOCALE int                            FunctionCall2(void *,FUNCTION_REFERENCE *,char *,DATA_OBJECT *);
+   LOCALE int                            EnvFunctionCall(void *,const char *,const char *,DATA_OBJECT *);
+   LOCALE int                            FunctionCall2(void *,FUNCTION_REFERENCE *,const char *,DATA_OBJECT *);
 #endif
    LOCALE void                           CopyDataObject(void *,DATA_OBJECT *,DATA_OBJECT *,int);
    LOCALE void                           AtomInstall(void *,int,void *);
@@ -218,15 +237,16 @@ struct evaluationData
    LOCALE void                           InstallPrimitive(void *,struct entityRecord *,int);
    LOCALE int                            InstallExternalAddressType(void *,struct externalAddressType *);
    LOCALE void                           TransferDataObjectValues(DATA_OBJECT *,DATA_OBJECT *);
-   LOCALE struct expr                   *FunctionReferenceExpression(void *,char *);
-   LOCALE intBool                        GetFunctionReference(void *,char *,FUNCTION_REFERENCE *);
+   LOCALE struct expr                   *FunctionReferenceExpression(void *,const char *);
+   LOCALE intBool                        GetFunctionReference(void *,const char *,FUNCTION_REFERENCE *);
    LOCALE intBool                        DOsEqual(DATA_OBJECT_PTR,DATA_OBJECT_PTR);
    LOCALE int                            EvaluateAndStoreInDataObject(void *,int,EXPRESSION *,DATA_OBJECT *,int);
 
-#endif
+#if ALLOW_ENVIRONMENT_GLOBALS
 
+   LOCALE void                           SetMultifieldErrorValue(void *,DATA_OBJECT_PTR);
+   LOCALE int                            FunctionCall(const char *,const char *,DATA_OBJECT *);
 
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
 
-
-
-
+#endif /* _H_evaluatn */

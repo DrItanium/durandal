@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.22  06/15/04            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -15,6 +15,12 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Changed integer type/precision.                */
 /*                                                           */
 /*************************************************************/
 
@@ -138,13 +144,13 @@ globle void SetupGenericsBload(
   {
    AllocateEnvironmentData(theEnv,GENRCBIN_DATA,sizeof(struct defgenericBinaryData),DeallocateDefgenericBinaryData);
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"generic functions",0,BsaveGenericsFind,BsaveGenericsExpressions,
+   AddBinaryItem(theEnv,"generic functions",0,BsaveGenericsFind,BsaveGenericsExpressions,
                              BsaveStorageGenerics,BsaveGenerics,
                              BloadStorageGenerics,BloadGenerics,
                              ClearBloadGenerics);
 #endif
 #if BLOAD || BLOAD_ONLY
-   AddBinaryItem(theEnv,(char*)"generic functions",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"generic functions",0,NULL,NULL,NULL,NULL,
                              BloadStorageGenerics,BloadGenerics,
                              ClearBloadGenerics);
 #endif
@@ -247,17 +253,11 @@ static void BsaveGenericsFind(
   SIDE EFFECTS : Needed items marked
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void MarkDefgenericItems(
   void *theEnv,
   struct constructHeader *theDefgeneric,
   void *userBuffer)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(userBuffer)
-#endif
    DEFGENERIC *gfunc = (DEFGENERIC *) theDefgeneric;
    long i,j;
    DEFMETHOD *meth;
@@ -427,7 +427,7 @@ static void BsaveGenerics(
    while (theModule != NULL)
      {
       theModuleItem = (DEFGENERIC_MODULE *)
-                      GetModuleItem(theEnv,theModule,FindModuleItem(theEnv,(char*)"defgeneric")->moduleIndex);
+                      GetModuleItem(theEnv,theModule,FindModuleItem(theEnv,"defgeneric")->moduleIndex);
       AssignBsaveDefmdlItemHdrVals(&dummy_generic_module.header,
                                            &theModuleItem->header);
       GenWrite((void *) &dummy_generic_module,
@@ -599,9 +599,6 @@ static void BsaveMethodRestrictions(
   SIDE EFFECTS : Defgeneric methods' restrictions' types saved
   NOTES        : None
  *************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void BsaveRestrictionTypes(
   void *theEnv,
   struct constructHeader *theDefgeneric,
@@ -611,9 +608,6 @@ static void BsaveRestrictionTypes(
    long dummy_type;
    RESTRICTION *rptr;
    short i,j,k;
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    for (i = 0 ; i < gfunc->mcnt ; i++)
      {
@@ -813,9 +807,9 @@ static void UpdateType(
 #else
    if ((* (long *) buf) > (long) INSTANCE_TYPE_CODE)
      {
-      PrintWarningID(theEnv,(char*)"GENRCBIN",1,FALSE);
-      EnvPrintRouter(theEnv,WWARNING,(char*)"COOL not installed!  User-defined class\n");
-      EnvPrintRouter(theEnv,WWARNING,(char*)"  in method restriction substituted with OBJECT.\n");
+      PrintWarningID(theEnv,"GENRCBIN",1,FALSE);
+      EnvPrintRouter(theEnv,WWARNING,"COOL not installed!  User-defined class\n");
+      EnvPrintRouter(theEnv,WWARNING,"  in method restriction substituted with OBJECT.\n");
       DefgenericBinaryData(theEnv)->TypeArray[obji] = (void *) EnvAddLong(theEnv,(long long) OBJECT_TYPE_CODE);
      }
    else

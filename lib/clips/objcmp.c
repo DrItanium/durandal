@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -19,6 +19,18 @@
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
 /*                                                           */
 /*            Added environment parameter to GenClose.       */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -105,33 +117,33 @@ static void ReadyObjectsForCode(void *);
 static void MarkDefclassAndSlots(void *,struct constructHeader *,void *);
 static void PrintSlotNameReference(void *,FILE *,SLOT_NAME *,int,int);
 static void InitObjectsCode(void *,FILE *,int,int);
-static int ObjectsToCode(void *,char *,char *,char *,int,FILE *,int,int);
-static int ClassIDMapToCode(void *,char *,char *,char *,int,FILE *,int,int,int *);
-static int ClassHashTableToCode(void *,char *,char *,char *,int,FILE *,int,int,int *);
-static int SlotNameHashTableToCode(void *,char *,char *,char *,int,FILE *,int,int,int *);
-static int SlotNameEntriesToCode(void *,char *,char *,char *,int,FILE *,int,int,int *);
+static int ObjectsToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
+static int ClassIDMapToCode(void *,const char *,const char *,char *,int,FILE *,int,int,int *);
+static int ClassHashTableToCode(void *,const char *,const char *,char *,int,FILE *,int,int,int *);
+static int SlotNameHashTableToCode(void *,const char *,const char *,char *,int,FILE *,int,int,int *);
+static int SlotNameEntriesToCode(void *,const char *,const char *,char *,int,FILE *,int,int,int *);
 static void CloseObjectFiles(void *,FILE *[SAVE_ITEMS],int [SAVE_ITEMS],
                              struct CodeGeneratorFile [SAVE_ITEMS],int);
 static void DefclassModuleToCode(void *,FILE *,struct defmodule *,int,int);
 static void SingleDefclassToCode(void *,FILE *,int,int,DEFCLASS *,int,
                                  int,int,int,int,int,int,
                                  int,int,int,int,int,int);
-static intBool InheritanceLinksToCode(void *,FILE **,char *,char *,char *,int,int,FILE *,
+static intBool InheritanceLinksToCode(void *,FILE **,const char *,const char *,char *,int,int,FILE *,
                                       int *,int,DEFCLASS *,int *,
                                       int *,int *,struct CodeGeneratorFile *);
-static intBool SlotsToCode(void *,FILE **,char *,char *,char *,int,int,FILE *,
+static intBool SlotsToCode(void *,FILE **,const char *,const char *,char *,int,int,FILE *,
                            int *,int,DEFCLASS *,int *,
                            int *,int *,struct CodeGeneratorFile *);
-static intBool TemplateSlotsToCode(void *,FILE **,char *,char *,char *,int,int,FILE *,
+static intBool TemplateSlotsToCode(void *,FILE **,const char *,const char *,char *,int,int,FILE *,
                                    int *,int,DEFCLASS *,int *,
                                    int *,int *,struct CodeGeneratorFile *);
-static intBool OrderedSlotsToCode(void *,FILE **,char *,char *,char *,int,int,FILE *,
+static intBool OrderedSlotsToCode(void *,FILE **,const char *,const char *,char *,int,int,FILE *,
                                   int *,int,DEFCLASS *,int *,
                                   int *,int *,struct CodeGeneratorFile *);
-static intBool HandlersToCode(void *,FILE **,char *,char *,char *,int,int,FILE *,
+static intBool HandlersToCode(void *,FILE **,const char *,const char *,char *,int,int,FILE *,
                               int *,int,DEFCLASS *,int *,
                               int *,int *,struct CodeGeneratorFile *);
-static intBool OrderedHandlersToCode(void *,FILE **,char *,char *,char *,int,int,FILE *,
+static intBool OrderedHandlersToCode(void *,FILE **,const char *,const char *,char *,int,int,FILE *,
                                      int *,int,DEFCLASS *,int *,
                                      int *,int *,struct CodeGeneratorFile *);
 
@@ -155,7 +167,7 @@ globle void SetupObjectsCompiler(
   {
    AllocateEnvironmentData(theEnv,OBJECT_COMPILER_DATA,sizeof(struct objectCompilerData),NULL);
 
-   ObjectCompilerData(theEnv)->ObjectCodeItem = AddCodeGeneratorItem(theEnv,(char*)"objects",0,ReadyObjectsForCode,
+   ObjectCompilerData(theEnv)->ObjectCodeItem = AddCodeGeneratorItem(theEnv,"objects",0,ReadyObjectsForCode,
                                          InitObjectsCode,ObjectsToCode,13);
   }
 
@@ -280,9 +292,6 @@ static void ReadyObjectsForCode(
                  same time as the real slots - thus the
                  references must be predetermined
  ************************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void MarkDefclassAndSlots(
   void *theEnv,
   struct constructHeader *vTheDefclass,
@@ -292,9 +301,6 @@ static void MarkDefclassAndSlots(
    MARK_INFO *markInfo = (MARK_INFO *) vTheBuffer;
    long i;
    PACKED_LOCATION_INFO theLocationInfo;
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    theDefclass->header.bsaveID = markInfo->classCount++;
    for (i = 0 ; i < theDefclass->slotCount ; i++)
@@ -352,18 +358,12 @@ static void PrintSlotNameReference(
   SIDE EFFECTS : Writes out initialization code
   NOTES        : None
  *******************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void InitObjectsCode(
   void *theEnv,
   FILE *initFP,
   int imageID,
   int maxIndices)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(maxIndices)
-#endif
 
    fprintf(initFP,"   ObjectsRunTimeInitialize(theEnv,%s%d_1,%s%d_1,%s%d_1,%s%d);\n",
                       ClassHashPrefix(),imageID,SlotNameHashPrefix(),imageID,
@@ -388,8 +388,8 @@ static void InitObjectsCode(
  *************************************************************/
 static int ObjectsToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -445,7 +445,7 @@ static int ObjectsToCode(
       itemFiles[MODULEI] =
             OpenFileIfNeeded(theEnv,itemFiles[MODULEI],fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                              itemArrayVersions[MODULEI],headerFP,
-                             (char*)"DEFCLASS_MODULE",ModulePrefix(ObjectCompilerData(theEnv)->ObjectCodeItem),
+                             "DEFCLASS_MODULE",ModulePrefix(ObjectCompilerData(theEnv)->ObjectCodeItem),
                              itemReopenFlags[MODULEI],&itemCodeFiles[MODULEI]);
       if (itemFiles[MODULEI] == NULL)
         goto ObjectCodeError;
@@ -463,7 +463,7 @@ static int ObjectsToCode(
          itemFiles[CLASSI] =
             OpenFileIfNeeded(theEnv,itemFiles[CLASSI],fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                              itemArrayVersions[CLASSI],headerFP,
-                             (char*)"DEFCLASS",ClassPrefix(),
+                             "DEFCLASS",ClassPrefix(),
                              itemReopenFlags[CLASSI],&itemCodeFiles[CLASSI]);
          if (itemFiles[CLASSI] == NULL)
            goto ObjectCodeError;
@@ -551,8 +551,8 @@ ObjectCodeError:
  ***********************************************************/
 static int ClassIDMapToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -566,7 +566,7 @@ static int ClassIDMapToCode(
 
    classIDMapFile = OpenFileIfNeeded(theEnv,classIDMapFile,fileName,pathName,fileNameBuffer,fileID,imageID,fileCount,
                                      classIDMapArrayVersion,headerFP,
-                                     (char*)"DEFCLASS *",ClassIDPrefix(),FALSE,NULL);
+                                     "DEFCLASS *",ClassIDPrefix(),FALSE,NULL);
    if (classIDMapFile == NULL)
      return(FALSE);
    for (classIDMapArrayCount = 0 ;
@@ -600,8 +600,8 @@ static int ClassIDMapToCode(
  ***********************************************************/
 static int ClassHashTableToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -615,7 +615,7 @@ static int ClassHashTableToCode(
 
    classHashFile = OpenFileIfNeeded(theEnv,classHashFile,fileName,pathName,fileNameBuffer,fileID,imageID,fileCount,
                                     classHashArrayVersion,headerFP,
-                                    (char*)"DEFCLASS *",ClassHashPrefix(),FALSE,NULL);
+                                    "DEFCLASS *",ClassHashPrefix(),FALSE,NULL);
    if (classHashFile == NULL)
      return(FALSE);
    for (classHashArrayCount = 0 ;
@@ -647,8 +647,8 @@ static int ClassHashTableToCode(
  ***********************************************************/
 static int SlotNameHashTableToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -663,7 +663,7 @@ static int SlotNameHashTableToCode(
    slotNameHashFile = OpenFileIfNeeded(theEnv,slotNameHashFile,fileName,pathName,fileNameBuffer,fileID,
                                        imageID,fileCount,
                                        slotNameHashArrayVersion,headerFP,
-                                       (char*)"SLOT_NAME *",SlotNameHashPrefix(),FALSE,NULL);
+                                       "SLOT_NAME *",SlotNameHashPrefix(),FALSE,NULL);
    if (slotNameHashFile == NULL)
      return(FALSE);
    for (slotNameHashArrayCount = 0 ;
@@ -695,8 +695,8 @@ static int SlotNameHashTableToCode(
  ***********************************************************/
 static int SlotNameEntriesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -717,7 +717,7 @@ static int SlotNameEntriesToCode(
          slotNameFile = OpenFileIfNeeded(theEnv,slotNameFile,fileName,pathName,fileNameBuffer,fileID,
                                        imageID,fileCount,
                                        slotNameArrayVersion,headerFP,
-                                       (char*)"SLOT_NAME",SlotNamePrefix(),FALSE,NULL);
+                                       "SLOT_NAME",SlotNamePrefix(),FALSE,NULL);
          if (slotNameFile == NULL)
            return(FALSE);
          fprintf(slotNameFile,"{ %u,1,%d,",snp->hashTableIndex,snp->id);
@@ -977,8 +977,8 @@ static void SingleDefclassToCode(
 static intBool InheritanceLinksToCode(
   void *theEnv,
   FILE **classLinkFile,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   int imageID,
@@ -1005,7 +1005,7 @@ static intBool InheritanceLinksToCode(
    *classLinkFile = OpenFileIfNeeded(theEnv,*classLinkFile,fileName,pathName,fileNameBuffer,fileID,
                                       imageID,fileCount,
                                       *classLinkArrayVersion,headerFP,
-                                      (char*)"DEFCLASS *",ClassLinkPrefix(),
+                                      "DEFCLASS *",ClassLinkPrefix(),
                                       *reopenClassLinkFile,classLinkCodeFile);
    if (*classLinkFile == NULL)
      return(FALSE);
@@ -1075,8 +1075,8 @@ static intBool InheritanceLinksToCode(
 static intBool SlotsToCode(
   void *theEnv,
   FILE **slotFile,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   int imageID,
@@ -1100,7 +1100,7 @@ static intBool SlotsToCode(
    *slotFile = OpenFileIfNeeded(theEnv,*slotFile,fileName,pathName,fileNameBuffer,fileID,
                                 imageID,fileCount,
                                 *slotArrayVersion,headerFP,
-                                (char*)"SLOT_DESC",SlotPrefix(),
+                                "SLOT_DESC",SlotPrefix(),
                                 *reopenSlotFile,slotCodeFile);
    if (*slotFile == NULL)
      return(FALSE);
@@ -1190,8 +1190,8 @@ static intBool SlotsToCode(
 static intBool TemplateSlotsToCode(
   void *theEnv,
   FILE **templateSlotFile,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   int imageID,
@@ -1214,7 +1214,7 @@ static intBool TemplateSlotsToCode(
    *templateSlotFile = OpenFileIfNeeded(theEnv,*templateSlotFile,fileName,pathName,fileNameBuffer,fileID,
                                         imageID,fileCount,
                                         *templateSlotArrayVersion,headerFP,
-                                        (char*)"SLOT_DESC *",TemplateSlotPrefix(),
+                                        "SLOT_DESC *",TemplateSlotPrefix(),
                                         *reopenTemplateSlotFile,templateSlotCodeFile);
    if (*templateSlotFile == NULL)
      return(FALSE);
@@ -1269,8 +1269,8 @@ static intBool TemplateSlotsToCode(
 static intBool OrderedSlotsToCode(
   void *theEnv,
   FILE **orderedSlotFile,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   int imageID,
@@ -1291,7 +1291,7 @@ static intBool OrderedSlotsToCode(
    *orderedSlotFile = OpenFileIfNeeded(theEnv,*orderedSlotFile,fileName,pathName,fileNameBuffer,fileID,
                                         imageID,fileCount,
                                         *orderedSlotArrayVersion,headerFP,
-                                        (char*)"unsigned",OrderedSlotPrefix(),
+                                        "unsigned",OrderedSlotPrefix(),
                                         *reopenOrderedSlotFile,orderedSlotCodeFile);
    if (*orderedSlotFile == NULL)
      return(FALSE);
@@ -1340,8 +1340,8 @@ static intBool OrderedSlotsToCode(
 static intBool HandlersToCode(
   void *theEnv,
   FILE **handlerFile,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   int imageID,
@@ -1363,7 +1363,7 @@ static intBool HandlersToCode(
    *handlerFile = OpenFileIfNeeded(theEnv,*handlerFile,fileName,pathName,fileNameBuffer,fileID,
                                         imageID,fileCount,
                                         *handlerArrayVersion,headerFP,
-                                        (char*)"HANDLER",HandlerPrefix(),*reopenHandlerFile,
+                                        "HANDLER",HandlerPrefix(),*reopenHandlerFile,
                                         handlerCodeFile);
    if (*handlerFile == NULL)
      return(FALSE);
@@ -1421,8 +1421,8 @@ static intBool HandlersToCode(
 static intBool OrderedHandlersToCode(
   void *theEnv,
   FILE **orderedHandlerFile,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   int imageID,
@@ -1443,7 +1443,7 @@ static intBool OrderedHandlersToCode(
    *orderedHandlerFile = OpenFileIfNeeded(theEnv,*orderedHandlerFile,fileName,pathName,fileNameBuffer,fileID,
                                           imageID,fileCount,
                                           *orderedHandlerArrayVersion,headerFP,
-                                          (char*)"unsigned",OrderedHandlerPrefix(),
+                                          "unsigned",OrderedHandlerPrefix(),
                                           *reopenOrderedHandlerFile,
                                           orderedHandlerCodeFile);
    if (*orderedHandlerFile == NULL)

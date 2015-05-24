@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                   FACT BUILD MODULE                 */
    /*******************************************************/
@@ -22,6 +22,9 @@
 /*      6.24: Removed INCREMENTAL_RESET compilation flag.    */
 /*                                                           */
 /*      6.30: Added support for hashed alpha memories.       */
+/*                                                           */
+/*            Added support for hashed comparisons to        */
+/*            constants.                                     */
 /*                                                           */
 /*************************************************************/
 
@@ -81,7 +84,7 @@ globle void InitializeFactPatterns(
 
    newPtr = get_struct(theEnv,patternParser);
 
-   newPtr->name = (char*)"facts";
+   newPtr->name = "facts";
    newPtr->priority = 0;
    newPtr->entityType = &FactData(theEnv)->FactInfo;
    
@@ -152,7 +155,7 @@ static struct patternNodeHeader *PlaceFactPattern(
    struct factPatternNode *nodeBeforeMatch, *newNode = NULL;
    unsigned endSlot;
    int count;
-   char *deftemplateName;
+   const char *deftemplateName;
 
    /*======================================================================*/
    /* Get the name of the deftemplate associated with the pattern being    */
@@ -224,7 +227,7 @@ static struct patternNodeHeader *PlaceFactPattern(
    /*============================================================*/
 
    FactData(theEnv)->CurrentDeftemplate = (struct deftemplate *)
-                        FindImportedConstruct(theEnv,(char*)"deftemplate",NULL,
+                        FindImportedConstruct(theEnv,"deftemplate",NULL,
                                               deftemplateName,&count,
                                               TRUE,NULL);
 

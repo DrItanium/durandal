@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.21  06/15/03            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*             DEFMODULE BSAVE/BLOAD MODULE            */
    /*******************************************************/
@@ -17,6 +17,8 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
 /*                                                           */
 /*************************************************************/
 
@@ -60,19 +62,19 @@
 globle void DefmoduleBinarySetup(
   void *theEnv)
   {
-   AddBeforeBloadFunction(theEnv,(char*)"defmodule",RemoveAllDefmodules,2000);
+   AddBeforeBloadFunction(theEnv,"defmodule",RemoveAllDefmodules,2000);
 
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"defmodule",0,BsaveFind,NULL,
+   AddBinaryItem(theEnv,"defmodule",0,BsaveFind,NULL,
                              BsaveStorage,BsaveBinaryItem,
                              BloadStorage,BloadBinaryItem,
                              ClearBload);
 #endif
 
-   AddAbortBloadFunction(theEnv,(char*)"defmodule",CreateMainModule,0);
+   AddAbortBloadFunction(theEnv,"defmodule",CreateMainModule,0);
 
 #if (BLOAD || BLOAD_ONLY)
-   AddBinaryItem(theEnv,(char*)"defmodule",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"defmodule",0,NULL,NULL,NULL,NULL,
                              BloadStorage,BloadBinaryItem,
                              ClearBload);
 #endif

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  07/01/05            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                PRINT UTILITY MODULE                 */
    /*******************************************************/
@@ -26,6 +26,25 @@
 /*                                                           */
 /*            Added SlotExistError function.                 */
 /*                                                           */
+/*      6.30: Support for long long integers.                */
+/*                                                           */
+/*            Support for DATA_OBJECT_ARRAY primitive.       */
+/*                                                           */
+/*            Support for typed EXTERNAL_ADDRESS.            */
+/*                                                           */
+/*            Used gensprintf and genstrcat instead of       */
+/*            sprintf and strcat.                            */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Added code for capturing errors/warnings.      */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Fixed linkage issue when BLOAD_ONLY compiler   */
+/*            flag is set to 1.                              */
+/*                                                           */
 /*************************************************************/
 
 #define _PRNTUTIL_SOURCE_
@@ -45,6 +64,7 @@
 #include "router.h"
 #include "multifun.h"
 #include "factmngr.h"
+#include "cstrcpsr.h"
 #include "inscom.h"
 #include "insmngr.h"
 #include "memalloc.h"
@@ -69,9 +89,20 @@ globle void InitializePrintUtilityData(
 /***********************************************************/
 globle void PrintInChunks(
   void *theEnv,
-  char *logicalName,
-  char *bigString)
+  const char *logicalName,
+  const char *bigString)
   {
+   /*=====================================================*/
+   /* This function was originally added because VMS had  */
+   /* a bug that didn't allow printing a string greater   */
+   /* than 512 bytes. Since this was over 25 years ago,   */
+   /* we'll assume no modern compiler has this limitation */
+   /* and just print the entire string.                   */
+   /*=====================================================*/
+   
+   EnvPrintRouter(theEnv,logicalName,bigString);
+
+/*
    char tc, *subString;
 
    subString = bigString;
@@ -89,6 +120,7 @@ globle void PrintInChunks(
      }
 
    EnvPrintRouter(theEnv,logicalName,subString);
+*/
   }
 
 /************************************************************/
@@ -96,10 +128,10 @@ globle void PrintInChunks(
 /************************************************************/
 globle void PrintFloat(
   void *theEnv,
-  char *fileid,
+  const char *fileid,
   double number)
   {
-   char *theString;
+   const char *theString;
 
    theString = FloatToString(theEnv,number);
    EnvPrintRouter(theEnv,fileid,theString);
@@ -110,7 +142,7 @@ globle void PrintFloat(
 /****************************************************/
 globle void PrintLongInteger(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   long long number)
   {
    char printBuffer[32];
@@ -124,7 +156,7 @@ globle void PrintLongInteger(
 /**************************************/
 globle void PrintAtom(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   int type,
   void *value)
   {
@@ -147,40 +179,51 @@ globle void PrintAtom(
           { EnvPrintRouter(theEnv,logicalName,StringPrintForm(theEnv,ValueToString(value))); }
         else
           {
-           EnvPrintRouter(theEnv,logicalName,(char*)"\"");
+           EnvPrintRouter(theEnv,logicalName,"\"");
            EnvPrintRouter(theEnv,logicalName,ValueToString(value));
-           EnvPrintRouter(theEnv,logicalName,(char*)"\"");
+           EnvPrintRouter(theEnv,logicalName,"\"");
           }
+        break;
+
+      case DATA_OBJECT_ARRAY:
+        if (PrintUtilityData(theEnv)->AddressesToStrings) EnvPrintRouter(theEnv,logicalName,"\"");
+        
+        EnvPrintRouter(theEnv,logicalName,"<Pointer-");
+        gensprintf(buffer,"%p",value);
+        EnvPrintRouter(theEnv,logicalName,buffer);
+        EnvPrintRouter(theEnv,logicalName,">");
+          
+        if (PrintUtilityData(theEnv)->AddressesToStrings) EnvPrintRouter(theEnv,logicalName,"\"");
         break;
 
       case EXTERNAL_ADDRESS:
         theAddress = (struct externalAddressHashNode *) value;
         
-        if (PrintUtilityData(theEnv)->AddressesToStrings) EnvPrintRouter(theEnv,logicalName,(char*)"\"");
+        if (PrintUtilityData(theEnv)->AddressesToStrings) EnvPrintRouter(theEnv,logicalName,"\"");
         
         if ((EvaluationData(theEnv)->ExternalAddressTypes[theAddress->type] != NULL) &&
             (EvaluationData(theEnv)->ExternalAddressTypes[theAddress->type]->longPrintFunction != NULL))
           { (*EvaluationData(theEnv)->ExternalAddressTypes[theAddress->type]->longPrintFunction)(theEnv,logicalName,value); }
         else
           {
-           EnvPrintRouter(theEnv,logicalName,(char*)"<Pointer-");
+           EnvPrintRouter(theEnv,logicalName,"<Pointer-");
         
            gensprintf(buffer,"%d-",theAddress->type);
            EnvPrintRouter(theEnv,logicalName,buffer);
         
            gensprintf(buffer,"%p",ValueToExternalAddress(value));
            EnvPrintRouter(theEnv,logicalName,buffer);
-           EnvPrintRouter(theEnv,logicalName,(char*)">");
+           EnvPrintRouter(theEnv,logicalName,">");
           }
           
-        if (PrintUtilityData(theEnv)->AddressesToStrings) EnvPrintRouter(theEnv,logicalName,(char*)"\"");
+        if (PrintUtilityData(theEnv)->AddressesToStrings) EnvPrintRouter(theEnv,logicalName,"\"");
         break;
 
 #if OBJECT_SYSTEM
       case INSTANCE_NAME:
-        EnvPrintRouter(theEnv,logicalName,(char*)"[");
+        EnvPrintRouter(theEnv,logicalName,"[");
         EnvPrintRouter(theEnv,logicalName,ValueToString(value));
-        EnvPrintRouter(theEnv,logicalName,(char*)"]");
+        EnvPrintRouter(theEnv,logicalName,"]");
         break;
 #endif
 
@@ -191,7 +234,7 @@ globle void PrintAtom(
         if (EvaluationData(theEnv)->PrimitivesArray[type] == NULL) break;
         if (EvaluationData(theEnv)->PrimitivesArray[type]->longPrintFunction == NULL)
           {
-           EnvPrintRouter(theEnv,logicalName,(char*)"<unknown atom type>");
+           EnvPrintRouter(theEnv,logicalName,"<unknown atom type>");
            break;
           }
         (*EvaluationData(theEnv)->PrimitivesArray[type]->longPrintFunction)(theEnv,logicalName,value);
@@ -206,21 +249,21 @@ globle void PrintAtom(
 /**********************************************************/
 globle void PrintTally(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   long long count,
-  char *singular,
-  char *plural)
+  const char *singular,
+  const char *plural)
   {
    if (count == 0) return;
 
-   EnvPrintRouter(theEnv,logicalName,(char*)"For a total of ");
+   EnvPrintRouter(theEnv,logicalName,"For a total of ");
    PrintLongInteger(theEnv,logicalName,count);
-   EnvPrintRouter(theEnv,logicalName,(char*)" ");
+   EnvPrintRouter(theEnv,logicalName," ");
 
    if (count == 1) EnvPrintRouter(theEnv,logicalName,singular);
    else EnvPrintRouter(theEnv,logicalName,plural);
 
-   EnvPrintRouter(theEnv,logicalName,(char*)".\n");
+   EnvPrintRouter(theEnv,logicalName,".\n");
   }
 
 /********************************************/
@@ -229,15 +272,20 @@ globle void PrintTally(
 /********************************************/
 globle void PrintErrorID(
   void *theEnv,
-  char *module,
+  const char *module,
   int errorID,
   int printCR)
   {
-   if (printCR) EnvPrintRouter(theEnv,WERROR,(char*)"\n");
-   EnvPrintRouter(theEnv,WERROR,(char*)"[");
+#if (! RUN_TIME) && (! BLOAD_ONLY)
+   FlushParsingMessages(theEnv);
+   EnvSetErrorFileName(theEnv,EnvGetParsingFileName(theEnv));
+   ConstructData(theEnv)->ErrLineNumber = GetLineCount(theEnv);
+#endif
+   if (printCR) EnvPrintRouter(theEnv,WERROR,"\n");
+   EnvPrintRouter(theEnv,WERROR,"[");
    EnvPrintRouter(theEnv,WERROR,module);
    PrintLongInteger(theEnv,WERROR,(long int) errorID);
-   EnvPrintRouter(theEnv,WERROR,(char*)"] ");
+   EnvPrintRouter(theEnv,WERROR,"] ");
   }
 
 /**********************************************/
@@ -246,15 +294,20 @@ globle void PrintErrorID(
 /**********************************************/
 globle void PrintWarningID(
   void *theEnv,
-  char *module,
+  const char *module,
   int warningID,
   int printCR)
   {
-   if (printCR) EnvPrintRouter(theEnv,WWARNING,(char*)"\n");
-   EnvPrintRouter(theEnv,WWARNING,(char*)"[");
+#if (! RUN_TIME) && (! BLOAD_ONLY)
+   FlushParsingMessages(theEnv);
+   EnvSetWarningFileName(theEnv,EnvGetParsingFileName(theEnv));
+   ConstructData(theEnv)->WrnLineNumber = GetLineCount(theEnv);
+#endif
+   if (printCR) EnvPrintRouter(theEnv,WWARNING,"\n");
+   EnvPrintRouter(theEnv,WWARNING,"[");
    EnvPrintRouter(theEnv,WWARNING,module);
    PrintLongInteger(theEnv,WWARNING,(long int) warningID);
-   EnvPrintRouter(theEnv,WWARNING,(char*)"] WARNING: ");
+   EnvPrintRouter(theEnv,WWARNING,"] WARNING: ");
   }
 
 /***************************************************/
@@ -263,15 +316,15 @@ globle void PrintWarningID(
 /***************************************************/
 globle void CantFindItemErrorMessage(
   void *theEnv,
-  char *itemType,
-  char *itemName)
+  const char *itemType,
+  const char *itemName)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",1,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Unable to find ");
+   PrintErrorID(theEnv,"PRNTUTIL",1,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Unable to find ");
    EnvPrintRouter(theEnv,WERROR,itemType);
-   EnvPrintRouter(theEnv,WERROR,(char*)" ");
+   EnvPrintRouter(theEnv,WERROR," ");
    EnvPrintRouter(theEnv,WERROR,itemName);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /*****************************************************/
@@ -280,18 +333,18 @@ globle void CantFindItemErrorMessage(
 /*****************************************************/
 globle void CantFindItemInFunctionErrorMessage(
   void *theEnv,
-  char *itemType,
-  char *itemName,
-  char *func)
+  const char *itemType,
+  const char *itemName,
+  const char *func)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",1,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Unable to find ");
+   PrintErrorID(theEnv,"PRNTUTIL",1,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Unable to find ");
    EnvPrintRouter(theEnv,WERROR,itemType);
-   EnvPrintRouter(theEnv,WERROR,(char*)" ");
+   EnvPrintRouter(theEnv,WERROR," ");
    EnvPrintRouter(theEnv,WERROR,itemName);
-   EnvPrintRouter(theEnv,WERROR,(char*)" in function ");
+   EnvPrintRouter(theEnv,WERROR," in function ");
    EnvPrintRouter(theEnv,WERROR,func);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /*****************************************************/
@@ -300,15 +353,15 @@ globle void CantFindItemInFunctionErrorMessage(
 /*****************************************************/
 globle void CantDeleteItemErrorMessage(
   void *theEnv,
-  char *itemType,
-  char *itemName)
+  const char *itemType,
+  const char *itemName)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",4,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Unable to delete ");
+   PrintErrorID(theEnv,"PRNTUTIL",4,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Unable to delete ");
    EnvPrintRouter(theEnv,WERROR,itemType);
-   EnvPrintRouter(theEnv,WERROR,(char*)" ");
+   EnvPrintRouter(theEnv,WERROR," ");
    EnvPrintRouter(theEnv,WERROR,itemName);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /****************************************************/
@@ -317,14 +370,14 @@ globle void CantDeleteItemErrorMessage(
 /****************************************************/
 globle void AlreadyParsedErrorMessage(
   void *theEnv,
-  char *itemType,
-  char *itemName)
+  const char *itemType,
+  const char *itemName)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",5,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"The ");
+   PrintErrorID(theEnv,"PRNTUTIL",5,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"The ");
    if (itemType != NULL) EnvPrintRouter(theEnv,WERROR,itemType);
    if (itemName != NULL) EnvPrintRouter(theEnv,WERROR,itemName);
-   EnvPrintRouter(theEnv,WERROR,(char*)" has already been parsed.\n");
+   EnvPrintRouter(theEnv,WERROR," has already been parsed.\n");
   }
 
 /*********************************************************/
@@ -332,17 +385,17 @@ globle void AlreadyParsedErrorMessage(
 /*********************************************************/
 globle void SyntaxErrorMessage(
   void *theEnv,
-  char *location)
+  const char *location)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",2,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Syntax Error");
+   PrintErrorID(theEnv,"PRNTUTIL",2,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"Syntax Error");
    if (location != NULL)
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)":  Check appropriate syntax for ");
+      EnvPrintRouter(theEnv,WERROR,":  Check appropriate syntax for ");
       EnvPrintRouter(theEnv,WERROR,location);
      }
 
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
    SetEvaluationError(theEnv,TRUE);
   }
 
@@ -353,12 +406,12 @@ globle void SyntaxErrorMessage(
 /****************************************************/
 globle void LocalVariableErrorMessage(
   void *theEnv,
-  char *byWhat)
+  const char *byWhat)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",6,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Local variables can not be accessed by ");
+   PrintErrorID(theEnv,"PRNTUTIL",6,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"Local variables can not be accessed by ");
    EnvPrintRouter(theEnv,WERROR,byWhat);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /******************************************/
@@ -367,24 +420,24 @@ globle void LocalVariableErrorMessage(
 /******************************************/
 globle void SystemError(
   void *theEnv,
-  char *module,
+  const char *module,
   int errorID)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",3,TRUE);
+   PrintErrorID(theEnv,"PRNTUTIL",3,TRUE);
 
-   EnvPrintRouter(theEnv,WERROR,(char*)"\n*** ");
+   EnvPrintRouter(theEnv,WERROR,"\n*** ");
    EnvPrintRouter(theEnv,WERROR,APPLICATION_NAME);
-   EnvPrintRouter(theEnv,WERROR,(char*)" SYSTEM ERROR ***\n");
+   EnvPrintRouter(theEnv,WERROR," SYSTEM ERROR ***\n");
 
-   EnvPrintRouter(theEnv,WERROR,(char*)"ID = ");
+   EnvPrintRouter(theEnv,WERROR,"ID = ");
    EnvPrintRouter(theEnv,WERROR,module);
    PrintLongInteger(theEnv,WERROR,(long int) errorID);
-   EnvPrintRouter(theEnv,WERROR,(char*)"\n");
+   EnvPrintRouter(theEnv,WERROR,"\n");
 
    EnvPrintRouter(theEnv,WERROR,APPLICATION_NAME);
-   EnvPrintRouter(theEnv,WERROR,(char*)" data structures are in an inconsistent or corrupted state.\n");
-   EnvPrintRouter(theEnv,WERROR,(char*)"This error may have occurred from errors in user defined code.\n");
-   EnvPrintRouter(theEnv,WERROR,(char*)"**************************\n");
+   EnvPrintRouter(theEnv,WERROR," data structures are in an inconsistent or corrupted state.\n");
+   EnvPrintRouter(theEnv,WERROR,"This error may have occurred from errors in user defined code.\n");
+   EnvPrintRouter(theEnv,WERROR,"**************************\n");
   }
 
 /*******************************************************/
@@ -393,18 +446,18 @@ globle void SystemError(
 /*******************************************************/
 globle void DivideByZeroErrorMessage(
   void *theEnv,
-  char *functionName)
+  const char *functionName)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",7,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Attempt to divide by zero in ");
+   PrintErrorID(theEnv,"PRNTUTIL",7,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Attempt to divide by zero in ");
    EnvPrintRouter(theEnv,WERROR,functionName);
-   EnvPrintRouter(theEnv,WERROR,(char*)" function.\n");
+   EnvPrintRouter(theEnv,WERROR," function.\n");
   }
 
 /*******************************************************/
 /* FloatToString: Converts number to KB string format. */
 /*******************************************************/
-globle char *FloatToString(
+globle const char *FloatToString(
   void *theEnv,
   double number)
   {
@@ -433,7 +486,7 @@ globle char *FloatToString(
 /*******************************************************************/
 /* LongIntegerToString: Converts long integer to KB string format. */
 /*******************************************************************/
-globle char *LongIntegerToString(
+globle const char *LongIntegerToString(
   void *theEnv,
   long long number)
   {
@@ -449,13 +502,14 @@ globle char *LongIntegerToString(
 /*******************************************************************/
 /* DataObjectToString: Converts a DATA_OBJECT to KB string format. */
 /*******************************************************************/
-globle char *DataObjectToString(
+globle const char *DataObjectToString(
   void *theEnv,
   DATA_OBJECT *theDO)
   {
    void *thePtr;
-   char *theString, *newString;
-   char *prefix, *postfix;
+   const char *theString;
+   char *newString;
+   const char *prefix, *postfix;
    size_t length;
    struct externalAddressHashNode *theAddress;
    char buffer[30];
@@ -463,21 +517,21 @@ globle char *DataObjectToString(
    switch (GetpType(theDO))
      {
       case MULTIFIELD:
-         prefix = (char*)"(";
+         prefix = "(";
          theString = ValueToString(ImplodeMultifield(theEnv,theDO));
-         postfix = (char*)")";
+         postfix = ")";
          break;
          
       case STRING:
-         prefix = (char*)"\"";
+         prefix = "\"";
          theString = DOPToString(theDO);
-         postfix = (char*)"\"";
+         postfix = "\"";
          break;
          
       case INSTANCE_NAME:
-         prefix = (char*)"[";
+         prefix = "[";
          theString = DOPToString(theDO);
-         postfix = (char*)"]";
+         postfix = "]";
          break;
          
       case SYMBOL:
@@ -490,26 +544,26 @@ globle char *DataObjectToString(
          return(LongIntegerToString(theEnv,DOPToLong(theDO)));
          
       case RVOID:
-         return((char*)"");
+         return("");
 
 #if OBJECT_SYSTEM
       case INSTANCE_ADDRESS:
          thePtr = DOPToPointer(theDO);
 
          if (thePtr == (void *) &InstanceData(theEnv)->DummyInstance)
-           { return((char*)"<Dummy Instance>"); }
+           { return("<Dummy Instance>"); }
            
          if (((struct instance *) thePtr)->garbage)
            {
-            prefix = (char*)"<Stale Instance-";
+            prefix = "<Stale Instance-";
             theString = ValueToString(((struct instance *) thePtr)->name);
-            postfix = (char*)">";
+            postfix = ">";
            }
          else
            {
-            prefix = (char*)"<Instance-";
+            prefix = "<Instance-";
             theString = ValueToString(GetFullInstanceName(theEnv,(INSTANCE_TYPE *) thePtr));
-            postfix = (char*)">";
+            postfix = ">";
            }
            
         break;
@@ -525,7 +579,7 @@ globle char *DataObjectToString(
 #if DEFTEMPLATE_CONSTRUCT      
       case FACT_ADDRESS:
          if (DOPToPointer(theDO) == (void *) &FactData(theEnv)->DummyFact)
-           { return((char*)"<Dummy Fact>"); }
+           { return("<Dummy Fact>"); }
          
          thePtr = DOPToPointer(theDO);
          gensprintf(buffer,"<Fact-%lld>",((struct fact *) thePtr)->factIndex);
@@ -534,7 +588,7 @@ globle char *DataObjectToString(
 #endif
                         
       default:
-         return((char*)"UNK");
+         return("UNK");
      }
      
    length = strlen(prefix) + strlen(theString) + strlen(postfix) + 1;
@@ -554,19 +608,19 @@ globle char *DataObjectToString(
 /************************************************************/
 globle void SalienceInformationError(
   void *theEnv,
-  char *constructType,
-  char *constructName)
+  const char *constructType,
+  const char *constructName)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",8,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"This error occurred while evaluating the salience");
+   PrintErrorID(theEnv,"PRNTUTIL",8,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"This error occurred while evaluating the salience");
    if (constructName != NULL)
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)" for ");
+      EnvPrintRouter(theEnv,WERROR," for ");
       EnvPrintRouter(theEnv,WERROR,constructType);
-      EnvPrintRouter(theEnv,WERROR,(char*)" ");
+      EnvPrintRouter(theEnv,WERROR," ");
       EnvPrintRouter(theEnv,WERROR,constructName);
      }
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /**********************************************************/
@@ -579,12 +633,12 @@ globle void SalienceRangeError(
   int min,
   int max)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",9,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Salience value out of range ");
+   PrintErrorID(theEnv,"PRNTUTIL",9,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"Salience value out of range ");
    PrintLongInteger(theEnv,WERROR,(long int) min);
-   EnvPrintRouter(theEnv,WERROR,(char*)" to ");
+   EnvPrintRouter(theEnv,WERROR," to ");
    PrintLongInteger(theEnv,WERROR,(long int) max);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /***************************************************************/
@@ -594,8 +648,8 @@ globle void SalienceRangeError(
 globle void SalienceNonIntegerError(
   void *theEnv)
   {
-   PrintErrorID(theEnv,(char*)"PRNTUTIL",10,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Salience value must be an integer value.\n");
+   PrintErrorID(theEnv,"PRNTUTIL",10,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"Salience value must be an integer value.\n");
   }
 
 /***************************************************/
@@ -606,14 +660,14 @@ globle void SalienceNonIntegerError(
 /***************************************************/
 globle void SlotExistError(
   void *theEnv,
-  char *sname,
-  char *func)
+  const char *sname,
+  const char *func)
   {
-   PrintErrorID(theEnv,(char*)"INSFUN",3,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"No such slot ");
+   PrintErrorID(theEnv,"INSFUN",3,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"No such slot ");
    EnvPrintRouter(theEnv,WERROR,sname);
-   EnvPrintRouter(theEnv,WERROR,(char*)" in function ");
+   EnvPrintRouter(theEnv,WERROR," in function ");
    EnvPrintRouter(theEnv,WERROR,func);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
    SetEvaluationError(theEnv,TRUE);
   }

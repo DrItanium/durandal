@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  07/01/05            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                CONSTRAINT HEADER FILE               */
    /*******************************************************/
@@ -18,9 +18,20 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
+/*                                                           */
 /*      6.24: Added allowed-classes slot facet.              */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -96,11 +107,6 @@ struct constraintData
 
 #define ConstraintData(theEnv) ((struct constraintData *) GetEnvironmentData(theEnv,CONSTRAINT_DATA))
 
-#define GetDynamicConstraintChecking() EnvGetDynamicConstraintChecking(GetCurrentEnvironment())
-#define GetStaticConstraintChecking() EnvGetStaticConstraintChecking(GetCurrentEnvironment())
-#define SetDynamicConstraintChecking(a) EnvSetDynamicConstraintChecking(GetCurrentEnvironment(),a)
-#define SetStaticConstraintChecking(a) EnvSetStaticConstraintChecking(GetCurrentEnvironment(),a)
-
    LOCALE void                           InitializeConstraints(void *);
    LOCALE int                            GDCCommand(void *);
    LOCALE int                            SDCCommand(void *d);
@@ -116,6 +122,15 @@ struct constraintData
 #endif
 #if (! RUN_TIME)
    LOCALE void                           RemoveConstraint(void *,struct constraintRecord *);
+#endif
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+   LOCALE intBool                        SetDynamicConstraintChecking(int);
+   LOCALE intBool                        GetDynamicConstraintChecking(void);
+   LOCALE intBool                        SetStaticConstraintChecking(int);
+   LOCALE intBool                        GetStaticConstraintChecking(void);
+
 #endif
 
 #endif

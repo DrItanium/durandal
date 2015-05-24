@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.22  06/15/04            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*            DEFFACTS CONSTRUCTS-TO-C MODULE          */
    /*******************************************************/
@@ -17,6 +17,16 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -39,7 +49,7 @@
 /* LOCAL INTERNAL FUNCTION DEFINITIONS */
 /***************************************/
 
-   static int                     ConstructToCode(void *,char *,char *,char *,int,FILE *,int,int);
+   static int                     ConstructToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
    static void                    DeffactsToCode(void *,FILE *,struct deffacts *,
                                                  int,int,int);
    static void                    DeffactsModuleToCode(void *,FILE *,struct defmodule *,int,int,int);
@@ -54,7 +64,7 @@ globle void DeffactsCompilerSetup(
   void *theEnv)
   {
    DeffactsData(theEnv)->DeffactsCodeItem = 
-      AddCodeGeneratorItem(theEnv,(char*)"deffacts",0,BeforeDeffactsToCode,
+      AddCodeGeneratorItem(theEnv,"deffacts",0,BeforeDeffactsToCode,
                            NULL,ConstructToCode,2);
   }
 
@@ -75,8 +85,8 @@ static void BeforeDeffactsToCode(
 /**********************************************************/
 static int ConstructToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -110,7 +120,7 @@ static int ConstructToCode(
       moduleFile = OpenFileIfNeeded(theEnv,moduleFile,fileName,pathName,
                                     fileNameBuffer,fileID,imageID,&fileCount,
                                     moduleArrayVersion,headerFP,
-                                    (char*)"struct deffactsModule",
+                                    "struct deffactsModule",
                                     ModulePrefix(DeffactsData(theEnv)->DeffactsCodeItem),
                                     FALSE,NULL);
 
@@ -135,7 +145,7 @@ static int ConstructToCode(
          deffactsFile = OpenFileIfNeeded(theEnv,deffactsFile,fileName,pathName,
                                          fileNameBuffer,fileID,imageID,
                                          &fileCount, deffactsArrayVersion,headerFP,
-                                         (char*)"struct deffacts",
+                                         "struct deffacts",
                                          ConstructPrefix(DeffactsData(theEnv)->DeffactsCodeItem),
                                          FALSE,NULL);
          if (deffactsFile == NULL)
@@ -190,9 +200,6 @@ static void CloseDeffactsFiles(
 /* DeffactsModuleToCode: Writes the C code representation */
 /*   of a single deffacts module to the specified file.   */
 /**********************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void DeffactsModuleToCode(
   void *theEnv,
   FILE *theFile,
@@ -201,9 +208,6 @@ static void DeffactsModuleToCode(
   int maxIndices,
   int moduleCount)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(moduleCount)
-#endif
    
    fprintf(theFile,"{");
 

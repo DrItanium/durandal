@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.20  01/31/02            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -15,6 +15,12 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -40,7 +46,7 @@
    ***************************************** */
 
 static void ReadyDeffunctionsForCode(void *);
-static int DeffunctionsToCode(void *,char *,char *,char *,int,FILE *,int,int);
+static int DeffunctionsToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
 static void CloseDeffunctionFiles(void *,FILE *,FILE *,int);
 static void DeffunctionModuleToCode(void *,FILE *,struct defmodule *,int,int);
 static void SingleDeffunctionToCode(void *,FILE *,DEFFUNCTION *,int,int,int);
@@ -63,7 +69,7 @@ static void SingleDeffunctionToCode(void *,FILE *,DEFFUNCTION *,int,int,int);
 globle void SetupDeffunctionCompiler(
   void *theEnv)
   {
-   DeffunctionData(theEnv)->DeffunctionCodeItem = AddCodeGeneratorItem(theEnv,(char*)"deffunctions",0,ReadyDeffunctionsForCode,
+   DeffunctionData(theEnv)->DeffunctionCodeItem = AddCodeGeneratorItem(theEnv,"deffunctions",0,ReadyDeffunctionsForCode,
                                               NULL,DeffunctionsToCode,2);
   }
 
@@ -162,8 +168,8 @@ static void ReadyDeffunctionsForCode(
  *******************************************************/
 static int DeffunctionsToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -194,7 +200,7 @@ static int DeffunctionsToCode(
 
       moduleFile = OpenFileIfNeeded(theEnv,moduleFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                     moduleArrayVersion,headerFP,
-                                    (char*)"DEFFUNCTION_MODULE",ModulePrefix(DeffunctionData(theEnv)->DeffunctionCodeItem),
+                                    "DEFFUNCTION_MODULE",ModulePrefix(DeffunctionData(theEnv)->DeffunctionCodeItem),
                                     FALSE,NULL);
 
       if (moduleFile == NULL)
@@ -213,7 +219,7 @@ static int DeffunctionsToCode(
         {
          deffunctionFile = OpenFileIfNeeded(theEnv,deffunctionFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                             deffunctionArrayVersion,headerFP,
-                                            (char*)"DEFFUNCTION",ConstructPrefix(DeffunctionData(theEnv)->DeffunctionCodeItem),
+                                            "DEFFUNCTION",ConstructPrefix(DeffunctionData(theEnv)->DeffunctionCodeItem),
                                             FALSE,NULL);
          if (deffunctionFile == NULL)
            {

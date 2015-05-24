@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  03/04/08            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                   API HEADER FILE                   */
    /*******************************************************/
@@ -19,12 +19,18 @@
 /*      6.24: Added filertr.h and tmpltfun.h to include      */
 /*            list.                                          */
 /*                                                           */
-/*      6.30: Added classpsr.h to include list.              */
+/*      6.30: Added classpsr.h, iofun.h, and strngrtr.h to   */
+/*            include list.                                  */
 /*                                                           */
 /*************************************************************/
 
 #ifndef _H_API
 #define _H_API
+
+#ifndef _STDIO_INCLUDED_
+#define _STDIO_INCLUDED_
+#include <stdio.h>
+#endif
 
 #include "setup.h"
 #ifndef _H_argacces
@@ -130,8 +136,5 @@
 #include "objrtmch.h"
 #endif
 
-
 #endif
-
-
 

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                 PRETTY PRINT MODULE                 */
    /*******************************************************/
@@ -21,6 +21,13 @@
 /*                                                           */
 /*      6.24: Corrected code generating compilation          */
 /*            warnings.                                      */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Used genstrcpy instead of strcpy.              */
+/*                                                           */             
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -103,7 +110,7 @@ globle void DestroyPPBuffer(void *theEnv)
 /*********************************************/
 globle void SavePPBuffer(
   void *theEnv,
-  char *str)
+  const char *str)
   {
    size_t increment;
 

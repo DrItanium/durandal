@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                DEFFACTS HEADER FILE                 */
    /*******************************************************/
@@ -18,6 +18,15 @@
 /* Revision History:                                         */
 /*                                                           */
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -68,9 +77,6 @@ struct deffactsModule
    struct defmoduleItemHeader header;
   };
 
-#define EnvGetDeffactsName(theEnv,x) GetConstructNameString((struct constructHeader *) x)
-#define EnvGetDeffactsPPForm(theEnv,x) GetConstructPPForm(theEnv,(struct constructHeader *) x)
-#define EnvDeffactsModule(theEnv,x) GetConstructModuleName((struct constructHeader *) x)
 #define DeffactsData(theEnv) ((struct deffactsData *) GetEnvironmentData(theEnv,DEFFACTS_DATA))
 
 #ifdef LOCALE
@@ -83,20 +89,27 @@ struct deffactsModule
 #define LOCALE extern
 #endif
 
-#define DeffactsModule(x) GetConstructModuleName((struct constructHeader *) x)
-#define FindDeffacts(a) EnvFindDeffacts(GetCurrentEnvironment(),a)
-#define GetDeffactsName(x) GetConstructNameString((struct constructHeader *) x)
-#define GetDeffactsPPForm(x) GetConstructPPForm(GetCurrentEnvironment(),(struct constructHeader *) x)
-#define GetNextDeffacts(a) EnvGetNextDeffacts(GetCurrentEnvironment(),a)
-#define IsDeffactsDeletable(a) EnvIsDeffactsDeletable(GetCurrentEnvironment(),a)
-
    LOCALE void                           InitializeDeffacts(void *);
-   LOCALE void                          *EnvFindDeffacts(void *,char *);
+   LOCALE void                          *EnvFindDeffacts(void *,const char *);
    LOCALE void                          *EnvGetNextDeffacts(void *,void *);
    LOCALE void                           CreateInitialFactDeffacts(void);
    LOCALE intBool                        EnvIsDeffactsDeletable(void *,void *);
    LOCALE struct deffactsModule         *GetDeffactsModuleItem(void *,struct defmodule *);
+   LOCALE const char                    *EnvDeffactsModule(void *,void *);
+   LOCALE const char                    *EnvGetDeffactsName(void *,void *);
+   LOCALE const char                    *EnvGetDeffactsPPForm(void *,void *);
 
-#endif
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+   LOCALE void                          *FindDeffacts(const char *);
+   LOCALE void                          *GetNextDeffacts(void *);
+   LOCALE intBool                        IsDeffactsDeletable(void *);
+   LOCALE const char                    *DeffactsModule(void *);
+   LOCALE const char                    *GetDeffactsName(void *);
+   LOCALE const char                    *GetDeffactsPPForm(void *);
+   
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
+
+#endif /* _H_dffctdef */
 
 

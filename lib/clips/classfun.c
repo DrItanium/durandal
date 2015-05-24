@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/02/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                CLASS FUNCTIONS MODULE               */
    /*******************************************************/
@@ -20,6 +20,24 @@
 /*                                                           */
 /*            Corrected code to remove run-time program      */
 /*            compiler warning.                              */
+/*                                                           */
+/*      6.30: Borland C (IBM_TBC) and Metrowerks CodeWarrior */
+/*            (MAC_MCW, IBM_MCW) are no longer supported.    */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Changed garbage collection algorithm.          */
+/*                                                           */
+/*            Used genstrcpy and genstrcat instead of strcpy */
+/*            and strcat.                                    */
+/*                                                           */             
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
+/*                                                           */
+/*            Fixed linkage issue when BLOAD_AND_SAVE        */
+/*            compiler flag is set to 0.                     */
 /*                                                           */
 /*************************************************************/
 
@@ -55,6 +73,7 @@
 #include "msgfun.h"
 #include "router.h"
 #include "scanner.h"
+#include "sysdep.h"
 #include "utility.h"
 
 #define _CLASSFUN_SOURCE_
@@ -99,16 +118,10 @@ static void DeassignClassID(void *,unsigned);
   SIDE EFFECTS : Busy count incremented
   NOTES        : None
  ***************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle void IncrementDefclassBusyCount(
   void *theEnv,
   void *theDefclass)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 
    ((DEFCLASS *) theDefclass)->busy++;
   }
@@ -144,14 +157,8 @@ globle void DecrementDefclassBusyCount(
 globle intBool InstancesPurge(
   void *theEnv)
   {
-   int svdepth;
-
    DestroyAllInstances(theEnv);
-   svdepth = EvaluationData(theEnv)->CurrentEvaluationDepth;
-   if (EvaluationData(theEnv)->CurrentEvaluationDepth == 0)
-     EvaluationData(theEnv)->CurrentEvaluationDepth = -1;
    CleanupInstances(theEnv);
-   EvaluationData(theEnv)->CurrentEvaluationDepth = svdepth;
    return((InstanceData(theEnv)->InstanceList != NULL) ? FALSE : TRUE);
   }
 
@@ -220,15 +227,15 @@ globle SLOT_DESC *FindClassSlot(
  ***************************************************************/
 globle void ClassExistError(
   void *theEnv,
-  char *func,
-  char *cname)
+  const char *func,
+  const char *cname)
   {
-   PrintErrorID(theEnv,(char*)"CLASSFUN",1,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Unable to find class ");
+   PrintErrorID(theEnv,"CLASSFUN",1,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Unable to find class ");
    EnvPrintRouter(theEnv,WERROR,cname);
-   EnvPrintRouter(theEnv,WERROR,(char*)" in function ");
+   EnvPrintRouter(theEnv,WERROR," in function ");
    EnvPrintRouter(theEnv,WERROR,func);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
    SetEvaluationError(theEnv,TRUE);
   }
 
@@ -267,7 +274,7 @@ globle void DeleteClassLinks(
  ******************************************************/
 globle void PrintClassName(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   DEFCLASS *theDefclass,
   intBool linefeedFlag)
   {
@@ -276,11 +283,11 @@ globle void PrintClassName(
      {
       EnvPrintRouter(theEnv,logicalName,
                  EnvGetDefmoduleName(theEnv,theDefclass->header.whichModule->theModule));
-      EnvPrintRouter(theEnv,logicalName,(char*)"::");
+      EnvPrintRouter(theEnv,logicalName,"::");
      }
    EnvPrintRouter(theEnv,logicalName,ValueToString(theDefclass->header.name));
    if (linefeedFlag)
-     EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+     EnvPrintRouter(theEnv,logicalName,"\n");
   }
 
 #if DEBUGGING_FUNCTIONS || ((! BLOAD_ONLY) && (! RUN_TIME))
@@ -298,8 +305,8 @@ globle void PrintClassName(
  ***************************************************/
 globle void PrintPackedClassLinks(
   void *theEnv,
-  char *logicalName,
-  char *title,
+  const char *logicalName,
+  const char *title,
   PACKED_CLASS_LINKS *plinks)
   {
    long i;
@@ -307,10 +314,10 @@ globle void PrintPackedClassLinks(
    EnvPrintRouter(theEnv,logicalName,title);
    for (i = 0 ; i < plinks->classCount ; i++)
      {
-      EnvPrintRouter(theEnv,logicalName,(char*)" ");
+      EnvPrintRouter(theEnv,logicalName," ");
       PrintClassName(theEnv,logicalName,plinks->classArray[i],FALSE);
      }
-   EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+   EnvPrintRouter(theEnv,logicalName,"\n");
   }
 
 #endif
@@ -461,7 +468,7 @@ globle DEFCLASS *NewClass(
    register DEFCLASS *cls;
 
    cls = get_struct(theEnv,defclass);
-   InitializeConstructHeader(theEnv,(char*)"defclass",(struct constructHeader *) cls,className);
+   InitializeConstructHeader(theEnv,"defclass",(struct constructHeader *) cls,className);
 
    cls->id = 0;
    cls->installed = 0;
@@ -586,7 +593,7 @@ globle SLOT_NAME *AddSlotName(
      {
       if (usenewid && (newid != snp->id))
         {
-         SystemError(theEnv,(char*)"CLASSFUN",1);
+         SystemError(theEnv,"CLASSFUN",1);
          EnvExitRouter(theEnv,EXIT_FAILURE);
         }
       snp->use++;
@@ -727,7 +734,7 @@ LOCALE void RemoveDefclass(
       rm(theEnv,(void *) cls->handlerOrderMap,(sizeof(unsigned) * cls->handlerCount));
      }
      
-   SetDefclassPPForm((void *) cls,NULL);
+   EnvSetDefclassPPForm(theEnv,(void *) cls,NULL);
    DeassignClassID(theEnv,(unsigned) cls->id);
    rtn_struct(theEnv,defclass,cls);
   }
@@ -806,9 +813,6 @@ LOCALE void DestroyDefclass(
 
    rtn_struct(theEnv,defclass,cls);
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(hnd)
-#endif
 #endif
   }
   
@@ -952,7 +956,7 @@ globle int RemoveAllUserClasses(
       else
         {
          success = FALSE;
-         CantDeleteItemErrorMessage(theEnv,(char*)"defclass",EnvGetDefclassName(theEnv,ctmp));
+         CantDeleteItemErrorMessage(theEnv,"defclass",EnvGetDefclassName(theEnv,ctmp));
         }
      }
    return(success);
@@ -1116,10 +1120,10 @@ globle int GetTraversalID(
 
    if (DefclassData(theEnv)->CTID >= MAX_TRAVERSALS)
      {
-      PrintErrorID(theEnv,(char*)"CLASSFUN",2,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Maximum number of simultaneous class hierarchy\n  traversals exceeded ");
+      PrintErrorID(theEnv,"CLASSFUN",2,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Maximum number of simultaneous class hierarchy\n  traversals exceeded ");
       PrintLongInteger(theEnv,WERROR,(long) MAX_TRAVERSALS);
-      EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+      EnvPrintRouter(theEnv,WERROR,".\n");
       SetEvaluationError(theEnv,TRUE);
       return(-1);
      }

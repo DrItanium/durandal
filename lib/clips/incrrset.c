@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*              INCREMENTAL RESET MODULE               */
    /*******************************************************/
@@ -17,13 +17,24 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*      6.24: Removed INCREMENTAL_RESET compilation flag.    */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
 /*                                                           */
-/*      6.30: Added support for hashed alpha memories.       */
+/*      6.30: Added support for hashed alpha memories and    */
+/*            other join network changes.                    */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Modified EnvSetIncrementalReset to check for   */
+/*            the existance of rules.                        */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -69,9 +80,6 @@ globle void IncrementalReset(
   void *theEnv,
   struct defrule *tempRule)
   {
-#if (MAC_MCW || WIN_MCW) && (RUN_TIME || BLOAD_ONLY)
-#pragma unused(theEnv,tempRule)
-#endif
 
 #if (! RUN_TIME) && (! BLOAD_ONLY)
    struct defrule *tempPtr;
@@ -532,6 +540,11 @@ globle intBool EnvSetIncrementalReset(
    int ov;
    struct defmodule *theModule;
 
+   /*============================================*/
+   /* The incremental reset behavior can only be */
+   /* changed if there are no existing rules.    */
+   /*============================================*/
+   
    SaveCurrentModule(theEnv);
 
    for (theModule = (struct defmodule *) EnvGetNextDefmodule(theEnv,NULL);
@@ -548,6 +561,10 @@ globle intBool EnvSetIncrementalReset(
      
    RestoreCurrentModule(theEnv);
 
+   /*====================================*/
+   /* Change the incremental reset flag. */
+   /*====================================*/
+   
    ov = EngineData(theEnv)->IncrementalResetFlag;
    EngineData(theEnv)->IncrementalResetFlag = value;
    return(ov);
@@ -570,7 +587,7 @@ globle int SetIncrementalResetCommand(
    /* Check for the correct number of arguments. */
    /*============================================*/
 
-   if (EnvArgCountCheck(theEnv,(char*)"set-incremental-reset",EXACTLY,1) == -1)
+   if (EnvArgCountCheck(theEnv,"set-incremental-reset",EXACTLY,1) == -1)
      { return(oldValue); }
 
    /*=========================================*/
@@ -588,8 +605,8 @@ globle int SetIncrementalResetCommand(
       if (EnvGetNextDefrule(theEnv,NULL) != NULL)
         {
          RestoreCurrentModule(theEnv);
-         PrintErrorID(theEnv,(char*)"INCRRSET",1,FALSE);
-         EnvPrintRouter(theEnv,WERROR,(char*)"The incremental reset behavior cannot be changed with rules loaded.\n");
+         PrintErrorID(theEnv,"INCRRSET",1,FALSE);
+         EnvPrintRouter(theEnv,WERROR,"The incremental reset behavior cannot be changed with rules loaded.\n");
          SetEvaluationError(theEnv,TRUE);
          return(oldValue);
         }
@@ -627,10 +644,29 @@ globle int GetIncrementalResetCommand(
 
    oldValue = EnvGetIncrementalReset(theEnv);
 
-   if (EnvArgCountCheck(theEnv,(char*)"get-incremental-reset",EXACTLY,0) == -1)
+   if (EnvArgCountCheck(theEnv,"get-incremental-reset",EXACTLY,0) == -1)
      { return(oldValue); }
 
    return(oldValue);
   }
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle intBool GetIncrementalReset()
+  {   
+   return EnvGetIncrementalReset(GetCurrentEnvironment());
+  }
+
+globle intBool SetIncrementalReset(
+  int value)
+  {
+   return EnvSetIncrementalReset(GetCurrentEnvironment(),value);
+  }
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
 
 #endif /* DEFRULE_CONSTRUCT */

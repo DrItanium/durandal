@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                  EXPRESSION MODULE                  */
    /*******************************************************/
@@ -24,6 +24,14 @@
 /*                                                           */
 /*      6.24: Corrected link errors with non-default         */
 /*            setup.h configuration settings.                */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Changed expression hashing value.              */
 /*                                                           */
 /*************************************************************/
 
@@ -119,9 +127,6 @@ static void DeallocateExpressionData(
    rm(theEnv,ExpressionData(theEnv)->ExpressionHashTable,
       (int) (sizeof(EXPRESSION_HN *) * EXPRESSION_HASH_SIZE));
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
    
 #if (BLOAD || BLOAD_ONLY || BLOAD_AND_BSAVE)
@@ -140,16 +145,16 @@ static void DeallocateExpressionData(
 globle void InitExpressionPointers(
   void *theEnv)
   {
-   ExpressionData(theEnv)->PTR_AND = (void *) FindFunction(theEnv,(char*)"and");
-   ExpressionData(theEnv)->PTR_OR = (void *) FindFunction(theEnv,(char*)"or");
-   ExpressionData(theEnv)->PTR_EQ = (void *) FindFunction(theEnv,(char*)"eq");
-   ExpressionData(theEnv)->PTR_NEQ = (void *) FindFunction(theEnv,(char*)"neq");
-   ExpressionData(theEnv)->PTR_NOT = (void *) FindFunction(theEnv,(char*)"not");
+   ExpressionData(theEnv)->PTR_AND = (void *) FindFunction(theEnv,"and");
+   ExpressionData(theEnv)->PTR_OR = (void *) FindFunction(theEnv,"or");
+   ExpressionData(theEnv)->PTR_EQ = (void *) FindFunction(theEnv,"eq");
+   ExpressionData(theEnv)->PTR_NEQ = (void *) FindFunction(theEnv,"neq");
+   ExpressionData(theEnv)->PTR_NOT = (void *) FindFunction(theEnv,"not");
 
    if ((ExpressionData(theEnv)->PTR_AND == NULL) || (ExpressionData(theEnv)->PTR_OR == NULL) ||
        (ExpressionData(theEnv)->PTR_EQ == NULL) || (ExpressionData(theEnv)->PTR_NEQ == NULL) || (ExpressionData(theEnv)->PTR_NOT == NULL))
      {
-      SystemError(theEnv,(char*)"EXPRESSN",1);
+      SystemError(theEnv,"EXPRESSN",1);
       EnvExitRouter(theEnv,EXIT_FAILURE);
      }
   }

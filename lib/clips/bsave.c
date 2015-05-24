@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  06/05/06          */
+   /*               CLIPS Version 6.30  08/22/14          */
    /*                                                     */
    /*                     BSAVE MODULE                    */
    /*******************************************************/
@@ -22,6 +22,18 @@
 /*                                                           */
 /*            Added environment parameter to GenClose.       */
 /*            Added environment parameter to GenOpen.        */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Used genstrncpy instead of strncpy.            */
+/*                                                           */
+/*            Borland C (IBM_TBC) and Metrowerks CodeWarrior */
+/*            (MAC_MCW, IBM_MCW) are no longer supported.    */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -91,16 +103,13 @@ globle int BsaveCommand(
   void *theEnv)
   {
 #if (! RUN_TIME) && BLOAD_AND_BSAVE
-   char *fileName;
+   const char *fileName;
 
-   if (EnvArgCountCheck(theEnv,(char*)"bsave",EXACTLY,1) == -1) return(FALSE);
-   fileName = GetFileName(theEnv,(char*)"bsave",1);
+   if (EnvArgCountCheck(theEnv,"bsave",EXACTLY,1) == -1) return(FALSE);
+   fileName = GetFileName(theEnv,"bsave",1);
    if (fileName != NULL)
      { if (EnvBsave(theEnv,fileName)) return(TRUE); }
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
    return(FALSE);
   }
@@ -113,7 +122,7 @@ globle int BsaveCommand(
 /******************************/
 globle intBool EnvBsave(
   void *theEnv,
-  char *fileName)
+  const char *fileName)
   {
    FILE *fp;
    struct BinaryItem *biPtr;
@@ -127,9 +136,9 @@ globle intBool EnvBsave(
 
    if (Bloaded(theEnv))
      {
-      PrintErrorID(theEnv,(char*)"BSAVE",1,FALSE);
+      PrintErrorID(theEnv,"BSAVE",1,FALSE);
       EnvPrintRouter(theEnv,WERROR,
-          (char*)"Cannot perform a binary save while a binary load is in effect.\n");
+          "Cannot perform a binary save while a binary load is in effect.\n");
       return(0);
      }
 
@@ -137,9 +146,9 @@ globle intBool EnvBsave(
    /* Open the file. */
    /*================*/
 
-   if ((fp = GenOpen(theEnv,fileName,(char*)"wb")) == NULL)
+   if ((fp = GenOpen(theEnv,fileName,"wb")) == NULL)
      {
-      OpenErrorMessage(theEnv,(char*)"bsave",fileName);
+      OpenErrorMessage(theEnv,"bsave",fileName);
       return(0);
      }
 
@@ -357,7 +366,7 @@ static void WriteNeededFunctions(
       if (functionList->bsaveIndex >= 0)
         {
          length = strlen(ValueToString(functionList->callFunctionName)) + 1;
-         GenWrite(ValueToString(functionList->callFunctionName),(unsigned long) length,fp);
+         GenWrite((void *) ValueToString(functionList->callFunctionName),(unsigned long) length,fp);
         }
      }
   }
@@ -485,8 +494,8 @@ static void WriteBinaryHeader(
   void *theEnv,
   FILE *fp)
   {
-   GenWrite(BloadData(theEnv)->BinaryPrefixID,(unsigned long) strlen(BloadData(theEnv)->BinaryPrefixID) + 1,fp);
-   GenWrite(BloadData(theEnv)->BinaryVersionID,(unsigned long) strlen(BloadData(theEnv)->BinaryVersionID) + 1,fp);
+   GenWrite((void *) BloadData(theEnv)->BinaryPrefixID,(unsigned long) strlen(BloadData(theEnv)->BinaryPrefixID) + 1,fp);
+   GenWrite((void *) BloadData(theEnv)->BinaryVersionID,(unsigned long) strlen(BloadData(theEnv)->BinaryVersionID) + 1,fp);
   }
 
 /******************************************************/
@@ -515,7 +524,7 @@ static void WriteBinaryFooter(
 /**********************************************************/
 globle intBool AddBinaryItem(
   void *theEnv,
-  char *name,
+  const char *name,
   int priority,
   void (*findFunction)(void *),
   void (*expressionFunction)(void *,FILE *),
@@ -588,6 +597,24 @@ globle intBool AddBinaryItem(
   }
 
 #endif /* BLOAD || BLOAD_ONLY || BLOAD_AND_BSAVE */
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if BLOAD_AND_BSAVE
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle intBool Bsave(
+  const char *fileName)
+  {
+   return EnvBsave(GetCurrentEnvironment(),fileName);
+  }
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
+
+#endif /* BLOAD_AND_BSAVE */
 
 
 

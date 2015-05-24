@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                COMMAND LINE MODULE                  */
    /*******************************************************/
@@ -27,6 +27,29 @@
 /*      6.30: Local variables set with the bind function     */
 /*            persist until a reset/clear command is issued. */
 /*                                                           */
+/*            Changed garbage collection algorithm.          */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Metrowerks CodeWarrior (MAC_MCW, IBM_MCW) is   */
+/*            no longer supported.                           */
+/*                                                           */
+/*            UTF-8 support.                                 */
+/*                                                           */
+/*            Command history and editing support            */
+/*                                                           */
+/*            Used genstrcpy instead of strcpy.              */
+/*                                                           */             
+/*            Added before command execution callback        */
+/*            function.                                      */
+/*                                                           */  
+/*            Fixed RouteCommand return value.               */           
+/*                                                           */             
+/*            Added AwaitingInput flag.                      */
+/*                                                           */             
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
 /*************************************************************/
 
 #define _COMMLINE_SOURCE_
@@ -46,6 +69,7 @@
 #include "exprnpsr.h"
 #include "filecom.h"
 #include "memalloc.h"
+#include "multifld.h"
 #include "prcdrfun.h"
 #include "prcdrpsr.h"
 #include "router.h"
@@ -62,9 +86,9 @@
 /***************************************/
 
 #if ! RUN_TIME
-   static int                     DoString(char *,int,int *);
-   static int                     DoComment(char *,int);
-   static int                     DoWhiteSpace(char *,int);
+   static int                     DoString(const char *,int,int *);
+   static int                     DoComment(const char *,int);
+   static int                     DoWhiteSpace(const char *,int);
    static int                     DefaultGetNextEvent(void *);
 #endif
    static void                    DeallocateCommandLineData(void *);
@@ -98,9 +122,6 @@ static void DeallocateCommandLineData(
    if (CommandLineData(theEnv)->CurrentCommand != NULL) 
      { ReturnExpression(theEnv,CommandLineData(theEnv)->CurrentCommand); }
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
   }
 
@@ -144,7 +165,7 @@ globle void FlushCommandString(
 /*********************************************************************************/
 globle void SetCommandString(
   void *theEnv,
-  char *str)
+  const char *str)
   {
    size_t length;
 
@@ -165,7 +186,7 @@ globle void SetCommandString(
 /*************************************************************/
 globle void SetNCommandString(
   void *theEnv,
-  char *str,
+  const char *str,
   unsigned length)
   {
    FlushCommandString(theEnv);
@@ -184,7 +205,7 @@ globle void SetNCommandString(
 /******************************************************************************/
 globle void AppendCommandString(
   void *theEnv,
-  char *str)
+  const char *str)
   {
    CommandLineData(theEnv)->CommandString = AppendToString(theEnv,str,CommandLineData(theEnv)->CommandString,&RouterData(theEnv)->CommandBufferInputCount,&CommandLineData(theEnv)->MaximumCharacters);
   }
@@ -194,7 +215,7 @@ globle void AppendCommandString(
 /******************************************************************************/
 globle void InsertCommandString(
   void *theEnv,
-  char *str,
+  const char *str,
   unsigned int position)
   {
    CommandLineData(theEnv)->CommandString = 
@@ -208,7 +229,7 @@ globle void InsertCommandString(
 /************************************************************/
 globle void AppendNCommandString(
   void *theEnv,
-  char *str,
+  const char *str,
   unsigned length)
   {
    CommandLineData(theEnv)->CommandString = AppendNToString(theEnv,str,CommandLineData(theEnv)->CommandString,length,&RouterData(theEnv)->CommandBufferInputCount,&CommandLineData(theEnv)->MaximumCharacters);
@@ -234,7 +255,7 @@ globle char *GetCommandString(
 /*   contains an error.                                                   */
 /**************************************************************************/
 globle int CompleteCommand(
-  char *mstring)
+  const char *mstring)
   {
    int i;
    char inchar;
@@ -377,7 +398,7 @@ globle int CompleteCommand(
 /*   until the closing quotation mark is encountered.      */
 /***********************************************************/
 static int DoString(
-  char *str,
+  const char *str,
   int pos,
   int *complete)
   {
@@ -438,7 +459,7 @@ static int DoString(
 /*   until a line feed or carriage return is encountered.    */
 /*************************************************************/
 static int DoComment(
-  char *str,
+  const char *str,
   int pos)
   {
    int inchar;
@@ -461,7 +482,7 @@ static int DoComment(
 /*   tabs, and form feeds that is contained within a string.  */
 /**************************************************************/
 static int DoWhiteSpace(
-  char *str,
+  const char *str,
   int pos)
   {
    int inchar;
@@ -489,7 +510,10 @@ globle void CommandLoop(
    EnvPrintRouter(theEnv,WPROMPT,CommandLineData(theEnv)->BannerString);
    SetHaltExecution(theEnv,FALSE);
    SetEvaluationError(theEnv,FALSE);
-   PeriodicCleanup(theEnv,TRUE,FALSE);
+   
+   CleanCurrentGarbageFrame(theEnv,NULL);
+   CallPeriodicTasks(theEnv);
+   
    PrintPrompt(theEnv);
    RouterData(theEnv)->CommandBufferInputCount = 0;
    RouterData(theEnv)->AwaitingInput = TRUE;
@@ -504,7 +528,7 @@ globle void CommandLoop(
 
       if (BatchActive(theEnv) == TRUE)
         {
-         inchar = LLGetcBatch(theEnv,(char*)"stdin",TRUE);
+         inchar = LLGetcBatch(theEnv,"stdin",TRUE);
          if (inchar == EOF)
            { (*CommandLineData(theEnv)->EventFunction)(theEnv); }
          else
@@ -526,7 +550,7 @@ globle void CommandLoop(
 #if ! WINDOW_INTERFACE
          fflush(stdin);
 #endif
-         EnvPrintRouter(theEnv,WPROMPT,(char*)"\n");
+         EnvPrintRouter(theEnv,WPROMPT,"\n");
          PrintPrompt(theEnv);
         }
 
@@ -549,7 +573,10 @@ globle void CommandLoopBatch(
   {
    SetHaltExecution(theEnv,FALSE);
    SetEvaluationError(theEnv,FALSE);
-   PeriodicCleanup(theEnv,TRUE,FALSE);
+
+   CleanCurrentGarbageFrame(theEnv,NULL);
+   CallPeriodicTasks(theEnv);
+
    PrintPrompt(theEnv);
    RouterData(theEnv)->CommandBufferInputCount = 0;
    RouterData(theEnv)->AwaitingInput = TRUE;
@@ -596,7 +623,7 @@ globle void CommandLoopBatchDriver(
 
       if (BatchActive(theEnv) == TRUE)
         {
-         inchar = LLGetcBatch(theEnv,(char*)"stdin",TRUE);
+         inchar = LLGetcBatch(theEnv,"stdin",TRUE);
          if (inchar == EOF)
            { return; }
          else
@@ -618,7 +645,7 @@ globle void CommandLoopBatchDriver(
 #if ! WINDOW_INTERFACE
          fflush(stdin);
 #endif
-         EnvPrintRouter(theEnv,WPROMPT,(char*)"\n");
+         EnvPrintRouter(theEnv,WPROMPT,"\n");
          PrintPrompt(theEnv);
         }
 
@@ -658,7 +685,10 @@ globle intBool ExecuteIfCommandComplete(
    SetHaltExecution(theEnv,FALSE);
    SetEvaluationError(theEnv,FALSE);
    FlushCommandString(theEnv);
-   PeriodicCleanup(theEnv,TRUE,FALSE);
+   
+   CleanCurrentGarbageFrame(theEnv,NULL);
+   CallPeriodicTasks(theEnv);
+   
    PrintPrompt(theEnv);
          
    return TRUE;
@@ -721,17 +751,18 @@ globle void SetBeforeCommandExecutionFunction(
    CommandLineData(theEnv)->BeforeCommandExecutionFunction = funptr;
   }
   
-/************************************************/
-/* RouteCommand: Processes a completed command. */
-/************************************************/
+/********************************************************/
+/* RouteCommand: Processes a completed command. Returns */
+/*   1 if a command could be parsed, otherwise 0.       */
+/********************************************************/
 globle intBool RouteCommand(
   void *theEnv,
-  char *command,
+  const char *command,
   int printResult)
   {
    DATA_OBJECT result;
    struct expr *top;
-   char *commandName;
+   const char *commandName;
    struct token theToken;
 
    if (command == NULL)
@@ -742,9 +773,9 @@ globle intBool RouteCommand(
    /* first token from that source.          */
    /*========================================*/
 
-   OpenStringSource(theEnv,(char*)"command",command,0);
+   OpenStringSource(theEnv,"command",command,0);
 
-   GetToken(theEnv,(char*)"command",&theToken);
+   GetToken(theEnv,"command",&theToken);
 
    /*=====================*/
    /* Evaluate constants. */
@@ -754,11 +785,11 @@ globle intBool RouteCommand(
        (theToken.type == FLOAT) || (theToken.type == INTEGER) ||
        (theToken.type == INSTANCE_NAME))
      {
-      CloseStringSource(theEnv,(char*)"command");
+      CloseStringSource(theEnv,"command");
       if (printResult)
         {
-         PrintAtom(theEnv,(char*)"stdout",theToken.type,theToken.value);
-         EnvPrintRouter(theEnv,(char*)"stdout",(char*)"\n");
+         PrintAtom(theEnv,"stdout",theToken.type,theToken.value);
+         EnvPrintRouter(theEnv,"stdout","\n");
         }
       return(1);
      }
@@ -771,14 +802,14 @@ globle intBool RouteCommand(
        (theToken.type == SF_VARIABLE) ||
        (theToken.type == MF_VARIABLE))
      {
-      CloseStringSource(theEnv,(char*)"command");
+      CloseStringSource(theEnv,"command");
       top = GenConstant(theEnv,theToken.type,theToken.value);
       EvaluateExpression(theEnv,top,&result);
       rtn_struct(theEnv,expr,top);
       if (printResult)
         {
-         PrintDataObject(theEnv,(char*)"stdout",&result);
-         EnvPrintRouter(theEnv,(char*)"stdout",(char*)"\n");
+         PrintDataObject(theEnv,"stdout",&result);
+         EnvPrintRouter(theEnv,"stdout","\n");
         }
       return(1);
      }
@@ -791,9 +822,9 @@ globle intBool RouteCommand(
 
    if (theToken.type != LPAREN)
      {
-      PrintErrorID(theEnv,(char*)"COMMLINE",1,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Expected a '(', constant, or variable\n");
-      CloseStringSource(theEnv,(char*)"command");
+      PrintErrorID(theEnv,"COMMLINE",1,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Expected a '(', constant, or variable\n");
+      CloseStringSource(theEnv,"command");
       return(0);
      }
 
@@ -801,12 +832,12 @@ globle intBool RouteCommand(
    /* The next token must be a function name or construct type. */
    /*===========================================================*/
 
-   GetToken(theEnv,(char*)"command",&theToken);
+   GetToken(theEnv,"command",&theToken);
    if (theToken.type != SYMBOL)
      {
-      PrintErrorID(theEnv,(char*)"COMMLINE",2,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Expected a command.\n");
-      CloseStringSource(theEnv,(char*)"command");
+      PrintErrorID(theEnv,"COMMLINE",2,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Expected a command.\n");
+      CloseStringSource(theEnv,"command");
       return(0);
      }
 
@@ -820,18 +851,19 @@ globle intBool RouteCommand(
    {
     int errorFlag;
 
-    errorFlag = ParseConstruct(theEnv,commandName,(char*)"command");
+    errorFlag = ParseConstruct(theEnv,commandName,"command");
     if (errorFlag != -1)
       {
-       CloseStringSource(theEnv,(char*)"command");
+       CloseStringSource(theEnv,"command");
        if (errorFlag == 1)
          {
-          EnvPrintRouter(theEnv,WERROR,(char*)"\nERROR:\n");
+          EnvPrintRouter(theEnv,WERROR,"\nERROR:\n");
           PrintInChunks(theEnv,WERROR,GetPPBuffer(theEnv));
-          EnvPrintRouter(theEnv,WERROR,(char*)"\n");
+          EnvPrintRouter(theEnv,WERROR,"\n");
          }
        DestroyPPBuffer(theEnv);
-       return(errorFlag);
+       if (errorFlag) return 0;
+       else return 1;
       }
    }
 #endif
@@ -841,7 +873,7 @@ globle intBool RouteCommand(
    /*========================*/
 
    CommandLineData(theEnv)->ParsingTopLevelCommand = TRUE;
-   top = Function2Parse(theEnv,(char*)"command",commandName);
+   top = Function2Parse(theEnv,"command",commandName);
    CommandLineData(theEnv)->ParsingTopLevelCommand = FALSE;
    ClearParsedBindNames(theEnv);
 
@@ -849,7 +881,7 @@ globle intBool RouteCommand(
    /* Close the string input source. */
    /*================================*/
 
-   CloseStringSource(theEnv,(char*)"command");
+   CloseStringSource(theEnv,"command");
 
    /*=========================*/
    /* Evaluate function call. */
@@ -868,10 +900,14 @@ globle intBool RouteCommand(
    ExpressionDeinstall(theEnv,top);
    ReturnExpression(theEnv,top);
    
+   /*=================================================*/
+   /* Print the return value of the function/command. */
+   /*=================================================*/
+   
    if ((result.type != RVOID) && printResult)
      {
-      PrintDataObject(theEnv,(char*)"stdout",&result);
-      EnvPrintRouter(theEnv,(char*)"stdout",(char*)"\n");
+      PrintDataObject(theEnv,"stdout",&result);
+      EnvPrintRouter(theEnv,"stdout","\n");
      }
 
    return(1);
@@ -888,7 +924,7 @@ static int DefaultGetNextEvent(
   {
    int inchar;
 
-   inchar = EnvGetcRouter(theEnv,(char*)"stdin");
+   inchar = EnvGetcRouter(theEnv,"stdin");
 
    if (inchar == EOF) inchar = '\n';
 
@@ -924,22 +960,22 @@ globle intBool TopLevelCommand(
 /* GetCommandCompletionString: Returns the last token in a */
 /*   string if it is a valid token for command completion. */
 /***********************************************************/
-globle char *GetCommandCompletionString(
+globle const char *GetCommandCompletionString(
   void *theEnv,
-  char *theString,
+  const char *theString,
   size_t maxPosition)
   {
    struct token lastToken;
    struct token theToken;
    char lastChar;
-   char *rs;
+   const char *rs;
    size_t length;
 
    /*=========================*/
    /* Get the command string. */
    /*=========================*/
 
-   if (theString == NULL) return((char*)"");
+   if (theString == NULL) return("");
 
    /*=========================================================================*/
    /* If the last character in the command string is a space, character       */
@@ -950,22 +986,22 @@ globle char *GetCommandCompletionString(
    if ((lastChar == ' ') || (lastChar == '"') ||
        (lastChar == '\t') || (lastChar == '\f') ||
        (lastChar == '\n') || (lastChar == '\r'))
-     { return((char*)""); }
+     { return(""); }
 
    /*============================================*/
    /* Find the last token in the command string. */
    /*============================================*/
 
-   OpenTextSource(theEnv,(char*)"CommandCompletion",theString,0,maxPosition);
+   OpenTextSource(theEnv,"CommandCompletion",theString,0,maxPosition);
    ScannerData(theEnv)->IgnoreCompletionErrors = TRUE;
-   GetToken(theEnv,(char*)"CommandCompletion",&theToken);
+   GetToken(theEnv,"CommandCompletion",&theToken);
    CopyToken(&lastToken,&theToken);
    while (theToken.type != STOP)
      {
       CopyToken(&lastToken,&theToken);
-      GetToken(theEnv,(char*)"CommandCompletion",&theToken);
+      GetToken(theEnv,"CommandCompletion",&theToken);
      }
-   CloseStringSource(theEnv,(char*)"CommandCompletion");
+   CloseStringSource(theEnv,"CommandCompletion");
    ScannerData(theEnv)->IgnoreCompletionErrors = FALSE;
 
    /*===============================================*/
@@ -993,7 +1029,7 @@ globle char *GetCommandCompletionString(
    else if ((lastToken.type == FLOAT) || (lastToken.type == INTEGER))
      { return(NULL); }
 
-   return((char*)"");
+   return("");
   }
 
 /****************************************************************/

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  05/17/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*               SYSTEM DEPENDENT MODULE               */
    /*******************************************************/
@@ -16,6 +16,7 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Modified GenOpen to check the file length      */
 /*            against the system constant FILENAME_MAX.      */
 /*                                                           */
@@ -34,6 +35,46 @@
 /*                                                           */
 /*            Removed GenOpen check against FILENAME_MAX.    */
 /*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, IBM_ICB, IBM_TBC, IBM_ZTC, and        */
+/*            IBM_SC).                                       */
+/*                                                           */
+/*            Renamed IBM_MSC and WIN_MVC compiler flags     */
+/*            and IBM_GCC to WIN_GCC.                        */
+/*                                                           */
+/*            Added LINUX and DARWIN compiler flags.         */
+/*                                                           */
+/*            Removed HELP_FUNCTIONS compilation flag and    */
+/*            associated functionality.                      */
+/*                                                           */
+/*            Removed EMACS_EDITOR compilation flag and      */
+/*            associated functionality.                      */
+/*                                                           */
+/*            Combined BASIC_IO and EXT_IO compilation       */
+/*            flags into the single IO_FUNCTIONS flag.       */
+/*                                                           */
+/*            Changed the EX_MATH compilation flag to        */
+/*            EXTENDED_MATH_FUNCTIONS.                       */
+/*                                                           */
+/*            Support for typed EXTERNAL_ADDRESS.            */
+/*                                                           */
+/*            GenOpen function checks for UTF-8 Byte Order   */
+/*            Marker.                                        */
+/*                                                           */
+/*            Added gengetchar, genungetchar, genprintfile,  */
+/*            genstrcpy, genstrncpy, genstrcat, genstrncat,  */
+/*            and gensprintf functions.                      */
+/*                                                           */
+/*            Added SetJmpBuffer function.                   */
+/*                                                           */
+/*            Added environment argument to genexit.         */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
 /*************************************************************/
 
 #define _SYSDEP_SOURCE_
@@ -48,29 +89,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-#if   VAX_VMS
-#include timeb
-#include <descrip.h>
-#include <ssdef.h>
-#include <stsdef.h>
-#include signal
-extern int LIB$SPAWN();
-#endif
-
-#if MAC_MCW || MAC_XCD
-#include <Carbon/Carbon.h> 
-#define kTwoPower32 (4294967296.0)      /* 2^32 */
-#endif
-
-#if MAC_MCW || MAC_XCD
-#include <strings.h>
-#endif
-
-#if MAC_MCW || WIN_MCW || MAC_XCD 
-#include <unistd.h>
-#endif
-
-#if WIN_MVC || WIN_BTC
+#if WIN_MVC
 #define _UNICODE
 #define UNICODE 
 #include <Windows.h>
@@ -86,17 +105,7 @@ extern int LIB$SPAWN();
 #include <signal.h>
 #endif
 
-#if WIN_BTC
-#include <io.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <signal.h>
-#endif
 
-#if WIN_MCW
-#include <io.h>
-#include <limits.h>
-#endif
 
 #if   UNIX_7 || WIN_GCC
 #include <sys/types.h>
@@ -171,22 +180,24 @@ extern int LIB$SPAWN();
 
 #include "moduldef.h"
 
-#if EMACS_EDITOR
-#include "ed.h"
-#endif
-
 #if DEVELOPER
 #include "developr.h"
+#endif
+
+#if MAYA_EXTENSIONS
+#include "libmaya.h"
 #endif
 
 /***************/
 /* DEFINITIONS */
 /***************/
 
-#define NO_SWITCH         0
-#define BATCH_SWITCH      1
-#define BATCH_STAR_SWITCH 2
-#define LOAD_SWITCH       3
+#define NO_SWITCH              0
+#define BATCH_SWITCH           1
+#define BATCH_STAR_SWITCH      2
+#define LOAD_SWITCH            3
+/* Make it possible to assert facts on the command line */
+#define FACTS_FROM_COMMAND_LINE 4
 
 /********************/
 /* ENVIRONMENT DATA */
@@ -201,23 +212,19 @@ struct systemDependentData
    void (*ContinueEnvFunction)(void *,int);
 /*
 #if ! WINDOW_INTERFACE
-#if WIN_BTC
-   void interrupt (*OldCtrlC)(void);
-   void interrupt (*OldBreak)(void);
-#endif
 #if WIN_MVC
    void (interrupt *OldCtrlC)(void);
    void (interrupt *OldBreak)(void);
 #endif
 #endif
 */
-#if WIN_BTC || WIN_MVC
+#if WIN_MVC
    int BinaryFileHandle;
    unsigned char getcBuffer[7];
    int getcLength;
    int getcPosition;
 #endif
-#if (! WIN_BTC) && (! WIN_MVC)
+#if (! WIN_MVC)
    FILE *BinaryFP;
 #endif
    int (*BeforeOpenFunction)(void *);
@@ -242,7 +249,7 @@ struct systemDependentData
    static void                    SystemFunctionDefinitions(void *);
    static void                    InitializeKeywords(void *);
    static void                    InitializeNonportableFeatures(void *);
-#if   (VAX_VMS || UNIX_V || LINUX || DARWIN || UNIX_7 || WIN_GCC || WIN_BTC || WIN_MVC) && (! WINDOW_INTERFACE)
+#if   (UNIX_V || LINUX || DARWIN || UNIX_7 || WIN_GCC || WIN_MVC) && (! WINDOW_INTERFACE)
    static void                    CatchCtrlC(int);
 #endif
 /*
@@ -311,7 +318,6 @@ globle void EnvInitializeEnvironment(
    InitializeConstructData(theEnvironment);
    InitializeEvaluationData(theEnvironment);
    InitializeExternalFunctionData(theEnvironment);
-   InitializeMultifieldData(theEnvironment);
    InitializePrettyPrintData(theEnvironment);
    InitializePrintUtilityData(theEnvironment);
    InitializeScannerData(theEnvironment);
@@ -569,34 +575,38 @@ globle void RerouteStdin(
 #if ! RUN_TIME
       else if (strcmp(argv[i],"-f2") == 0) theSwitch = BATCH_STAR_SWITCH;
       else if (strcmp(argv[i],"-l") == 0) theSwitch = LOAD_SWITCH;
+      else if (strcmp(argv[i], "-args") == 0) {
+         theSwitch = FACTS_FROM_COMMAND_LINE;
+      }
 #endif
       else if (theSwitch == NO_SWITCH)
         {
-         PrintErrorID(theEnv,(char*)"SYSDEP",2,FALSE);
-         EnvPrintRouter(theEnv,WERROR,(char*)"Invalid option\n");
+         PrintErrorID(theEnv,"SYSDEP",2,FALSE);
+         EnvPrintRouter(theEnv,WERROR,"Invalid option\n");
         }
-
       if (i > (argc-1))
         {
-         PrintErrorID(theEnv,(char*)"SYSDEP",1,FALSE);
-         EnvPrintRouter(theEnv,WERROR,(char*)"No file found for ");
+         PrintErrorID(theEnv,"SYSDEP",1,FALSE);
+         if(theSwitch != FACTS_FROM_COMMAND_LINE) {
+            EnvPrintRouter(theEnv,WERROR,"No file found for ");
+            switch(theSwitch)
+              {
+               case BATCH_SWITCH:
+                  EnvPrintRouter(theEnv,WERROR,"-f");
+                  break;
+               case BATCH_STAR_SWITCH:
+                  EnvPrintRouter(theEnv,WERROR,"-f2");
+                  break;
+               case LOAD_SWITCH:
+                  EnvPrintRouter(theEnv,WERROR,"-l");
+              }
+               EnvPrintRouter(theEnv,WERROR," option\n");
+            return;
+         } else {
+            EnvPrintRouter(theEnv, WERROR, "No input provided for the --args option\n");
+            return;
+         }
 
-         switch(theSwitch)
-           {
-            case BATCH_SWITCH:
-               EnvPrintRouter(theEnv,WERROR,(char*)"-f");
-               break;
-
-            case BATCH_STAR_SWITCH:
-               EnvPrintRouter(theEnv,WERROR,(char*)"-f2");
-               break;
-
-            case LOAD_SWITCH:
-               EnvPrintRouter(theEnv,WERROR,(char*)"-l");
-           }
-
-         EnvPrintRouter(theEnv,WERROR,(char*)" option\n");
-         return;
         }
 
       switch(theSwitch)
@@ -612,6 +622,8 @@ globle void RerouteStdin(
 
          case LOAD_SWITCH:
             EnvLoad(theEnv,argv[++i]);
+            break;
+         default:
             break;
 #endif
         }
@@ -653,12 +665,8 @@ static void SystemFunctionDefinitions(
    ExtendedMathFunctionDefinitions(theEnv);
 #endif
 
-#if TEXTPRO_FUNCTIONS || HELP_FUNCTIONS
+#if TEXTPRO_FUNCTIONS
    HelpFunctionDefinitions(theEnv);
-#endif
-
-#if EMACS_EDITOR
-   EditorFunctionDefinition(theEnv);
 #endif
 
 #if CONSTRUCT_COMPILER && (! RUN_TIME)
@@ -679,28 +687,7 @@ static void SystemFunctionDefinitions(
 /*********************************************************/
 globle double gentime()
   {
-#if   MAC_XCD || MAC_MCW
-   UnsignedWide result;
-
-   Microseconds(&result);
-
-   return(((((double) result.hi) * kTwoPower32) + result.lo) / 1000000.0);
-
-#elif WIN_MCW
-   unsigned long int result;
-
-   result = GetTickCount();
-
-   return((double) result / 1000.0);
-/*
-#elif   WIN_BTC && (! WINDOW_INTERFACE)
-   unsigned long int result;
-
-   result = biostime(0,(long int) 0);
-
-   return((double) result / 18.2);
-*/
-#elif UNIX_V || DARWIN
+#if UNIX_V || DARWIN
 #if defined(_POSIX_TIMERS) && (_POSIX_TIMERS > 0)
    struct timespec now;
    clock_gettime(
@@ -758,13 +745,13 @@ globle void gensystem(
    size_t bufferMaximum = 0;
    int numa, i;
    DATA_OBJECT tempValue;
-   char *theString;
+   const char *theString;
 
    /*===========================================*/
    /* Check for the corret number of arguments. */
    /*===========================================*/
 
-   if ((numa = EnvArgCountCheck(theEnv,(char*)"system",AT_LEAST,1)) == -1) return;
+   if ((numa = EnvArgCountCheck(theEnv,"system",AT_LEAST,1)) == -1) return;
 
    /*============================================================*/
    /* Concatenate the arguments together to form a single string */
@@ -779,7 +766,7 @@ globle void gensystem(
         {
          SetHaltExecution(theEnv,TRUE);
          SetEvaluationError(theEnv,TRUE);
-         ExpectedTypeError2(theEnv,(char*)"system",i);
+         ExpectedTypeError2(theEnv,"system",i);
          return;
         }
 
@@ -794,25 +781,12 @@ globle void gensystem(
    /* Execute the operating system command. */
    /*=======================================*/
 
-#if VAX_VMS
-   if (SystemDependentData(theEnv)->PauseEnvFunction != NULL) (*SystemDependentData(theEnv)->PauseEnvFunction)(theEnv);
-   VMSSystem(commandBuffer);
-   putchar('\n');
-   if (SystemDependentData(theEnv)->ContinueEnvFunction != NULL) (*SystemDependentData(theEnv)->ContinueEnvFunction)(theEnv,1);
-   if (SystemDependentData(theEnv)->RedrawScreenFunction != NULL) (*SystemDependentData(theEnv)->RedrawScreenFunction)(theEnv);
-#endif
-
-#if   UNIX_7 || UNIX_V || LINUX || DARWIN || WIN_MVC || WIN_BTC || WIN_MCW || WIN_GCC || MAC_XCD
+#if   UNIX_7 || UNIX_V || LINUX || DARWIN || WIN_MVC || WIN_GCC 
    if (SystemDependentData(theEnv)->PauseEnvFunction != NULL) (*SystemDependentData(theEnv)->PauseEnvFunction)(theEnv);
    system(commandBuffer);
    if (SystemDependentData(theEnv)->ContinueEnvFunction != NULL) (*SystemDependentData(theEnv)->ContinueEnvFunction)(theEnv,1);
    if (SystemDependentData(theEnv)->RedrawScreenFunction != NULL) (*SystemDependentData(theEnv)->RedrawScreenFunction)(theEnv);
 #else
-
-#if ! VAX_VMS
-   EnvPrintRouter(theEnv,WDIALOG,
-            (char*)"System function not fully defined for this system.\n");
-#endif
 
 #endif
 
@@ -825,26 +799,6 @@ globle void gensystem(
    return;
   }
 
-#if   VAX_VMS
-/*************************************************/
-/* VMSSystem: Implements system command for VMS. */
-/*************************************************/
-globle void VMSSystem(
-  char *cmd)
-  {
-   long status, complcode;
-   struct dsc$descriptor_s cmd_desc;
-
-   cmd_desc.dsc$w_length = strlen(cmd);
-   cmd_desc.dsc$a_pointer = cmd;
-   cmd_desc.dsc$b_class = DSC$K_CLASS_S;
-   cmd_desc.dsc$b_dtype = DSC$K_DTYPE_T;
-
-   status = LIB$SPAWN(&cmd_desc,0,0,0,0,0,&complcode,0,0,0);
-  }
-
-#endif
-
 /*******************************************/
 /* gengetchar: Generic routine for getting */
 /*    a character from stdin.              */
@@ -853,7 +807,7 @@ globle int gengetchar(
   void *theEnv)
   {
 /*
-#if WIN_BTC || WIN_MVC
+#if WIN_MVC
    if (SystemDependentData(theEnv)->getcLength ==
        SystemDependentData(theEnv)->getcPosition)
      {
@@ -891,7 +845,7 @@ globle int genungetchar(
   int theChar)
   {
   /*
-#if WIN_BTC || WIN_MVC
+#if WIN_MVC
    if (SystemDependentData(theEnv)->getcPosition > 0)
      { 
       SystemDependentData(theEnv)->getcPosition--;
@@ -914,7 +868,7 @@ globle int genungetchar(
 globle void genprintfile(
   void *theEnv,
   FILE *fptr,
-  char *str)
+  const char *str)
   {
    if (fptr != stdout)
      {
@@ -951,39 +905,15 @@ globle void genprintfile(
 /*   requiring initialization is the interrupt handler     */
 /*   which allows execution to be halted.                  */
 /***********************************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void InitializeNonportableFeatures(
   void *theEnv)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #if ! WINDOW_INTERFACE
 
-#if VAX_VMS || UNIX_V || LINUX || DARWIN || UNIX_7 || WIN_GCC || WIN_BTC || WIN_MVC
+#if UNIX_V || LINUX || DARWIN || UNIX_7 || WIN_GCC || WIN_MVC
    signal(SIGINT,CatchCtrlC);
 #endif
 
-/*
-#if WIN_BTC
-   SystemDependentData(theEnv)->OldCtrlC = getvect(0x23);
-   SystemDependentData(theEnv)->OldBreak = getvect(0x1b);
-   setvect(0x23,CatchCtrlC);
-   setvect(0x1b,CatchCtrlC);
-   atexit(RestoreInterruptVectors);
-#endif
-*/
-/*
-#if WIN_MVC
-   SystemDependentData(theEnv)->OldCtrlC = _dos_getvect(0x23);
-   SystemDependentData(theEnv)->OldBreak = _dos_getvect(0x1b);
-   _dos_setvect(0x23,CatchCtrlC);
-   _dos_setvect(0x1b,CatchCtrlC);
-   atexit(RestoreInterruptVectors);
-#endif
-*/
 #endif
   }
 
@@ -998,14 +928,11 @@ static void InitializeNonportableFeatures(
 
 #if ! WINDOW_INTERFACE
 
-#if   VAX_VMS || UNIX_V || LINUX || DARWIN || UNIX_7 || WIN_GCC || WIN_BTC || WIN_MVC || DARWIN
+#if   UNIX_V || LINUX || DARWIN || UNIX_7 || WIN_GCC || WIN_MVC || DARWIN
 /**********************************************/
 /* CatchCtrlC: VMS and UNIX specific function */
 /*   to allow control-c interrupts.           */
 /**********************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 static void CatchCtrlC(
   int sgnl)
   {
@@ -1158,27 +1085,18 @@ globle void genseed(
 /* gengetcwd: Generic function for returning */
 /*   the current directory.                  */
 /*********************************************/
-#if WIN_BTC
-#pragma argsused
-#endif
 globle char *gengetcwd(
   char *buffer,
   int buflength)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
    return(getcwd(buffer,buflength));
-#endif
-
-   if (buffer != NULL)
-     { buffer[0] = 0; }
-   return(buffer);
   }
 
 /****************************************************/
 /* genremove: Generic function for removing a file. */
 /****************************************************/
 globle int genremove(
-  char *fileName)
+  const char *fileName)
   {
    if (remove(fileName)) return(FALSE);
 
@@ -1189,8 +1107,8 @@ globle int genremove(
 /* genrename: Generic function for renaming a file. */
 /****************************************************/
 globle int genrename(
-  char *oldFileName,
-  char *newFileName)
+  const char *oldFileName,
+  const char *newFileName)
   {
    if (rename(oldFileName,newFileName)) return(FALSE);
 
@@ -1228,15 +1146,27 @@ globle int (*EnvSetAfterOpenFunction(void *theEnv,
 /*********************************************/
 /* GenOpen: Trap routine for opening a file. */
 /*********************************************/
+#if FILE_SYSTEM_ROOTING
+globle FILE *_GenOpen(
+#else
 globle FILE *GenOpen(
+#endif
   void *theEnv,
-  char *fileName,
-  char *accessType)
+  const char *fileName,
+  const char *accessType)
   {
    FILE *theFile;
-   
+
+   /*==================================*/
+   /* Invoke the before open function. */
+   /*==================================*/
+
    if (SystemDependentData(theEnv)->BeforeOpenFunction != NULL)
      { (*SystemDependentData(theEnv)->BeforeOpenFunction)(theEnv); }
+
+   /*================*/
+   /* Open the file. */
+   /*================*/
 
 #if WIN_MVC
 #if _MSC_VER >= 1400
@@ -1248,12 +1178,46 @@ globle FILE *GenOpen(
    theFile = fopen(fileName,accessType);
 #endif
    
+   /*=====================================*/
+   /* Check for a UTF-8 Byte Order Marker */
+   /* (BOM): 0xEF,0xBB,0xBF.              */
+   /*=====================================*/
+   
+   if ((theFile != NULL) & (strcmp(accessType,"r") == 0))
+     {
+      int theChar;
+      
+      theChar = getc(theFile);
+      if (theChar == 0xEF)
+       {
+        theChar = getc(theFile);
+        if (theChar == 0xBB)
+          {
+           theChar = getc(theFile);
+           if (theChar != 0xBF)
+             { ungetc(theChar,theFile);}
+          }
+        else
+          { ungetc(theChar,theFile);}
+       }
+      else
+       { ungetc(theChar,theFile); }
+     }
+     
+   /*=================================*/
+   /* Invoke the after open function. */
+   /*=================================*/
+   
    if (SystemDependentData(theEnv)->AfterOpenFunction != NULL)
      { (*SystemDependentData(theEnv)->AfterOpenFunction)(theEnv); }
-     
+
+   /*===============================*/
+   /* Return a pointer to the file. */
+   /*===============================*/
+   
    return theFile;
   }
-  
+
 /**********************************************/
 /* GenClose: Trap routine for closing a file. */
 /**********************************************/
@@ -1270,7 +1234,7 @@ globle int GenClose(
 
    if (SystemDependentData(theEnv)->AfterOpenFunction != NULL)
      { (*SystemDependentData(theEnv)->AfterOpenFunction)(theEnv); }
-   
+
    return rv;
   }
   
@@ -1280,21 +1244,21 @@ globle int GenClose(
 /*   open at a time when using this function since the file */
 /*   pointer is stored in a global variable.                */
 /************************************************************/
+#if FILE_SYSTEM_ROOTING
+globle int _GenOpenReadBinary(
+#else
 globle int GenOpenReadBinary(
+#endif
   void *theEnv,
-  char *funcName,
-  char *fileName)
+  const char *funcName,
+  const char *fileName)
   {
    if (SystemDependentData(theEnv)->BeforeOpenFunction != NULL)
      { (*SystemDependentData(theEnv)->BeforeOpenFunction)(theEnv); }
 
-#if WIN_BTC || WIN_MVC
-
 #if WIN_MVC
+
    SystemDependentData(theEnv)->BinaryFileHandle = _open(fileName,O_RDONLY | O_BINARY);
-#else
-   SystemDependentData(theEnv)->BinaryFileHandle = open(fileName,O_RDONLY | O_BINARY);
-#endif
    if (SystemDependentData(theEnv)->BinaryFileHandle == -1)
      {
       if (SystemDependentData(theEnv)->AfterOpenFunction != NULL)
@@ -1304,7 +1268,7 @@ globle int GenOpenReadBinary(
      }
 #endif
 
-#if (! WIN_BTC) && (! WIN_MVC)
+#if (! WIN_MVC)
 
    if ((SystemDependentData(theEnv)->BinaryFP = fopen(fileName,"rb")) == NULL)
      {
@@ -1345,22 +1309,7 @@ globle void GenReadBinary(
      { _read(SystemDependentData(theEnv)->BinaryFileHandle,tempPtr,(unsigned int) size); }
 #endif
 
-#if WIN_BTC
-   char *tempPtr;
-
-   tempPtr = (char *) dataPtr;
-   while (size > INT_MAX)
-     {
-      read(SystemDependentData(theEnv)->BinaryFileHandle,tempPtr,INT_MAX);
-      size -= INT_MAX;
-      tempPtr = tempPtr + INT_MAX;
-     }
-
-   if (size > 0) 
-     { read(SystemDependentData(theEnv)->BinaryFileHandle,tempPtr,(STD_SIZE) size); }
-#endif
-
-#if (! WIN_BTC) && (! WIN_MVC)
+#if (! WIN_MVC)
    fread(dataPtr,size,1,SystemDependentData(theEnv)->BinaryFP); 
 #endif
   }
@@ -1373,15 +1322,12 @@ globle void GetSeekCurBinary(
   void *theEnv,
   long offset)
   {
-#if WIN_BTC
-   lseek(SystemDependentData(theEnv)->BinaryFileHandle,offset,SEEK_CUR);
-#endif
 
 #if WIN_MVC
    _lseek(SystemDependentData(theEnv)->BinaryFileHandle,offset,SEEK_CUR);
 #endif
 
-#if (! WIN_BTC) && (! WIN_MVC)
+#if (! WIN_MVC)
    fseek(SystemDependentData(theEnv)->BinaryFP,offset,SEEK_CUR);
 #endif
   }
@@ -1394,15 +1340,12 @@ globle void GetSeekSetBinary(
   void *theEnv,
   long offset)
   {
-#if WIN_BTC
-   lseek(SystemDependentData(theEnv)->BinaryFileHandle,offset,SEEK_SET);
-#endif
 
 #if WIN_MVC
    _lseek(SystemDependentData(theEnv)->BinaryFileHandle,offset,SEEK_SET);
 #endif
 
-#if (! WIN_BTC) && (! WIN_MVC)
+#if (! WIN_MVC)
    fseek(SystemDependentData(theEnv)->BinaryFP,offset,SEEK_SET);
 #endif
   }
@@ -1415,15 +1358,12 @@ globle void GenTellBinary(
   void *theEnv,
   long *offset)
   {
-#if WIN_BTC
-   *offset = lseek(SystemDependentData(theEnv)->BinaryFileHandle,0,SEEK_CUR);
-#endif
 
 #if WIN_MVC
    *offset = _lseek(SystemDependentData(theEnv)->BinaryFileHandle,0,SEEK_CUR);
 #endif
 
-#if (! WIN_BTC) && (! WIN_MVC)
+#if (! WIN_MVC)
    *offset = ftell(SystemDependentData(theEnv)->BinaryFP);
 #endif
   }
@@ -1438,15 +1378,12 @@ globle void GenCloseBinary(
    if (SystemDependentData(theEnv)->BeforeOpenFunction != NULL)
      { (*SystemDependentData(theEnv)->BeforeOpenFunction)(theEnv); }
 
-#if WIN_BTC
-   close(SystemDependentData(theEnv)->BinaryFileHandle);
-#endif
 
 #if WIN_MVC
    _close(SystemDependentData(theEnv)->BinaryFileHandle);
 #endif
 
-#if (! WIN_BTC) && (! WIN_MVC)
+#if (! WIN_MVC)
    fclose(SystemDependentData(theEnv)->BinaryFP);
 #endif
 
@@ -1476,9 +1413,6 @@ globle void GenWrite(
 /*   symbol table so that they are available */
 /*   for command completion.                 */
 /*********************************************/
-#if WIN_BTC && (RUN_TIME || (! WINDOW_INTERFACE))
-#pragma argsused
-#endif
 static void InitializeKeywords(
   void *theEnv)
   {
@@ -1708,37 +1642,5 @@ static void InitializeKeywords(
    ts = EnvAddSymbol(theEnv,"focus");
    IncrementSymbolCount(ts);
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
   }
-
-#if WIN_BTC
-/*********************************************/
-/* strtoll: Convert string to long long int. */
-/*    Note supported by Turbo C++ 2006.      */
-/*********************************************/
-__int64 _RTLENTRY _EXPFUNC strtoll(
-  const char * str,
-  char**endptr,
-  int base)
-  // convert string to long long int
-  {
-   if (endptr != NULL)
-	 *endptr = (char*)str + (base == 10 ? strspn(str, "0123456789"): 0);
-   return(_atoi64(str));
-  }
-
-/*******************************************/
-/* llabs: absolute value of long long int. */
-/*    Note supported by Turbo C++ 2006.    */
-/*******************************************/
-__int64 _RTLENTRY _EXPFUNC llabs(
-  __int64 val)
-  {
-   if (val >=0) return(val);
-   else	return(-val);
-  }
-
-#endif

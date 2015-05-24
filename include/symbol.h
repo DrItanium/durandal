@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                 SYMBOL HEADER FILE                  */
    /*******************************************************/
@@ -19,10 +19,44 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
-/*      6.24: Support for run-time programs directly passing */
+/*      6.24: CLIPS crashing on AMD64 processor in the       */
+/*            function used to generate a hash value for     */
+/*            integers. DR0871                               */
+/*                                                           */
+/*            Support for run-time programs directly passing */
 /*            the hash tables for initialization.            */
+/*                                                           */
+/*            Corrected code generating compilation          */
+/*            warnings.                                      */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Support for hashing EXTERNAL_ADDRESS data      */
+/*            type.                                          */
+/*                                                           */
+/*            Support for long long integers.                */
+/*                                                           */
+/*            Changed garbage collection algorithm.          */
+/*                                                           */
+/*            Used genstrcpy instead of strcpy.              */
+/*                                                           */             
+/*            Added support for external address hash table  */
+/*            and subtyping.                                 */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
+/*                                                           */
+/*            Added ValueToPointer and EnvValueToPointer     */
+/*            macros.                                        */
 /*                                                           */
 /*************************************************************/
 
@@ -68,12 +102,11 @@ struct symbolHashNode
   {
    struct symbolHashNode *next;
    long count;
-   int depth;
    unsigned int permanent : 1;
    unsigned int markedEphemeral : 1;
    unsigned int neededSymbol : 1;
    unsigned int bucket : 29;
-   char *contents;
+   const char *contents;
   };
 
 /************************************************************/
@@ -83,7 +116,6 @@ struct floatHashNode
   {
    struct floatHashNode *next;
    long count;
-   int depth;
    unsigned int permanent : 1;
    unsigned int markedEphemeral : 1;
    unsigned int neededFloat : 1;
@@ -98,7 +130,6 @@ struct integerHashNode
   {
    struct integerHashNode *next;
    long count;
-   int depth;
    unsigned int permanent : 1;
    unsigned int markedEphemeral : 1;
    unsigned int neededInteger : 1;
@@ -113,23 +144,21 @@ struct bitMapHashNode
   {
    struct bitMapHashNode *next;
    long count;
-   int depth;
    unsigned int permanent : 1;
    unsigned int markedEphemeral : 1;
    unsigned int neededBitMap : 1;
    unsigned int bucket : 29;
-   char *contents;
+   const char *contents;
    unsigned short size;
   };
 
 /************************************************************/
-/* externalAddressHashNode STRUCTURE:                                */
+/* externalAddressHashNode STRUCTURE:                       */
 /************************************************************/
 struct externalAddressHashNode
   {
    struct externalAddressHashNode *next;
    long count;
-   int depth;
    unsigned int permanent : 1;
    unsigned int markedEphemeral : 1;
    unsigned int neededPointer : 1;
@@ -145,7 +174,6 @@ struct genericHashNode
   {
    struct genericHashNode *next;
    long count;
-   int depth;
    unsigned int permanent : 1;
    unsigned int markedEphemeral : 1;
    unsigned int needed : 1;
@@ -190,6 +218,7 @@ struct symbolMatch
 #define ValueToLong(target) (((struct integerHashNode *) (target))->contents)
 #define ValueToInteger(target) ((int) (((struct integerHashNode *) (target))->contents))
 #define ValueToBitMap(target) ((void *) ((struct bitMapHashNode *) (target))->contents)
+#define ValueToPointer(target) ((void *) target)
 #define ValueToExternalAddress(target) ((void *) ((struct externalAddressHashNode *) (target))->externalAddress)
 
 #define EnvValueToString(theEnv,target) (((struct symbolHashNode *) (target))->contents)
@@ -197,6 +226,7 @@ struct symbolMatch
 #define EnvValueToLong(theEnv,target) (((struct integerHashNode *) (target))->contents)
 #define EnvValueToInteger(theEnv,target) ((int) (((struct integerHashNode *) (target))->contents))
 #define EnvValueToBitMap(theEnv,target) ((void *) ((struct bitMapHashNode *) (target))->contents)
+#define EnvValueToPointer(theEnv,target) ((void *) target)
 #define EnvValueToExternalAddress(theEnv,target) ((void *) ((struct externalAddressHashNode *) (target))->externalAddress)
 
 #define IncrementSymbolCount(theValue) (((SYMBOL_HN *) theValue)->count++)
@@ -223,11 +253,6 @@ struct symbolData
    INTEGER_HN **IntegerTable;
    BITMAP_HN **BitMapTable;
    EXTERNAL_ADDRESS_HN **ExternalAddressTable;
-   struct ephemeron *EphemeralSymbolList;
-   struct ephemeron *EphemeralFloatList;
-   struct ephemeron *EphemeralIntegerList;
-   struct ephemeron *EphemeralBitMapList;
-   struct ephemeron *EphemeralExternalAddressList;
 #if BLOAD || BLOAD_ONLY || BLOAD_AND_BSAVE || BLOAD_INSTANCES || BSAVE_INSTANCES
    long NumberOfSymbols;
    long NumberOfFloats;
@@ -243,29 +268,21 @@ struct symbolData
   };
 
 #define SymbolData(theEnv) ((struct symbolData *) GetEnvironmentData(theEnv,SYMBOL_DATA))
-#define EnvFalseSymbol(theEnv) SymbolData(theEnv)->FalseSymbolHN
-#define EnvTrueSymbol(theEnv) SymbolData(theEnv)->TrueSymbolHN
-
-#define FalseSymbol() SymbolData(GetCurrentEnvironment())->FalseSymbolHN
-#define TrueSymbol() SymbolData(GetCurrentEnvironment())->TrueSymbolHN
-#define AddSymbol(a) EnvAddSymbol(GetCurrentEnvironment(),a)
-#define AddLong(a) EnvAddLong(GetCurrentEnvironment(),a)
-#define AddDouble(a) EnvAddDouble(GetCurrentEnvironment(),a)
 
    LOCALE void                           InitializeAtomTables(void *,struct symbolHashNode **,struct floatHashNode **,
                                                               struct integerHashNode **,struct bitMapHashNode **,
                                                               struct externalAddressHashNode **);
-   LOCALE void                          *EnvAddSymbol(void *,char *);
-   LOCALE SYMBOL_HN                     *FindSymbolHN(void *,char *);
+   LOCALE void                          *EnvAddSymbol(void *,const char *);
+   LOCALE SYMBOL_HN                     *FindSymbolHN(void *,const char *);
    LOCALE void                          *EnvAddDouble(void *,double);
    LOCALE void                          *EnvAddLong(void *,long long);
    LOCALE void                          *EnvAddBitMap(void *,void *,unsigned);
    LOCALE void                          *EnvAddExternalAddress(void *,void *,unsigned);
    LOCALE INTEGER_HN                    *FindLongHN(void *,long long);
-   LOCALE unsigned long                  HashSymbol(char *,unsigned long);
+   LOCALE unsigned long                  HashSymbol(const char *,unsigned long);
    LOCALE unsigned long                  HashFloat(double,unsigned long);
    LOCALE unsigned long                  HashInteger(long long,unsigned long);
-   LOCALE unsigned long                  HashBitMap(char *,unsigned long,unsigned);
+   LOCALE unsigned long                  HashBitMap(const char *,unsigned long,unsigned);
    LOCALE unsigned long                  HashExternalAddress(void *,unsigned long);
    LOCALE void                           DecrementSymbolCount(void *,struct symbolHashNode *);
    LOCALE void                           DecrementFloatCount(void *,struct floatHashNode *);
@@ -285,14 +302,26 @@ struct symbolData
                                        **GetExternalAddressTable(void *);
    LOCALE void                           SetExternalAddressTable(void *,struct externalAddressHashNode **);
    LOCALE void                           RefreshSpecialSymbols(void *);
-   LOCALE struct symbolMatch            *FindSymbolMatches(void *,char *,unsigned *,size_t *);
+   LOCALE struct symbolMatch            *FindSymbolMatches(void *,const char *,unsigned *,size_t *);
    LOCALE void                           ReturnSymbolMatches(void *,struct symbolMatch *);
-   LOCALE SYMBOL_HN                     *GetNextSymbolMatch(void *,char *,size_t,SYMBOL_HN *,int,size_t *);
+   LOCALE SYMBOL_HN                     *GetNextSymbolMatch(void *,const char *,size_t,SYMBOL_HN *,int,size_t *);
    LOCALE void                           ClearBitString(void *,unsigned);
    LOCALE void                           SetAtomicValueIndices(void *,int);
    LOCALE void                           RestoreAtomicValueBuckets(void *);
+   LOCALE void                          *EnvFalseSymbol(void *);
+   LOCALE void                          *EnvTrueSymbol(void *);
 
-#endif
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+   LOCALE void                          *AddDouble(double);
+   LOCALE void                          *AddLong(long long);
+   LOCALE void                          *AddSymbol(const char *);
+   LOCALE void                          *FalseSymbol(void);
+   LOCALE void                          *TrueSymbol(void);
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
+
+#endif /* _H_symbol */
 
 
 

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                 RETE UTILITY MODULE                 */
    /*******************************************************/
@@ -22,9 +22,25 @@
 /*            Rule with exists CE has incorrect activation.  */
 /*            DR0867                                         */
 /*                                                           */
-/*      6.30: Added support for hashed alpha memories.       */
+/*      6.30: Changed integer type/precision.                */
+/*                                                           */
+/*            Support for join network changes.              */
+/*                                                           */
+/*            Support for using an asterick (*) to indicate  */
+/*            that existential patterns are matched.         */
+/*                                                           */
+/*            Support for partial match changes.             */
+/*                                                           */
+/*            Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Added support for hashed memories.             */
 /*                                                           */
 /*            Removed pseudo-facts used in not CEs.          */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -47,6 +63,7 @@
 #include "pattern.h"
 #include "retract.h"
 #include "router.h"
+#include "rulecom.h"
 
 #include "reteutil.h"
 
@@ -54,7 +71,7 @@
 /* LOCAL INTERNAL FUNCTION DEFINITIONS */
 /***************************************/
 
-   static void                        TraceErrorToRuleDriver(void *,struct joinNode *,char *,int,int);
+   static void                        TraceErrorToRuleDriver(void *,struct joinNode *,const char *,int,int);
    static struct alphaMemoryHash     *FindAlphaMemory(void *,struct patternNodeHeader *,unsigned long);
    static unsigned long               AlphaMemoryHashValue(struct patternNodeHeader *,unsigned long);
    static void                        UnlinkAlphaMemory(void *,struct patternNodeHeader *,struct alphaMemoryHash *);
@@ -75,7 +92,7 @@
 /***********************************************************/
 globle void PrintPartialMatch(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   struct partialMatch *list)
   {
    struct patternEntity *matchingItem;
@@ -90,9 +107,9 @@ globle void PrintPartialMatch(
          (*matchingItem->theInfo->base.shortPrintFunction)(theEnv,logicalName,matchingItem);
         }
       else
-        { EnvPrintRouter(theEnv,logicalName,(char*)"*"); }
+        { EnvPrintRouter(theEnv,logicalName,"*"); }
       i++;
-      if (i < list->bcount) EnvPrintRouter(theEnv,logicalName,(char*)",");
+      if (i < list->bcount) EnvPrintRouter(theEnv,logicalName,",");
      }
   }
 
@@ -219,7 +236,10 @@ globle void UpdateBetaPMLinks(
      }
      
    theMemory->count++;
-   join->memoryAdds++;
+   if (side == LHS)
+    { join->memoryLeftAdds++; }
+   else
+    { join->memoryRightAdds++; }
    
    thePM->owner = join;
 
@@ -325,7 +345,11 @@ globle void UnlinkBetaPMFromNodeAndLineage(
    /*=============================================*/
    
    theMemory->count--;
-   join->memoryDeletes++;
+
+   if (side == LHS)
+    { join->memoryLeftDeletes++; }
+   else
+    { join->memoryRightDeletes++; }
 
    betaLocation = thePM->hashValue % theMemory->size;
    
@@ -379,7 +403,11 @@ globle void UnlinkNonLeftLineage(
    /*=============================================*/
    
    theMemory->count--;
-   join->memoryDeletes++;
+
+   if (side == LHS)
+    { join->memoryLeftDeletes++; }
+   else
+    { join->memoryRightDeletes++; }
 
    betaLocation = thePM->hashValue % theMemory->size;
    
@@ -547,12 +575,7 @@ globle struct partialMatch *MergePartialMatches(
   struct partialMatch *rhsBind)
   {
    struct partialMatch *linker;
-   
-   static struct partialMatch mergeTemplate = { 
-      1, 0, 0, 0, 0, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL,  NULL, { { { NULL } } } 
-   }; /* betaMemory is TRUE, remainder are 0 or NULL */
+   static struct partialMatch mergeTemplate = { 1 }; /* betaMemory is TRUE, remainder are 0 or NULL */
   
    /*=================================*/
    /* Allocate the new partial match. */
@@ -594,9 +617,6 @@ globle void InitializePatternHeader(
   void *theEnv,
   struct patternNodeHeader *theHeader)
   {
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
    theHeader->firstHash = NULL;
    theHeader->lastHash = NULL;
    theHeader->entryJoin = NULL;
@@ -848,7 +868,7 @@ globle int GetPatternNumberFromJoin(
 globle void TraceErrorToRule(
   void *theEnv,
   struct joinNode *joinPtr,
-  char *indentSpaces)
+  const char *indentSpaces)
   {
    int patternCount;
    
@@ -868,11 +888,11 @@ globle void TraceErrorToRule(
 static void TraceErrorToRuleDriver(
   void *theEnv,
   struct joinNode *joinPtr,
-  char *indentSpaces,
+  const char *indentSpaces,
   int priorRightJoinPatterns,
   int enteredJoinFromRight)
   {
-   char *name;
+   const char *name;
    int priorPatternCount;
    struct joinLink *theLinks;
 
@@ -889,11 +909,11 @@ static void TraceErrorToRuleDriver(
       name = EnvGetDefruleName(theEnv,joinPtr->ruleToActivate);
       EnvPrintRouter(theEnv,WERROR,indentSpaces);
 
-      EnvPrintRouter(theEnv,WERROR,(char*)"Of pattern #");
+      EnvPrintRouter(theEnv,WERROR,"Of pattern #");
       PrintLongInteger(theEnv,WERROR,priorRightJoinPatterns+priorPatternCount);
-      EnvPrintRouter(theEnv,WERROR,(char*)" in rule ");
+      EnvPrintRouter(theEnv,WERROR," in rule ");
       EnvPrintRouter(theEnv,WERROR,name);
-      EnvPrintRouter(theEnv,WERROR,(char*)"\n");
+      EnvPrintRouter(theEnv,WERROR,"\n");
      }
    else
      {
@@ -939,7 +959,7 @@ globle void MarkRuleNetwork(
   void *theEnv,
   int value)
   {
-   struct defrule *rulePtr;
+   struct defrule *rulePtr, *disjunctPtr;
    struct joinNode *joinPtr;
    struct defmodule *modulePtr;
 
@@ -966,16 +986,17 @@ globle void MarkRuleNetwork(
          /* with the specified value.   */
          /*=============================*/
 
-         joinPtr = rulePtr->lastJoin;
-         MarkRuleJoins(joinPtr,value);
+         for (disjunctPtr = rulePtr; disjunctPtr != NULL; disjunctPtr = disjunctPtr->disjunct)
+           {
+            joinPtr = disjunctPtr->lastJoin;
+            MarkRuleJoins(joinPtr,value);
+           }
 
-         /*=================================*/
-         /* Move on to the next rule or the */
-         /* next disjunct for this rule.    */
-         /*=================================*/
+         /*===========================*/
+         /* Move on to the next rule. */
+         /*===========================*/
 
-         if (rulePtr->disjunct != NULL) rulePtr = rulePtr->disjunct;
-         else rulePtr = (struct defrule *) EnvGetNextDefrule(theEnv,rulePtr);
+         rulePtr = (struct defrule *) EnvGetNextDefrule(theEnv,rulePtr);
         }
 
      }
@@ -1359,6 +1380,11 @@ unsigned long ComputeRightHashValue(
    struct expr *tempExpr;
    unsigned long hashValue = 0;
    unsigned long multiplier = 1;
+   union
+     {
+      void *vv;
+      unsigned long liv;
+     } fis;
       
    if (theHeader->rightHash == NULL)
      { return hashValue; }
@@ -1389,6 +1415,21 @@ unsigned long ComputeRightHashValue(
              
           case FLOAT:
             hashValue += (((FLOAT_HN *) theResult.value)->bucket * multiplier);
+            break;
+            
+          case FACT_ADDRESS:
+#if OBJECT_SYSTEM
+          case INSTANCE_ADDRESS:
+#endif
+            fis.liv = 0;
+            fis.vv = theResult.value;
+            hashValue += (unsigned long) (fis.liv * multiplier);
+            break;
+
+          case EXTERNAL_ADDRESS:
+            fis.liv = 0;
+            fis.vv = ValueToExternalAddress(theResult.value);
+            hashValue += (unsigned long) (fis.liv * multiplier);
             break;
           }
        }
@@ -1480,7 +1521,75 @@ static void ResetBetaMemory(
       theMemory->last = lastAdd;
      }
   }
-  
+
+/********************/
+/* PrintBetaMemory: */
+/********************/
+globle unsigned long PrintBetaMemory(
+  void *theEnv,
+  const char *logName,
+  struct betaMemory *theMemory,
+  int indentFirst,
+  const char *indentString,
+  int output)
+  {
+   struct partialMatch *listOfMatches;
+   unsigned long b, count = 0;
+
+   if (GetHaltExecution(theEnv) == TRUE)
+     { return count; }
+
+   for (b = 0; b < theMemory->size; b++)
+     {
+      listOfMatches = theMemory->beta[b];
+
+      while (listOfMatches != NULL)
+        {
+         /*=========================================*/
+         /* Check to see if the user is attempting  */
+         /* to stop the display of partial matches. */
+         /*=========================================*/
+
+         if (GetHaltExecution(theEnv) == TRUE)
+           { return count; }
+
+         /*=========================================================*/
+         /* The first partial match may have already been indented. */
+         /* Subsequent partial matches will always be indented with */
+         /* the indentation string.                                 */
+         /*=========================================================*/
+         
+         if (output == VERBOSE)
+           {
+            if (indentFirst)
+              { EnvPrintRouter(theEnv,logName,indentString); }
+            else
+              { indentFirst = TRUE; }
+           }
+
+         /*==========================*/
+         /* Print the partial match. */
+         /*==========================*/
+         
+         if (output == VERBOSE)
+           {
+            PrintPartialMatch(theEnv,logName,listOfMatches);
+            EnvPrintRouter(theEnv,logName,"\n");
+           }
+           
+         count++;
+    
+         /*============================*/
+         /* Move on to the next match. */
+         /*============================*/
+         
+         listOfMatches = listOfMatches->nextInMemory;
+        }
+     }
+     
+   return count;
+  }
+
 #if (CONSTRUCT_COMPILER || BLOAD_AND_BSAVE) && (! RUN_TIME)
 
 /*************************************************************/
@@ -1497,7 +1606,7 @@ globle void TagRuleNetwork(
   long int *linkCount)
   {
    struct defmodule *modulePtr;
-   struct defrule *rulePtr;
+   struct defrule *rulePtr, *disjunctPtr;
    struct joinLink *theLink;
 
    *moduleCount = 0;
@@ -1542,17 +1651,18 @@ globle void TagRuleNetwork(
 
       while (rulePtr != NULL)
         {
-         rulePtr->header.bsaveID = *ruleCount;
-         (*ruleCount)++;
-
-         /*=========================*/
-         /* Loop through each join. */
-         /*=========================*/
-        
-         TagNetworkTraverseJoins(theEnv,joinCount,linkCount,rulePtr->lastJoin);
-
-         if (rulePtr->disjunct != NULL) rulePtr = rulePtr->disjunct;
-         else rulePtr = (struct defrule *) EnvGetNextDefrule(theEnv,rulePtr);
+         /*=============================*/
+         /* Loop through each disjunct. */
+         /*=============================*/
+         
+         for (disjunctPtr = rulePtr; disjunctPtr != NULL; disjunctPtr = disjunctPtr->disjunct)
+           {
+            disjunctPtr->header.bsaveID = *ruleCount;
+            (*ruleCount)++;
+            TagNetworkTraverseJoins(theEnv,joinCount,linkCount,disjunctPtr->lastJoin);
+           }
+            
+         rulePtr = (struct defrule *) EnvGetNextDefrule(theEnv,rulePtr);
         }
      }
   }

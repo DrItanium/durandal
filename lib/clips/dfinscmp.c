@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*              CLIPS Version 6.20  01/31/02           */
+   /*              CLIPS Version 6.30  08/16/14           */
    /*                                                     */
    /*                                                     */
    /*******************************************************/
@@ -15,6 +15,12 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Added support for path name argument to        */
+/*            constructs-to-c.                               */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -41,7 +47,7 @@
    ***************************************** */
 
 static void ReadyDefinstancesForCode(void *);
-static int DefinstancesToCode(void *,char *,char *,char *,int,FILE *,int,int);
+static int DefinstancesToCode(void *,const char *,const char *,char *,int,FILE *,int,int);
 static void CloseDefinstancesFiles(void *,FILE *,FILE *,int);
 static void DefinstancesModuleToCode(void *,FILE *,struct defmodule *,int,int);
 static void SingleDefinstancesToCode(void *,FILE *,DEFINSTANCES *,int,int,int);
@@ -64,7 +70,7 @@ static void SingleDefinstancesToCode(void *,FILE *,DEFINSTANCES *,int,int,int);
 globle void SetupDefinstancesCompiler(
   void *theEnv)
   {
-   DefinstancesData(theEnv)->DefinstancesCodeItem = AddCodeGeneratorItem(theEnv,(char*)"definstances",0,ReadyDefinstancesForCode,
+   DefinstancesData(theEnv)->DefinstancesCodeItem = AddCodeGeneratorItem(theEnv,"definstances",0,ReadyDefinstancesForCode,
                                                NULL,DefinstancesToCode,2);
   }
 
@@ -134,8 +140,8 @@ static void ReadyDefinstancesForCode(
  *******************************************************/
 static int DefinstancesToCode(
   void *theEnv,
-  char *fileName,
-  char *pathName,
+  const char *fileName,
+  const char *pathName,
   char *fileNameBuffer,
   int fileID,
   FILE *headerFP,
@@ -166,7 +172,7 @@ static int DefinstancesToCode(
 
       moduleFile = OpenFileIfNeeded(theEnv,moduleFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                     moduleArrayVersion,headerFP,
-                                    (char*)"DEFINSTANCES_MODULE",ModulePrefix(DefinstancesData(theEnv)->DefinstancesCodeItem),
+                                    "DEFINSTANCES_MODULE",ModulePrefix(DefinstancesData(theEnv)->DefinstancesCodeItem),
                                     FALSE,NULL);
 
       if (moduleFile == NULL)
@@ -185,7 +191,7 @@ static int DefinstancesToCode(
         {
          definstancesFile = OpenFileIfNeeded(theEnv,definstancesFile,fileName,pathName,fileNameBuffer,fileID,imageID,&fileCount,
                                              definstancesArrayVersion,headerFP,
-                                             (char*)"DEFINSTANCES",ConstructPrefix(DefinstancesData(theEnv)->DefinstancesCodeItem),
+                                             "DEFINSTANCES",ConstructPrefix(DefinstancesData(theEnv)->DefinstancesCodeItem),
                                              FALSE,NULL);
          if (definstancesFile == NULL)
            {

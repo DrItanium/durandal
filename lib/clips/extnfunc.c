@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*               EXTERNAL FUNCTION MODULE              */
    /*******************************************************/
@@ -23,6 +23,13 @@
 /*                                                           */
 /*      6.30: Added support for passing context information  */ 
 /*            to user defined functions.                     */
+/*                                                           */
+/*            Support for long long integers.                */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -104,37 +111,16 @@ static void DeallocateExternalFunctionData(
 
 #if (! RUN_TIME)
 
-/************************************************************/
-/* DefineFunction: Used to define a system or user external */
-/*   function so that the KB can access it.                 */
-/************************************************************/
-#if ALLOW_ENVIRONMENT_GLOBALS
-globle int DefineFunction(
-  char *name,
-  int returnType,
-  int (*pointer)(void),
-  char *actualName)
-  {
-   void *theEnv;
-   
-   theEnv = GetCurrentEnvironment();
-
-   return(DefineFunction3(theEnv,name,returnType,
-                          (int (*)(void *)) pointer,
-                          actualName,NULL,FALSE,NULL));
-  }
-#endif
-
-/***************************************************************/
-/* EnvDefineFunction: Used to define a system or user external */
-/*   function so that the KB can access it.                    */
-/***************************************************************/
+/******************************************************/
+/* EnvDefineFunction: Used to define a system or user */
+/*   external function so that the KB can access it.  */
+/******************************************************/
 globle int EnvDefineFunction(
   void *theEnv,
-  char *name,
+  const char *name,
   int returnType,
   int (*pointer)(void *),
-  char *actualName)
+  const char *actualName)
   {
    return(DefineFunction3(theEnv,name,returnType,pointer,actualName,NULL,TRUE,NULL));
   }
@@ -145,48 +131,26 @@ globle int EnvDefineFunction(
 /************************************************************/
 globle int EnvDefineFunctionWithContext(
   void *theEnv,
-  char *name,
+  const char *name,
   int returnType,
   int (*pointer)(void *),
-  char *actualName,
+  const char *actualName,
   void *context)
   {
    return(DefineFunction3(theEnv,name,returnType,pointer,actualName,NULL,TRUE,context));
   }
   
-/*************************************************************/
-/* DefineFunction2: Used to define a system or user external */
-/*   function so that the KB can access it.                  */
-/*************************************************************/
-#if ALLOW_ENVIRONMENT_GLOBALS
-globle int DefineFunction2(
-  char *name,
-  int returnType,
-  int (*pointer)(void),
-  char *actualName,
-  char *restrictions)
-  {
-   void *theEnv;
-   
-   theEnv = GetCurrentEnvironment();
-
-   return(DefineFunction3(theEnv,name,returnType,
-                          (int (*)(void *)) pointer,
-                          actualName,restrictions,FALSE,NULL));
-  }
-#endif
-  
-/*************************************************************/
-/* EnvDefineFunction2: Used to define a system or user external */
-/*   function so that the KB can access it.                  */
-/*************************************************************/
+/*******************************************************/
+/* EnvDefineFunction2: Used to define a system or user */
+/*   external function so that the KB can access it.   */
+/*******************************************************/
 globle int EnvDefineFunction2(
   void *theEnv,
-  char *name,
+  const char *name,
   int returnType,
   int (*pointer)(void *),
-  char *actualName,
-  char *restrictions)
+  const char *actualName,
+  const char *restrictions)
   {
    return(DefineFunction3(theEnv,name,returnType,pointer,actualName,restrictions,TRUE,NULL));
   }
@@ -197,11 +161,11 @@ globle int EnvDefineFunction2(
 /*************************************************************/
 globle int EnvDefineFunction2WithContext(
   void *theEnv,
-  char *name,
+  const char *name,
   int returnType,
   int (*pointer)(void *),
-  char *actualName,
-  char *restrictions,
+  const char *actualName,
+  const char *restrictions,
   void *context)
   {
    return(DefineFunction3(theEnv,name,returnType,pointer,actualName,restrictions,TRUE,context));
@@ -234,11 +198,11 @@ globle int EnvDefineFunction2WithContext(
 /*************************************************************/
 globle int DefineFunction3(
   void *theEnv,
-  char *name,
+  const char *name,
   int returnType,
   int (*pointer)(void *),
-  char *actualName,
-  char *restrictions,
+  const char *actualName,
+  const char *restrictions,
   intBool environmentAware,
   void *context)
   {
@@ -306,7 +270,7 @@ globle int DefineFunction3(
 /***********************************************/
 globle int UndefineFunction(
   void *theEnv,
-  char *functionName)
+  const char *functionName)
   {
    SYMBOL_HN *findValue;
    struct FunctionDefinition *fPtr, *lastPtr = NULL;
@@ -383,15 +347,15 @@ static int RemoveHashFunction(
 /***************************************************************************/
 globle int AddFunctionParser(
   void *theEnv,
-  char *functionName,
-  struct expr *(*fpPtr)(void *,struct expr *,char *))
+  const char *functionName,
+  struct expr *(*fpPtr)(void *,struct expr *,const char *))
   {
    struct FunctionDefinition *fdPtr;
 
    fdPtr = FindFunction(theEnv,functionName);
    if (fdPtr == NULL)
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)"Function parsers can only be added for existing functions.\n");
+      EnvPrintRouter(theEnv,WERROR,"Function parsers can only be added for existing functions.\n");
       return(0);
      }
    fdPtr->restrictions = NULL;
@@ -407,14 +371,14 @@ globle int AddFunctionParser(
 /*********************************************************************/
 globle int RemoveFunctionParser(
   void *theEnv,
-  char *functionName)
+  const char *functionName)
   {
    struct FunctionDefinition *fdPtr;
 
    fdPtr = FindFunction(theEnv,functionName);
    if (fdPtr == NULL)
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)"Function parsers can only be removed from existing functions.\n");
+      EnvPrintRouter(theEnv,WERROR,"Function parsers can only be removed from existing functions.\n");
       return(0);
      }
 
@@ -429,7 +393,7 @@ globle int RemoveFunctionParser(
 /*****************************************************************/
 globle int FuncSeqOvlFlags(
   void *theEnv,
-  char *functionName,
+  const char *functionName,
   int seqp,
   int ovlp)
   {
@@ -438,7 +402,7 @@ globle int FuncSeqOvlFlags(
    fdPtr = FindFunction(theEnv,functionName);
    if (fdPtr == NULL)
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)"Only existing functions can be marked as using sequence expansion arguments/overloadable or not.\n");
+      EnvPrintRouter(theEnv,WERROR,"Only existing functions can be marked as using sequence expansion arguments/overloadable or not.\n");
       return(FALSE);
      }
    fdPtr->sequenceuseok = (short) (seqp ? TRUE : FALSE);
@@ -452,72 +416,72 @@ globle int FuncSeqOvlFlags(
 /* GetArgumentTypeName: Returns a descriptive string for */
 /*   a function argument type (used by DefineFunction2). */
 /*********************************************************/
-globle char *GetArgumentTypeName(
+globle const char *GetArgumentTypeName(
   int theRestriction)
   {
    switch ((char) theRestriction)
      {
       case 'a':
-        return((char*)"external address");
+        return("external address");
 
       case 'e':
-        return((char*)"instance address, instance name, or symbol");
+        return("instance address, instance name, or symbol");
 
       case 'd':
       case 'f':
-        return((char*)"float");
+        return("float");
 
       case 'g':
-        return((char*)"integer, float, or symbol");
+        return("integer, float, or symbol");
 
       case 'h':
-        return((char*)"instance address, instance name, fact address, integer, or symbol");
+        return("instance address, instance name, fact address, integer, or symbol");
 
       case 'j':
-        return((char*)"symbol, string, or instance name");
+        return("symbol, string, or instance name");
 
       case 'k':
-        return((char*)"symbol or string");
+        return("symbol or string");
 
       case 'i':
       case 'l':
-        return((char*)"integer");
+        return("integer");
 
       case 'm':
-        return((char*)"multifield");
+        return("multifield");
 
       case 'n':
-        return((char*)"integer or float");
+        return("integer or float");
 
       case 'o':
-        return((char*)"instance name");
+        return("instance name");
 
       case 'p':
-        return((char*)"instance name or symbol");
+        return("instance name or symbol");
 
       case 'q':
-        return((char*)"multifield, symbol, or string");
+        return("multifield, symbol, or string");
 
       case 's':
-        return((char*)"string");
+        return("string");
 
       case 'w':
-        return((char*)"symbol");
+        return("symbol");
 
       case 'x':
-        return((char*)"instance address");
+        return("instance address");
 
       case 'y':
-        return((char*)"fact-address");
+        return("fact-address");
 
       case 'z':
-        return((char*)"fact-address, integer, or symbol");
+        return("fact-address, integer, or symbol");
 
       case 'u':
-        return((char*)"non-void return value");
+        return("non-void return value");
      }
 
-   return((char*)"unknown argument type");
+   return("unknown argument type");
   }
 
 /***************************************************/
@@ -625,7 +589,7 @@ globle void InstallFunctionList(
 /********************************************************/
 globle struct FunctionDefinition *FindFunction(
   void *theEnv,
-  char *functionName)
+  const char *functionName)
   {
    struct FunctionHash *fhPtr;
    unsigned hashValue;
@@ -693,7 +657,8 @@ static void AddHashFunction(
 globle int GetMinimumArgs(
   struct FunctionDefinition *theFunction)
   {
-   char theChar[2], *restrictions;
+   char theChar[2];
+   const char *restrictions;
 
    restrictions = theFunction->restrictions;
    if (restrictions == NULL) return(-1);
@@ -716,7 +681,8 @@ globle int GetMinimumArgs(
 globle int GetMaximumArgs(
   struct FunctionDefinition *theFunction)
   {
-   char theChar[2], *restrictions;
+   char theChar[2];
+   const char *restrictions;
 
    restrictions = theFunction->restrictions;
    if (restrictions == NULL) return(-1);
@@ -732,3 +698,45 @@ globle int GetMaximumArgs(
    
    return(-1); 
   }
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+#if (! RUN_TIME)
+globle int DefineFunction(
+  const char *name,
+  int returnType,
+  int (*pointer)(void),
+  const char *actualName)
+  {
+   void *theEnv;
+   
+   theEnv = GetCurrentEnvironment();
+
+   return(DefineFunction3(theEnv,name,returnType,
+                          (int (*)(void *)) pointer,
+                          actualName,NULL,FALSE,NULL));
+  }
+
+globle int DefineFunction2(
+  const char *name,
+  int returnType,
+  int (*pointer)(void),
+  const char *actualName,
+  const char *restrictions)
+  {
+   void *theEnv;
+   
+   theEnv = GetCurrentEnvironment();
+
+   return(DefineFunction3(theEnv,name,returnType,
+                          (int (*)(void *)) pointer,
+                          actualName,restrictions,FALSE,NULL));
+  }
+
+#endif /* (! RUN_TIME) */
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*               CLIPS Version 6.24  05/17/06          */
+   /*               CLIPS Version 6.30  08/16/14          */
    /*                                                     */
    /*                  OBJECT MESSAGE FUNCTIONS           */
    /*******************************************************/
@@ -15,6 +15,7 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Changed name of variable log to logName        */
 /*            because of Unix compiler warnings of shadowed  */
 /*            definitions.                                   */
@@ -23,6 +24,13 @@
 /*            AUXILIARY_MESSAGE_HANDLERS compilation flags.  */
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Support for long long integers.                */
+/*                                                           */
+/*            Changed integer type/precision.                */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -55,8 +63,8 @@
    ***************************************** */
 
 #if DEBUGGING_FUNCTIONS
-static HANDLER_LINK *DisplayPrimaryCore(void *,char *,HANDLER_LINK *,int);
-static void PrintPreviewHandler(void *,char *,HANDLER_LINK *,int,char *);
+static HANDLER_LINK *DisplayPrimaryCore(void *,const char *,HANDLER_LINK *,int);
+static void PrintPreviewHandler(void *,const char *,HANDLER_LINK *,int,const char *);
 #endif
 
 /* =========================================
@@ -78,7 +86,7 @@ static void PrintPreviewHandler(void *,char *,HANDLER_LINK *,int,char *);
 globle void UnboundHandlerErr(
   void *theEnv)
   {
-   EnvPrintRouter(theEnv,WERROR,(char*)"message-handler ");
+   EnvPrintRouter(theEnv,WERROR,"message-handler ");
    PrintHandler(theEnv,WERROR,MessageHandlerData(theEnv)->CurrentCore->hnd,TRUE);
   }
 
@@ -92,12 +100,12 @@ globle void UnboundHandlerErr(
  *****************************************************************/
 globle void PrintNoHandlerError(
   void *theEnv,
-  char *msg)
+  const char *msg)
   {
-   PrintErrorID(theEnv,(char*)"MSGFUN",1,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"No applicable primary message-handlers found for ");
+   PrintErrorID(theEnv,"MSGFUN",1,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"No applicable primary message-handlers found for ");
    EnvPrintRouter(theEnv,WERROR,msg);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 /***************************************************************
@@ -120,20 +128,20 @@ globle int CheckHandlerArgCount(
        (ProceduralPrimitiveData(theEnv)->ProcParamArraySize != hnd->minParams))
      {
       SetEvaluationError(theEnv,TRUE);
-      PrintErrorID(theEnv,(char*)"MSGFUN",2,FALSE);
-      EnvPrintRouter(theEnv,WERROR,(char*)"Message-handler ");
+      PrintErrorID(theEnv,"MSGFUN",2,FALSE);
+      EnvPrintRouter(theEnv,WERROR,"Message-handler ");
       EnvPrintRouter(theEnv,WERROR,ValueToString(hnd->name));
-      EnvPrintRouter(theEnv,WERROR,(char*)" ");
+      EnvPrintRouter(theEnv,WERROR," ");
       EnvPrintRouter(theEnv,WERROR,MessageHandlerData(theEnv)->hndquals[hnd->type]);
-      EnvPrintRouter(theEnv,WERROR,(char*)" in class ");
+      EnvPrintRouter(theEnv,WERROR," in class ");
       EnvPrintRouter(theEnv,WERROR,EnvGetDefclassName(theEnv,(void *) hnd->cls));
-      EnvPrintRouter(theEnv,WERROR,(char*)" expected ");
+      EnvPrintRouter(theEnv,WERROR," expected ");
       if (hnd->maxParams == -1)
-        EnvPrintRouter(theEnv,WERROR,(char*)"at least ");
+        EnvPrintRouter(theEnv,WERROR,"at least ");
       else
-        EnvPrintRouter(theEnv,WERROR,(char*)"exactly ");
+        EnvPrintRouter(theEnv,WERROR,"exactly ");
       PrintLongInteger(theEnv,WERROR,(long long) (hnd->minParams-1));
-      EnvPrintRouter(theEnv,WERROR,(char*)" argument(s).\n");
+      EnvPrintRouter(theEnv,WERROR," argument(s).\n");
       return(FALSE);
      }
    return(TRUE);
@@ -155,21 +163,21 @@ globle int CheckHandlerArgCount(
  ***************************************************/
 globle void SlotAccessViolationError(
   void *theEnv,
-  char *slotName,
+  const char *slotName,
   intBool instanceFlag,
   void *theInstanceOrClass)
   {
-   PrintErrorID(theEnv,(char*)"MSGFUN",3,FALSE);
+   PrintErrorID(theEnv,"MSGFUN",3,FALSE);
    EnvPrintRouter(theEnv,WERROR,slotName);
-   EnvPrintRouter(theEnv,WERROR,(char*)" slot in ");
+   EnvPrintRouter(theEnv,WERROR," slot in ");
    if (instanceFlag)
      PrintInstanceNameAndClass(theEnv,WERROR,(INSTANCE_TYPE *) theInstanceOrClass,FALSE);
    else
      {
-      EnvPrintRouter(theEnv,WERROR,(char*)"class ");
+      EnvPrintRouter(theEnv,WERROR,"class ");
       PrintClassName(theEnv,WERROR,(DEFCLASS *) theInstanceOrClass,FALSE);
      }
-   EnvPrintRouter(theEnv,WERROR,(char*)": write access denied.\n");
+   EnvPrintRouter(theEnv,WERROR,": write access denied.\n");
   }
 
 /***************************************************
@@ -188,12 +196,12 @@ globle void SlotVisibilityViolationError(
   SLOT_DESC *sd,
   DEFCLASS *theDefclass)
   {
-   PrintErrorID(theEnv,(char*)"MSGFUN",6,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Private slot ");
+   PrintErrorID(theEnv,"MSGFUN",6,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Private slot ");
    EnvPrintRouter(theEnv,WERROR,ValueToString(sd->slotName->name));
-   EnvPrintRouter(theEnv,WERROR,(char*)" of class ");
+   EnvPrintRouter(theEnv,WERROR," of class ");
    PrintClassName(theEnv,WERROR,sd->cls,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)" cannot be accessed directly\n   by handlers attached to class ");
+   EnvPrintRouter(theEnv,WERROR," cannot be accessed directly\n   by handlers attached to class ");
    PrintClassName(theEnv,WERROR,theDefclass,TRUE);
   }
 
@@ -222,9 +230,9 @@ globle void SlotVisibilityViolationError(
  *******************************************************************************/
 globle void NewSystemHandler(
   void *theEnv,
-  char *cname,
-  char *mname,
-  char *fname,
+  const char *cname,
+  const char *mname,
+  const char *fname,
   int extraargs)
   {
    DEFCLASS *cls;
@@ -398,8 +406,8 @@ globle int DeleteHandler(
               hnd->mark = 1;
             else
               {
-               PrintErrorID(theEnv,(char*)"MSGPSR",3,FALSE);
-               EnvPrintRouter(theEnv,WERROR,(char*)"System message-handlers may not be modified.\n");
+               PrintErrorID(theEnv,"MSGPSR",3,FALSE);
+               EnvPrintRouter(theEnv,WERROR,"System message-handlers may not be modified.\n");
                success = 0;
               }
            }
@@ -436,8 +444,8 @@ globle int DeleteHandler(
         {
          if (indicate_missing)
            {
-            PrintErrorID(theEnv,(char*)"MSGPSR",3,FALSE);
-            EnvPrintRouter(theEnv,WERROR,(char*)"System message-handlers may not be modified.\n");
+            PrintErrorID(theEnv,"MSGPSR",3,FALSE);
+            EnvPrintRouter(theEnv,WERROR,"System message-handlers may not be modified.\n");
            }
          success = 0;
         }
@@ -552,8 +560,8 @@ globle void DeallocateMarkedHandlers(
  *****************************************************/
 globle unsigned HandlerType(
   void *theEnv,
-  char *func,
-  char *str)
+  const char *func,
+  const char *str)
   {
    register unsigned i;
 
@@ -563,10 +571,10 @@ globle unsigned HandlerType(
         return(i);
        }
 
-   PrintErrorID(theEnv,(char*)"MSGFUN",7,FALSE);
-   EnvPrintRouter(theEnv,(char*)"werror",(char*)"Unrecognized message-handler type in ");
-   EnvPrintRouter(theEnv,(char*)"werror",func);
-   EnvPrintRouter(theEnv,(char*)"werror",(char*)".\n");
+   PrintErrorID(theEnv,"MSGFUN",7,FALSE);
+   EnvPrintRouter(theEnv,"werror","Unrecognized message-handler type in ");
+   EnvPrintRouter(theEnv,"werror",func);
+   EnvPrintRouter(theEnv,"werror",".\n");
    return(MERROR);
   }
 
@@ -584,25 +592,25 @@ globle unsigned HandlerType(
  *****************************************************************/
 globle int CheckCurrentMessage(
   void *theEnv,
-  char *func,
+  const char *func,
   int ins_reqd)
   {
    register DATA_OBJECT *activeMsgArg;
 
    if (!MessageHandlerData(theEnv)->CurrentCore || (MessageHandlerData(theEnv)->CurrentCore->hnd->actions != ProceduralPrimitiveData(theEnv)->CurrentProcActions))
      {
-      PrintErrorID(theEnv,(char*)"MSGFUN",4,FALSE);
+      PrintErrorID(theEnv,"MSGFUN",4,FALSE);
       EnvPrintRouter(theEnv,WERROR,func);
-      EnvPrintRouter(theEnv,WERROR,(char*)" may only be called from within message-handlers.\n");
+      EnvPrintRouter(theEnv,WERROR," may only be called from within message-handlers.\n");
       SetEvaluationError(theEnv,TRUE);
       return(FALSE);
      }
    activeMsgArg = GetNthMessageArgument(theEnv,0);
    if ((ins_reqd == TRUE) ? (activeMsgArg->type != INSTANCE_ADDRESS) : FALSE)
      {
-      PrintErrorID(theEnv,(char*)"MSGFUN",5,FALSE);
+      PrintErrorID(theEnv,"MSGFUN",5,FALSE);
       EnvPrintRouter(theEnv,WERROR,func);
-      EnvPrintRouter(theEnv,WERROR,(char*)" operates only on instances.\n");
+      EnvPrintRouter(theEnv,WERROR," operates only on instances.\n");
       SetEvaluationError(theEnv,TRUE);
       return(FALSE);
      }
@@ -629,14 +637,14 @@ globle int CheckCurrentMessage(
  ***************************************************/
 globle void PrintHandler(
   void *theEnv,
-  char *logName,
+  const char *logName,
   HANDLER *theHandler,
   int crtn)
   {
    EnvPrintRouter(theEnv,logName,ValueToString(theHandler->name));
-   EnvPrintRouter(theEnv,logName,(char*)" ");
+   EnvPrintRouter(theEnv,logName," ");
    EnvPrintRouter(theEnv,logName,MessageHandlerData(theEnv)->hndquals[theHandler->type]);
-   EnvPrintRouter(theEnv,logName,(char*)" in class ");
+   EnvPrintRouter(theEnv,logName," in class ");
    PrintClassName(theEnv,logName,theHandler->cls,crtn);
   }
 
@@ -787,12 +795,12 @@ globle int FindHandlerNameGroup(
  ***************************************************/
 globle void HandlerDeleteError(
   void *theEnv,
-  char *cname)
+  const char *cname)
   {
-   PrintErrorID(theEnv,(char*)"MSGFUN",8,FALSE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"Unable to delete message-handler(s) from class ");
+   PrintErrorID(theEnv,"MSGFUN",8,FALSE);
+   EnvPrintRouter(theEnv,WERROR,"Unable to delete message-handler(s) from class ");
    EnvPrintRouter(theEnv,WERROR,cname);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\n");
+   EnvPrintRouter(theEnv,WERROR,".\n");
   }
 
 #if DEBUGGING_FUNCTIONS
@@ -818,7 +826,7 @@ globle void HandlerDeleteError(
  ********************************************************************/
 globle void DisplayCore(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   HANDLER_LINK *core,
   int sdepth)
   {
@@ -891,14 +899,14 @@ globle HANDLER_LINK *FindPreviewApplicableHandlers(
  ***********************************************************/
 globle void WatchMessage(
   void *theEnv,
-  char *logName,
-  char *tstring)
+  const char *logName,
+  const char *tstring)
   {
-   EnvPrintRouter(theEnv,logName,(char*)"MSG ");
+   EnvPrintRouter(theEnv,logName,"MSG ");
    EnvPrintRouter(theEnv,logName,tstring);
-   EnvPrintRouter(theEnv,logName,(char*)" ");
+   EnvPrintRouter(theEnv,logName," ");
    EnvPrintRouter(theEnv,logName,ValueToString(MessageHandlerData(theEnv)->CurrentMessageName));
-   EnvPrintRouter(theEnv,logName,(char*)" ED:");
+   EnvPrintRouter(theEnv,logName," ED:");
    PrintLongInteger(theEnv,logName,(long long) EvaluationData(theEnv)->CurrentEvaluationDepth);
    PrintProcParamArray(theEnv,logName);
   }
@@ -917,18 +925,18 @@ globle void WatchMessage(
  ***********************************************************/
 globle void WatchHandler(
   void *theEnv,
-  char *logName,
+  const char *logName,
   HANDLER_LINK *hndl,
-  char *tstring)
+  const char *tstring)
   {
    HANDLER *hnd;
    
-   EnvPrintRouter(theEnv,logName,(char*)"HND ");
+   EnvPrintRouter(theEnv,logName,"HND ");
    EnvPrintRouter(theEnv,logName,tstring);
-   EnvPrintRouter(theEnv,logName,(char*)" ");
+   EnvPrintRouter(theEnv,logName," ");
    hnd = hndl->hnd;
    PrintHandler(theEnv,WTRACE,hnd,TRUE);
-   EnvPrintRouter(theEnv,logName,(char*)"       ED:");
+   EnvPrintRouter(theEnv,logName,"       ED:");
    PrintLongInteger(theEnv,logName,(long long) EvaluationData(theEnv)->CurrentEvaluationDepth);
    PrintProcParamArray(theEnv,logName);
   }
@@ -964,7 +972,7 @@ globle void WatchHandler(
  ********************************************************************/
 static HANDLER_LINK *DisplayPrimaryCore(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   HANDLER_LINK *core,
   int pdepth)
   {
@@ -992,17 +1000,17 @@ static HANDLER_LINK *DisplayPrimaryCore(
  ***************************************************/
 static void PrintPreviewHandler(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   HANDLER_LINK *cptr,
   int sdepth,
-  char *tstr)
+  const char *tstr)
   {
    register int i;
 
    for (i = 0 ; i < sdepth ; i++)
-     EnvPrintRouter(theEnv,logicalName,(char*)"| ");
+     EnvPrintRouter(theEnv,logicalName,"| ");
    EnvPrintRouter(theEnv,logicalName,tstr);
-   EnvPrintRouter(theEnv,logicalName,(char*)" ");
+   EnvPrintRouter(theEnv,logicalName," ");
    PrintHandler(theEnv,logicalName,cptr->hnd,TRUE);
   }
 

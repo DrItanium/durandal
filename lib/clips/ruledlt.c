@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                 RULE DELETION MODULE                */
    /*******************************************************/
@@ -22,7 +22,14 @@
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
 /*                                                           */
-/*      6.30: Added support for hashed alpha memories.       */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Added support for hashed memories.             */
+/*                                                           */
+/*            Fixed linkage issue when BLOAD_ONLY compiler   */
+/*            flag is set to 1.                              */
 /*                                                           */
 /*************************************************************/
 
@@ -73,9 +80,6 @@ globle void ReturnDefrule(
   void *theEnv,
   void *vWaste)
   {
-#if (MAC_MCW || WIN_MCW) && (RUN_TIME || BLOAD_ONLY)
-#pragma unused(theEnv,vWaste)
-#endif
 
 #if (! RUN_TIME) && (! BLOAD_ONLY)
    struct defrule *waste = (struct defrule *) vWaste;
@@ -130,7 +134,7 @@ globle void ReturnDefrule(
           }
          if (waste->header.ppForm != NULL)
            {
-            rm(theEnv,waste->header.ppForm,strlen(waste->header.ppForm) + 1);
+            rm(theEnv,(void *) waste->header.ppForm,strlen(waste->header.ppForm) + 1);
             waste->header.ppForm = NULL;
             
             /*=======================================================*/
@@ -194,7 +198,7 @@ globle void DestroyDefrule(
   void *vTheDefrule)
   {
    struct defrule *theDefrule = (struct defrule *) vTheDefrule;
-   struct defrule *nextDisjunct, *tmpPtr;
+   struct defrule *nextDisjunct;
    int first = TRUE;
    
    if (theDefrule == NULL) return;
@@ -210,8 +214,10 @@ globle void DestroyDefrule(
            { ReturnPackedExpression(theEnv,theDefrule->dynamicSalience); }
 
          if (theDefrule->header.ppForm != NULL)
-           { 
-            rm(theEnv,theDefrule->header.ppForm,strlen(theDefrule->header.ppForm) + 1);
+           {
+            struct defrule *tmpPtr;
+
+            rm(theEnv,(void *) theDefrule->header.ppForm,strlen(theDefrule->header.ppForm) + 1);
             
             /*=======================================================*/
             /* All of the rule disjuncts share the same pretty print */

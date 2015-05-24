@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.20  01/31/02            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*              DEFMODULE UTILITY MODULE               */
    /*******************************************************/
@@ -18,6 +18,11 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Used genstrncpy instead of strncpy.            */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
 /*                                                           */
 /*************************************************************/
 
@@ -49,7 +54,7 @@
 /*   position of the second colon within the string is returned.    */
 /********************************************************************/
 globle unsigned FindModuleSeparator(
-  char *theString)
+  const char *theString)
   {
    unsigned i, foundColon;
 
@@ -76,7 +81,7 @@ globle unsigned FindModuleSeparator(
 globle SYMBOL_HN *ExtractModuleName(
   void *theEnv,
   unsigned thePosition,
-  char *theString)
+  const char *theString)
   {
    char *newString;
    SYMBOL_HN *returnValue;
@@ -136,7 +141,7 @@ globle SYMBOL_HN *ExtractModuleName(
 globle SYMBOL_HN *ExtractConstructName(
   void *theEnv,
   unsigned thePosition,
-  char *theString)
+  const char *theString)
   {
    size_t theLength;
    char *newString;
@@ -201,9 +206,9 @@ globle SYMBOL_HN *ExtractConstructName(
 /*   module and construct name from a string. Sets  */
 /*   the current module to the specified module.    */
 /****************************************************/
-globle char *ExtractModuleAndConstructName(
+globle const char *ExtractModuleAndConstructName(
   void *theEnv,
-  char *theName)
+  const char *theName)
   {
    unsigned separatorPosition;
    SYMBOL_HN *moduleName, *shortName;
@@ -252,9 +257,9 @@ globle char *ExtractModuleAndConstructName(
 /************************************************************/
 globle void *FindImportedConstruct(
   void *theEnv,
-  char *constructName,
+  const char *constructName,
   struct defmodule *matchModule,
-  char *findName,
+  const char *findName,
   int *count,
   int searchCurrent,
   struct defmodule *notYetDefinedInModule)
@@ -341,14 +346,14 @@ globle void *FindImportedConstruct(
 /*********************************************************/
 globle void AmbiguousReferenceErrorMessage(
   void *theEnv,
-  char *constructName,
-  char *findName)
+  const char *constructName,
+  const char *findName)
   {
-   EnvPrintRouter(theEnv,WERROR,(char*)"Ambiguous reference to ");
+   EnvPrintRouter(theEnv,WERROR,"Ambiguous reference to ");
    EnvPrintRouter(theEnv,WERROR,constructName);
-   EnvPrintRouter(theEnv,WERROR,(char*)" ");
+   EnvPrintRouter(theEnv,WERROR," ");
    EnvPrintRouter(theEnv,WERROR,findName);
-   EnvPrintRouter(theEnv,WERROR,(char*)".\nIt is imported from more than one module.\n");
+   EnvPrintRouter(theEnv,WERROR,".\nIt is imported from more than one module.\n");
   }
 
 /****************************************************/
@@ -546,7 +551,7 @@ static void *SearchImportedConstructModules(
 /**************************************************************/
 globle intBool ConstructExported(
   void *theEnv,
-  char *constructTypeStr,
+  const char *constructTypeStr,
   struct symbolHashNode *moduleName,
   struct symbolHashNode *findName)
   {
@@ -577,8 +582,29 @@ globle intBool ConstructExported(
    return FALSE;
   }
          
+/*********************************************************/
+/* AllImportedModulesVisited: Returns TRUE if all of the */
+/*   imported modules for a module have been visited.    */
+/*********************************************************/
+globle intBool AllImportedModulesVisited(
+  void *theEnv,
+  struct defmodule *theModule)
+  {
+   struct portItem *theImportList;
+   struct defmodule *theImportModule;
+      
+   theImportList = theModule->importList;
+   while (theImportList != NULL)
+     {
+      theImportModule = (struct defmodule *) EnvFindDefmodule(theEnv,ValueToString(theImportList->moduleName));
 
+      if (! theImportModule->visitedFlag) return FALSE;
+      
+      theImportList = theImportList->next;
+     }
 
+   return TRUE;
+  }
 
 /***************************************/
 /* ListItemsDriver: Driver routine for */
@@ -586,17 +612,17 @@ globle intBool ConstructExported(
 /***************************************/
 globle void ListItemsDriver(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   struct defmodule *theModule,
-  char *singleName,
-  char *pluralName,
+  const char *singleName,
+  const char *pluralName,
   void *(*nextFunction)(void *,void *),
-  char *(*nameFunction)(void *),
-  void (*printFunction)(void *,char *,void *),
+  const char *(*nameFunction)(void *),
+  void (*printFunction)(void *,const char *,void *),
   int (*doItFunction)(void *,void *))
   {
    void *constructPtr;
-   char *constructName;
+   const char *constructName;
    long count = 0;
    int allModules = FALSE;
    int doIt;
@@ -622,7 +648,7 @@ globle void ListItemsDriver(
       if (allModules)
         {
          EnvPrintRouter(theEnv,logicalName,EnvGetDefmoduleName(theEnv,theModule));
-         EnvPrintRouter(theEnv,logicalName,(char*)":\n");
+         EnvPrintRouter(theEnv,logicalName,":\n");
         }
 
       EnvSetCurrentModule(theEnv,(void *) theModule);
@@ -640,16 +666,16 @@ globle void ListItemsDriver(
             constructName = (*nameFunction)(constructPtr);
             if (constructName != NULL)
               {
-               if (allModules) EnvPrintRouter(theEnv,logicalName,(char*)"   ");
+               if (allModules) EnvPrintRouter(theEnv,logicalName,"   ");
                EnvPrintRouter(theEnv,logicalName,constructName);
-               EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+               EnvPrintRouter(theEnv,logicalName,"\n");
               }
            }
          else if (printFunction != NULL)
            {
-            if (allModules) EnvPrintRouter(theEnv,logicalName,(char*)"   ");
+            if (allModules) EnvPrintRouter(theEnv,logicalName,"   ");
             (*printFunction)(theEnv,logicalName,constructPtr);
-            EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+            EnvPrintRouter(theEnv,logicalName,"\n");
            }
 
          constructPtr = (*nextFunction)(theEnv,constructPtr);

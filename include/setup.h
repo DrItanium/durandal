@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  12/07/07            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                  SETUP HEADER FILE                  */
    /*******************************************************/
@@ -20,6 +20,7 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.24: Default locale modification.                   */
 /*                                                           */
 /*            Removed CONFLICT_RESOLUTION_STRATEGIES,        */
@@ -33,7 +34,26 @@
 /*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
 /*                                                           */
-/*      6.30: Used #ifndef for preprocessor definitions so   */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, IBM_ICB, IBM_TBC, IBM_ZTC, and        */
+/*            IBM_SC).                                       */
+/*                                                           */
+/*            Renamed IBM_MSC and WIN_MVC compiler flags     */
+/*            and IBM_GCC to WIN_GCC.                        */
+/*                                                           */
+/*            Added LINUX and DARWIN compiler flags.         */
+/*                                                           */
+/*            Removed HELP_FUNCTIONS compilation flag and    */
+/*            associated functionality.                      */
+/*                                                           */
+/*            Removed EMACS_EDITOR compilation flag and      */
+/*            associated functionality.                      */
+/*                                                           */
+/*            Combined BASIC_IO and EXT_IO compilation       */
+/*            flags into the single IO_FUNCTIONS flag.       */
+/*                                                           */
+/*            Used #ifndef for preprocessor definitions so   */
 /*            they can be set at the project or makefile     */
 /*            level.                                         */
 /*                                                           */
@@ -48,6 +68,15 @@
 /*            Removed VOID definition because of conflict    */
 /*            with Windows.h header file.                    */
 /*                                                           */    
+/*            Removed deprecated definitions.                */
+/*                                                           */    
+/*                                                           */
+/*            The ALLOW_ENVIRONMENT_GLOBALS flag now         */
+/*            defaults to 0. The use of functions enabled    */
+/*            by this flag is deprecated.                    */
+/*                                                           */
+/*      AdventureEngine 2/21/2013: Added automatic system    */
+/*      identification                                       */
 /*************************************************************/
 
 #ifndef _H_setup
@@ -61,85 +90,66 @@
 /* Flag denoting the environment in which the executable is to run.  */
 /* Only one of these flags should be turned on (set to 1) at a time. */
 /*********************************************************************/
-#if defined(__APPLE__)
-#define DARWIN 1
-#elif defined(__FreeBSD__)
-#define UNIX_V 1
-#elif defined(__OpenBSD__)
-#define UNIX_V 1
-#elif defined(__linux__)
-#define LINUX 1
-#elif defined(_WIN32)
-//VC++ is the only supported compiler 
-#define WIN_MVC 1
-#else
-#define GENERIC 1
-#endif
+
 
 //#ifndef UNIX_V
 //#define UNIX_V  0   /* UNIX System V, 4.2bsd, or HP Unix, presumably with gcc */
 //#endif
 //
-//#ifndef UNIX_7
-//#define UNIX_7  0   /* UNIX System III Version 7 or Sun Unix, presumably with gcc */
-//#endif
-//
-//#ifndef LINUX
-//#define LINUX   0   /* Untested, presumably with gcc */
-//#endif
-//
-//#ifndef DARWIN
-//#define DARWIN  0   /* Darwin Mac OS 10.5, presumably with gcc or Xcode 3.0 with Console */
-//#endif
-//
-//#ifndef MAC_XCD
-//#define MAC_XCD 0   /* MacOS 10.5, with Xcode 3.0 and Cocoa GUI */
-//#endif
-//
-//#ifndef MAC_MCW
-//#define MAC_MCW 0   /* MacOS 10.5, with CodeWarrior 9.6 */
-//#endif
-//
-//#ifndef WIN_MVC
-//#define WIN_MVC 0   /* Windows XP, with VC++ 2008 Express */
-//#endif
-//
-//#ifndef WIN_BTC
-//#define WIN_BTC 0   /* Windows XP, with Borland Turbo C++ 2006 */
-//#endif
-//
-//#ifndef WIN_MCW
-//#define WIN_MCW 0   /* Windows XP, with CodeWarrior 9.4 */
-//#endif
-//
-//#ifndef WIN_GCC
-//#define WIN_GCC 0   /* Windows XP, with DJGPP 3.21 */
-//#endif
+#ifndef UNIX_7
+#define UNIX_7  0   /* UNIX System III Version 7 or Sun Unix, presumably with gcc */
+#endif
 
-/* The following are unsupported: */
-                    
-//#ifndef VAX_VMS                    
-//#define VAX_VMS 0   /* VAX VMS */
-//#endif
+
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFlyBSD__)
+	#define UNIX_V 1
+#else
+	#define UNIX_V 0
+#endif
+
+//TODO: Add solaris support
+
+#if defined(__linux__)
+    #define LINUX 1
+#else
+	 #define LINUX 0
+#endif
+
+#if defined(__APPLE__)
+	#define DARWIN 1
+#else 
+   #define DARWIN 0
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+	#define WIN_MVC 1
+#else
+   #define WIN_MVC 0
+#endif
+
+
+#ifndef WIN_GCC
+#define WIN_GCC 0   /* Windows XP, with DJGPP 3.21 */
+#endif
+
 
 /* Use GENERIC if nothing else is used. */
 
 #ifndef GENERIC
 #if (! UNIX_V) && (! LINUX) && (! UNIX_7) && \
-    (! MAC_XCD) && (! MAC_MCW) && (! DARWIN) && \
-    (! WIN_MVC) && (! WIN_BTC) && (! WIN_MCW) && (! WIN_GCC) && \
-    (! VAX_VMS)
+    (! DARWIN) && (! WIN_MVC) && (! WIN_GCC)
 #define GENERIC 1   /* Generic (any machine)                   */
 #else
 #define GENERIC 0   /* Generic (any machine)                   */
 #endif
 #endif
 
-#if WIN_MVC || WIN_BTC || WIN_MCW
+#if WIN_MVC 
 #define IBM 1
 #else
 #define IBM 0
 #endif
+
 
 /***********************************************/
 /* Some definitions for use with declarations. */
@@ -336,19 +346,6 @@
 #define TEXTPRO_FUNCTIONS 1
 #endif
 
-/****************************************************************/
-/* HELP: To implement the help facility, set the flag below and */
-/* specify the path and name of the help data file your system. */
-/****************************************************************/
-
-#ifndef HELP_FUNCTIONS
-#define HELP_FUNCTIONS 1
-#endif
-
-#if HELP_FUNCTIONS
-#define HELP_DEFAULT "clips.hlp"
-#endif
-
 /*************************************************************************/
 /* BLOAD_ONLY:      Enables bload command and disables the load command. */
 /* BLOAD:           Enables bload command.                               */
@@ -372,20 +369,6 @@
 #define BLOAD           0
 #undef BLOAD_AND_BSAVE
 #define BLOAD_AND_BSAVE 0
-#endif
-
-/****************************************************************/
-/* EMACS_EDITOR: If this flag is turned on, an integrated EMACS */
-/*   style editor can be utilized on supported machines.        */
-/****************************************************************/
-
-#ifndef EMACS_EDITOR
-#define  EMACS_EDITOR 0
-#endif
-
-#if GENERIC || MAC_XCD || MAC_MCW || WIN_MCW || WIN_BTC || WIN_MVC
-#undef EMACS_EDITOR
-#define  EMACS_EDITOR  0
 #endif
 
 /********************************************************************/
@@ -479,11 +462,6 @@
 #define WINDOW_INTERFACE 0
 #endif
 
-#if WINDOW_INTERFACE
-#undef EMACS_EDITOR                         /* Editor can't be used with */
-#define  EMACS_EDITOR  0                    /* windowed interface        */
-#endif
-
 /*************************************************************/
 /* ALLOW_ENVIRONMENT_GLOBALS: If enabled, tracks the current */
 /*   environment and allows environments to be referred to   */
@@ -492,13 +470,9 @@
 /*************************************************************/
 
 #ifndef ALLOW_ENVIRONMENT_GLOBALS
-#define ALLOW_ENVIRONMENT_GLOBALS 1
+#define ALLOW_ENVIRONMENT_GLOBALS 0
 #endif
 
-#if ! ALLOW_ENVIRONMENT_GLOBALS
-#undef EMACS_EDITOR                         /* Editor can't be used without */
-#define  EMACS_EDITOR  0                    /* environment globals          */
-#endif
 
 /********************************************/
 /* DEVELOPER: Enables code for debugging a  */
@@ -516,30 +490,12 @@
 #define Bogus(x)
 #endif
 
+
 /***************************/
 /* Environment Definitions */
 /***************************/
 
 #include "envrnmnt.h"
-
-/******************************/
-/* Compatibilty Redefinitions */
-/******************************/
-
-#define PrintCLIPS(x,y) EnvPrintRouter(GetCurrentEnvironment(),x,y)
-#define GetcCLIPS(x,y) EnvGetcRouter(GetCurrentEnvironment(),x)
-#define UngetcCLIPS(x,y) EnvUngetcRouter(GetCurrentEnvironment(),x,y)
-#define ExitCLIPS(x) EnvExitRouter(GetCurrentEnvironment(),x)
-#define CLIPSSystemError(x,y) SystemError(x,y)
-#define CLIPSFunctionCall(x,y,z) FunctionCall(x,y,z)
-#define InitializeCLIPS() InitializeEnvironment()
-#define WCLIPS WPROMPT
-#define CLIPSTrueSymbol EnvTrueSymbol(GetCurrentEnvironment())
-#define CLIPSFalseSymbol EnvFalseSymbol(GetCurrentEnvironment())
-#define EnvCLIPSTrueSymbol(theEnv) EnvTrueSymbol(theEnv)
-#define EnvCLIPSFalseSymbol(theEnv) EnvFalseSymbol(theEnv)
-#define CLIPS_FALSE 0
-#define CLIPS_TRUE 1
 
 /*************************************************/
 /* Any user defined global setup information can */

@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.24  06/05/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*              DEFGLOBAL COMMANDS MODULE              */
    /*******************************************************/
@@ -16,9 +16,19 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*      6.24: Renamed BOOLEAN macro type to intBool.         */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW and       */
+/*            MAC_MCW).                                      */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -43,7 +53,7 @@
 /***************************************/
 
 #if DEBUGGING_FUNCTIONS
-   static void                       PrintDefglobalValueForm(void *,char *,void *);
+   static void                       PrintDefglobalValueForm(void *,const char *,void *);
 #endif
 
 /************************************************************/
@@ -53,20 +63,17 @@ globle void DefglobalCommandDefinitions(
   void *theEnv)
   {
 #if ! RUN_TIME
-   EnvDefineFunction2(theEnv,(char*)"set-reset-globals",'b',
-                  SetResetGlobalsCommand,(char*)"SetResetGlobalsCommand", (char*)"11");
-   EnvDefineFunction2(theEnv,(char*)"get-reset-globals",'b',
-                   GetResetGlobalsCommand,(char*)"GetResetGlobalsCommand", (char*)"00");
+   EnvDefineFunction2(theEnv,"set-reset-globals",'b',
+                  SetResetGlobalsCommand,"SetResetGlobalsCommand", "11");
+   EnvDefineFunction2(theEnv,"get-reset-globals",'b',
+                   GetResetGlobalsCommand,"GetResetGlobalsCommand", "00");
 
 #if DEBUGGING_FUNCTIONS
-   EnvDefineFunction2(theEnv,(char*)"show-defglobals",'v',
-                   PTIEF ShowDefglobalsCommand,(char*)"ShowDefglobalsCommand", (char*)"01w");
+   EnvDefineFunction2(theEnv,"show-defglobals",'v',
+                   PTIEF ShowDefglobalsCommand,"ShowDefglobalsCommand", "01w");
 #endif
 
 #else
-#if MAC_MCW || WIN_MCW || MAC_XCD
-#pragma unused(theEnv)
-#endif
 #endif
   }
 
@@ -90,7 +97,7 @@ globle int SetResetGlobalsCommand(
    /* Check for the correct number of arguments. */
    /*============================================*/
 
-   if (EnvArgCountCheck(theEnv,(char*)"set-reset-globals",EXACTLY,1) == -1)
+   if (EnvArgCountCheck(theEnv,"set-reset-globals",EXACTLY,1) == -1)
      { return(oldValue); }
 
    /*===========================================*/
@@ -137,7 +144,7 @@ globle int GetResetGlobalsCommand(
 
    oldValue = EnvGetResetGlobals(theEnv);
 
-   if (EnvArgCountCheck(theEnv,(char*)"get-reset-globals",EXACTLY,0) == -1)
+   if (EnvArgCountCheck(theEnv,"get-reset-globals",EXACTLY,0) == -1)
      { return(oldValue); }
 
    return(oldValue);
@@ -165,11 +172,11 @@ globle void ShowDefglobalsCommand(
    struct defmodule *theModule;
    int numArgs, error;
 
-   if ((numArgs = EnvArgCountCheck(theEnv,(char*)"show-defglobals",NO_MORE_THAN,1)) == -1) return;
+   if ((numArgs = EnvArgCountCheck(theEnv,"show-defglobals",NO_MORE_THAN,1)) == -1) return;
 
    if (numArgs == 1)
      {
-      theModule = GetModuleName(theEnv,(char*)"show-defglobals",1,&error);
+      theModule = GetModuleName(theEnv,"show-defglobals",1,&error);
       if (error) return;
      }
    else
@@ -184,7 +191,7 @@ globle void ShowDefglobalsCommand(
 /***************************************/
 globle void EnvShowDefglobals(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   void *vTheModule)
   {
    struct defmodule *theModule = (struct defmodule *) vTheModule;
@@ -220,7 +227,7 @@ globle void EnvShowDefglobals(
       if (allModules)
         {
          EnvPrintRouter(theEnv,logicalName,EnvGetDefmoduleName(theEnv,theModule));
-         EnvPrintRouter(theEnv,logicalName,(char*)":\n");
+         EnvPrintRouter(theEnv,logicalName,":\n");
         }
 
       /*=====================================*/
@@ -236,9 +243,9 @@ globle void EnvShowDefglobals(
         {
          if (EvaluationData(theEnv)->HaltExecution == TRUE) return;
 
-         if (allModules) EnvPrintRouter(theEnv,logicalName,(char*)"   ");
+         if (allModules) EnvPrintRouter(theEnv,logicalName,"   ");
          PrintDefglobalValueForm(theEnv,logicalName,(void *) constructPtr);
-         EnvPrintRouter(theEnv,logicalName,(char*)"\n");
+         EnvPrintRouter(theEnv,logicalName,"\n");
         }
 
       /*===================================*/
@@ -257,18 +264,48 @@ globle void EnvShowDefglobals(
 /*****************************************************/
 static void PrintDefglobalValueForm(
   void *theEnv,
-  char *logicalName,
+  const char *logicalName,
   void *vTheGlobal)
   {
    struct defglobal *theGlobal = (struct defglobal *) vTheGlobal;
 
-   EnvPrintRouter(theEnv,logicalName,(char*)"?*");
+   EnvPrintRouter(theEnv,logicalName,"?*");
    EnvPrintRouter(theEnv,logicalName,ValueToString(theGlobal->header.name));
-   EnvPrintRouter(theEnv,logicalName,(char*)"* = ");
+   EnvPrintRouter(theEnv,logicalName,"* = ");
    PrintDataObject(theEnv,logicalName,&theGlobal->current);
   }
 
 #endif /* DEBUGGING_FUNCTIONS */
+
+/*#####################################*/
+/* ALLOW_ENVIRONMENT_GLOBALS Functions */
+/*#####################################*/
+
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+globle intBool GetResetGlobals()
+  {   
+   return EnvGetResetGlobals(GetCurrentEnvironment());
+  }
+
+globle intBool SetResetGlobals(
+  int value)
+  {
+   return EnvSetResetGlobals(GetCurrentEnvironment(),value);
+  }
+
+#if DEBUGGING_FUNCTIONS
+
+globle void ShowDefglobals(
+  const char *logicalName,
+  void *vTheModule)
+  {
+   EnvShowDefglobals(GetCurrentEnvironment(),logicalName,vTheModule);
+  }
+
+#endif /* DEBUGGING_FUNCTIONS */
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
 
 #endif /* DEFGLOBAL_CONSTRUCT */
 

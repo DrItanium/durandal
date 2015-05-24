@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/22/14            */
    /*                                                     */
    /*                 DEFRULE HEADER FILE                 */
    /*******************************************************/
@@ -22,9 +22,19 @@
 /*      6.24: Removed DYNAMIC_SALIENCE and                   */
 /*            LOGICAL_DEPENDENCIES compilation flags.        */
 /*                                                           */
+/*            Removed CONFLICT_RESOLUTION_STRATEGIES         */
+/*            compilation flag.                              */
+/*                                                           */
 /*            Renamed BOOLEAN macro type to intBool.         */
 /*                                                           */
-/*      6.30: Added support for hashed alpha memories.       */
+/*            Corrected code to remove run-time program      */
+/*            compiler warnings.                             */
+/*                                                           */
+/*      6.30: Removed conditional code for unsupported       */
+/*            compilers/operating systems (IBM_MCW,          */
+/*            MAC_MCW, and IBM_TBC).                         */
+/*                                                           */
+/*            Added support for hashed memories.             */
 /*                                                           */
 /*            Added additional developer statistics to help  */
 /*            analyze join network performance.              */
@@ -32,6 +42,14 @@
 /*            Added salience groups to improve performance   */
 /*            with large numbers of activations of different */
 /*            saliences.                                     */
+/*                                                           */
+/*            Added EnvGetDisjunctCount and                  */
+/*            EnvGetNthDisjunct functions.                   */
+/*                                                           */
+/*            Added const qualifiers to remove C++           */
+/*            deprecation warnings.                          */
+/*                                                           */
+/*            Converted API macros to function calls.        */
 /*                                                           */
 /*************************************************************/
 
@@ -127,10 +145,6 @@ struct defruleData
 #endif
   };
 
-#define EnvGetDefruleName(theEnv,x) GetConstructNameString((struct constructHeader *) x)
-#define EnvGetDefrulePPForm(theEnv,x) GetConstructPPForm(theEnv,(struct constructHeader *) x)
-#define EnvDefruleModule(theEnv,x) GetConstructModuleName((struct constructHeader *) x)
-
 #define DefruleData(theEnv) ((struct defruleData *) GetEnvironmentData(theEnv,DEFRULE_DATA))
 
 #define GetPreviousJoin(theJoin) \
@@ -152,15 +166,8 @@ struct defruleData
 #define LOCALE extern
 #endif
 
-#define DefruleModule(x) GetConstructModuleName((struct constructHeader *) x)
-#define FindDefrule(a) EnvFindDefrule(GetCurrentEnvironment(),a)
-#define GetDefruleName(x) GetConstructNameString((struct constructHeader *) x)
-#define GetDefrulePPForm(x) GetConstructPPForm(GetCurrentEnvironment(),(struct constructHeader *) x)
-#define GetNextDefrule(a) EnvGetNextDefrule(GetCurrentEnvironment(),a)
-#define IsDefruleDeletable(a) EnvIsDefruleDeletable(GetCurrentEnvironment(),a)
-
    LOCALE void                           InitializeDefrules(void *);
-   LOCALE void                          *EnvFindDefrule(void *,char *);
+   LOCALE void                          *EnvFindDefrule(void *,const char *);
    LOCALE void                          *EnvGetNextDefrule(void *,void *);
    LOCALE struct defruleModule          *GetDefruleModuleItem(void *,struct defmodule *);
    LOCALE intBool                        EnvIsDefruleDeletable(void *,void *);
@@ -170,7 +177,24 @@ struct defruleData
 #if RUN_TIME || BLOAD_ONLY || BLOAD || BLOAD_AND_BSAVE
    LOCALE void                           AddBetaMemoriesToJoin(void *,struct joinNode *);
 #endif
+   LOCALE long                           EnvGetDisjunctCount(void *,void *);
+   LOCALE void                          *EnvGetNthDisjunct(void *,void *,long);
+   LOCALE const char                    *EnvDefruleModule(void *,void *);
+   LOCALE const char                    *EnvGetDefruleName(void *,void *);
+   LOCALE const char                    *EnvGetDefrulePPForm(void *,void *);
 
-#endif
+#if ALLOW_ENVIRONMENT_GLOBALS
+
+   LOCALE const char                    *DefruleModule(void *);
+   LOCALE void                          *FindDefrule(const char *);
+   LOCALE const char                    *GetDefruleName(void *);
+   LOCALE const char                    *GetDefrulePPForm(void *);
+   LOCALE void                          *GetNextDefrule(void *);
+   LOCALE intBool                        IsDefruleDeletable(void *);
+
+#endif /* ALLOW_ENVIRONMENT_GLOBALS */
+
+
+#endif /* _H_ruledef */
 
 

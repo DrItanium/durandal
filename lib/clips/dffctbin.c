@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.21  06/15/03            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*             DEFFACTS BSAVE/BLOAD MODULE             */
    /*******************************************************/
@@ -17,6 +17,8 @@
 /*      Brian L. Dantes                                      */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
+/*      6.30: Changed integer type/precision.                */
 /*                                                           */
 /*************************************************************/
 
@@ -64,14 +66,14 @@ globle void DeffactsBinarySetup(
   {
    AllocateEnvironmentData(theEnv,DFFCTBIN_DATA,sizeof(struct deffactsBinaryData),DeallocateDeffactsBloadData);
 #if BLOAD_AND_BSAVE
-   AddBinaryItem(theEnv,(char*)"deffacts",0,BsaveFind,BsaveExpressions,
+   AddBinaryItem(theEnv,"deffacts",0,BsaveFind,BsaveExpressions,
                              BsaveStorage,BsaveBinaryItem,
                              BloadStorage,BloadBinaryItem,
                              ClearBload);
 #endif
 
 #if (BLOAD || BLOAD_ONLY)
-   AddBinaryItem(theEnv,(char*)"deffacts",0,NULL,NULL,NULL,NULL,
+   AddBinaryItem(theEnv,"deffacts",0,NULL,NULL,NULL,NULL,
                              BloadStorage,BloadBinaryItem,
                              ClearBload);
 #endif

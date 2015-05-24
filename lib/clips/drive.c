@@ -1,7 +1,7 @@
    /*******************************************************/
    /*      "C" Language Integrated Production System      */
    /*                                                     */
-   /*             CLIPS Version 6.30  10/19/06            */
+   /*             CLIPS Version 6.30  08/16/14            */
    /*                                                     */
    /*                    DRIVE MODULE                     */
    /*******************************************************/
@@ -17,6 +17,7 @@
 /* Contributing Programmer(s):                               */
 /*                                                           */
 /* Revision History:                                         */
+/*                                                           */
 /*      6.23: Correction for FalseSymbol/TrueSymbol. DR0859  */
 /*                                                           */
 /*      6.24: Removed INCREMENTAL_RESET and                  */
@@ -27,7 +28,7 @@
 /*            Rule with exists CE has incorrect activation.  */
 /*            DR0867                                         */
 /*                                                           */
-/*      6.30: Added support for hashed alpha memories.       */
+/*      6.30: Added support for hashed memories.             */
 /*                                                           */
 /*            Added additional developer statistics to help  */
 /*            analyze join network performance.              */
@@ -339,6 +340,40 @@ globle void NetworkAssertLeft(
       return;
      }
 
+   /*=====================================*/
+   /* Handle a join handling a test CE at */
+   /* the beginning of a not/and group.   */
+   /*=====================================*/
+   
+   if (join->rightSideEntryStructure == NULL)
+     {
+      exprResult = TRUE;
+      
+      if (join->networkTest != NULL)
+        {
+         oldLHSBinds = EngineData(theEnv)->GlobalLHSBinds;
+         oldRHSBinds = EngineData(theEnv)->GlobalRHSBinds;
+         oldJoin = EngineData(theEnv)->GlobalJoin;
+         
+         EngineData(theEnv)->GlobalLHSBinds = lhsBinds;
+         EngineData(theEnv)->GlobalRHSBinds = NULL;
+         EngineData(theEnv)->GlobalJoin = join;
+
+         exprResult = EvaluateJoinExpression(theEnv,join->networkTest,join);
+         if (EvaluationData(theEnv)->EvaluationError)
+           { SetEvaluationError(theEnv,FALSE); }
+          
+         EngineData(theEnv)->GlobalLHSBinds = oldLHSBinds;
+         EngineData(theEnv)->GlobalRHSBinds = oldRHSBinds;
+         EngineData(theEnv)->GlobalJoin = oldJoin;
+        }
+
+      if (exprResult)
+        { PPDrive(theEnv,lhsBinds,NULL,join); }
+                
+      return;
+     }
+      
    /*==================================================*/
    /* Initialize some variables used to indicate which */
    /* side is being compared to the new partial match. */
@@ -415,6 +450,17 @@ globle void NetworkAssertLeft(
          if (exprResult)
            { EngineData(theEnv)->leftToRightSucceeds++; }
 #endif
+
+         // Bug Fix - Need to evaluate secondary network test for exists CE
+         // 0881
+
+         if((join->secondaryNetworkTest != NULL) && exprResult && join->patternIsExists) {
+            EngineData(theEnv)->GlobalRHSBinds = rhsBinds;
+            exprResult = EvaluateJoinExpression(theEnv, join->secondaryNetworkTest, join);
+            if(EvaluationData(theEnv)->EvaluationError) {
+               SetEvaluationError(theEnv,FALSE);
+            }
+         }
         }
 
       /*====================================================*/
@@ -715,6 +761,10 @@ globle unsigned long BetaMemoryHashValue(
    struct joinNode *oldJoin;
    unsigned long hashValue = 0;
    unsigned long multiplier = 1;
+   union {
+      void* vv;
+      unsigned long liv;
+   } fis;
    
    /*======================================*/
    /* A NULL expression evaluates to zero. */
@@ -778,6 +828,21 @@ globle unsigned long BetaMemoryHashValue(
              
          case FLOAT:
            hashValue += (((FLOAT_HN *) theResult.value)->bucket * multiplier);
+           break;
+
+         case FACT_ADDRESS:
+#if OBJECT_SYSTEM
+         case INSTANCE_ADDRESS:
+#endif
+           fis.liv = 0;
+           fis.vv = theResult.value;
+           hashValue += (unsigned long) (fis.liv * multiplier);
+           break;
+
+         case EXTERNAL_ADDRESS:
+           fis.liv = 0;
+           fis.vv = ValueToExternalAddress(theResult.value);
+           hashValue += (unsigned long) (fis.liv * multiplier);
            break;
         }
 
@@ -934,14 +999,11 @@ static void EmptyDrive(
    /* action is taken.                                     */
    /*======================================================*/
 
-   join->memoryCompares++;
-
    if (join->networkTest != NULL)
      {
 
 #if DEVELOPER
-      if (join->networkTest)
-        { EngineData(theEnv)->rightToLeftComparisons++; }
+      EngineData(theEnv)->rightToLeftComparisons++;
 #endif
       oldLHSBinds = EngineData(theEnv)->GlobalLHSBinds;
       oldRHSBinds = EngineData(theEnv)->GlobalRHSBinds;
@@ -951,6 +1013,28 @@ static void EmptyDrive(
       EngineData(theEnv)->GlobalJoin = join;
 
       joinExpr = EvaluateJoinExpression(theEnv,join->networkTest,join);
+      EvaluationData(theEnv)->EvaluationError = FALSE;
+
+      EngineData(theEnv)->GlobalLHSBinds = oldLHSBinds;
+      EngineData(theEnv)->GlobalRHSBinds = oldRHSBinds;
+      EngineData(theEnv)->GlobalJoin = oldJoin;
+
+      if (joinExpr == FALSE) return;
+     }
+
+   if (join->secondaryNetworkTest != NULL)
+     {
+#if DEVELOPER
+      EngineData(theEnv)->rightToLeftComparisons++;
+#endif
+      oldLHSBinds = EngineData(theEnv)->GlobalLHSBinds;
+      oldRHSBinds = EngineData(theEnv)->GlobalRHSBinds;
+      oldJoin = EngineData(theEnv)->GlobalJoin;
+      EngineData(theEnv)->GlobalLHSBinds = NULL;
+      EngineData(theEnv)->GlobalRHSBinds = rhsBinds;
+      EngineData(theEnv)->GlobalJoin = join;
+
+      joinExpr = EvaluateJoinExpression(theEnv,join->secondaryNetworkTest,join);
       EvaluationData(theEnv)->EvaluationError = FALSE;
 
       EngineData(theEnv)->GlobalLHSBinds = oldLHSBinds;
@@ -1073,16 +1157,16 @@ static void JoinNetErrorMessage(
   void *theEnv,
   struct joinNode *joinPtr)
   {
-   PrintErrorID(theEnv,(char*)"DRIVE",1,TRUE);
-   EnvPrintRouter(theEnv,WERROR,(char*)"This error occurred in the join network\n");
+   PrintErrorID(theEnv,"DRIVE",1,TRUE);
+   EnvPrintRouter(theEnv,WERROR,"This error occurred in the join network\n");
 
-   EnvPrintRouter(theEnv,WERROR,(char*)"   Problem resides in associated join\n"); /* TBD generate test case for join with JFTR */
+   EnvPrintRouter(theEnv,WERROR,"   Problem resides in associated join\n"); /* TBD generate test case for join with JFTR */
 /*
    sprintf(buffer,"   Problem resides in join #%d in rule(s):\n",joinPtr->depth);
    EnvPrintRouter(theEnv,WERROR,buffer);
 */
-   TraceErrorToRule(theEnv,joinPtr,(char*)"      ");
-   EnvPrintRouter(theEnv,WERROR,(char*)"\n");
+   TraceErrorToRule(theEnv,joinPtr,"      ");
+   EnvPrintRouter(theEnv,WERROR,"\n");
   }
 
 #endif /* DEFRULE_CONSTRUCT */
