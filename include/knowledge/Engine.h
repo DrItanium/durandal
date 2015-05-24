@@ -22,9 +22,9 @@ extern "C" {
 }
 #define ENGINE_BOOKKEEPING_DATA USER_ENVIRONMENT_DATA + 0
 extern "C" void RegisterEngineBookkeeping(void* theEnv);
-extern "C" void RegisterInstance(void* theEnv, void* native, void* instance);
-extern "C" bool ContainsInstance(void* theEnv, void* key);
-extern "C" void* GetInstance(void* theEnv, void* key);
+extern "C" void RegisterNativeInstance(void* theEnv, void* native, void* instance);
+extern "C" bool ContainsNativeInstance(void* theEnv, void* key);
+extern "C" void* GetNativeInstance(void* theEnv, void* key);
 #define EngineBookkeepingData(theEnv) \
 	((struct knowledge::EngineBookkeeping*) GetEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA))
 namespace knowledge {

@@ -11,14 +11,14 @@ extern "C" void RegisterEngineBookkeeping(void* theEnv) {
 		llvm::report_fatal_error("Error allocating environment data for ENGINE_BOOKKEEPING_DATA");
 	}
 }
-extern "C" void RegisterInstance(void* theEnv, void* native, void* instance) {
+extern "C" void RegisterNativeInstance(void* theEnv, void* native, void* instance) {
     std::string iname(EnvGetInstanceName(theEnv, instance));
     EngineBookkeepingData(theEnv)->registerInstance(native, iname);
 }
-extern "C" bool ContainsInstance(void* theEnv, void* key) {
+extern "C" bool ContainsNativeInstance(void* theEnv, void* key) {
     return EngineBookkeepingData(theEnv)->containsInstance(key);
 }
-extern "C" void* GetInstance(void* theEnv, void* key) {
+extern "C" void* GetNativeInstance(void* theEnv, void* key) {
     if (EngineBookkeepingData(theEnv)->containsInstance(key)) {
         std::string& tmp = EngineBookkeepingData(theEnv)->getRelatedInstance(key);
         return EnvFindInstance(theEnv, NULL, tmp.c_str(), TRUE);
