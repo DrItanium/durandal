@@ -20,9 +20,9 @@ void* makeInstance(void* theEnv, llvm::raw_string_ostream& str) {
 }
 #define FIELD(name, value) " (" << name << " " << value << ") "
 #define OnTypeNotRegistered(env, input) \
-	void* tmp = GetNativeInstance(env, input); \
-	if (tmp != NULL) { \
-		return tmp; \
+	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, input); \
+	if (potentiallyAlreadyExistingInstance != NULL) { \
+		return potentiallyAlreadyExistingInstance; \
 	} else 
 llvm::raw_string_ostream& booleanField(llvm::raw_string_ostream& str, 
 		const std::string& name, bool value) {
@@ -64,7 +64,16 @@ llvm::raw_string_ostream& build(llvm::raw_string_ostream& str,
 	str << setParent(str, theEnv, parent);
 	return str;
 }
-
+void directPutMultifield(void* theEnv, void* target, const std::string& slotName, void* multifield) {
+		DATA_OBJECT wrapper;
+		SetType(wrapper, MULTIFIELD);
+		SetValue(wrapper, multifield);
+		EnvDirectPutSlot(theEnv, 
+				GetNativeInstance(theEnv, target),
+				slotName, 
+				&wrapper);
+}
+		
 void* convert(void* theEnv, llvm::BasicBlock* block, void* parent) {
 	OnTypeNotRegistered(theEnv, block) {
 		llvm::raw_string_ostream str;
@@ -78,24 +87,40 @@ void* convert(void* theEnv, llvm::BasicBlock* block, void* parent) {
 		void* contentsMultifield = EnvCreateMultifield(theEnv, block->size());
 		int index = 1;
 		for(llvm::BasicBlock::iterator it = block->begin(); it != block->end(); ++it, ++index) {
-			SetMFType(contentsMultifield, 1, INSTANCE_NAME);
-			SetMFValue(contentsMultifield, 1, 
+			SetMFType(contentsMultifield, index, INSTANCE_NAME);
+			SetMFValue(contentsMultifield, index, 
 					EnvAddSymbol(theEnv, 
 						EnvGetInstanceName(theEnv, 
 							convert(theEnv, *it, block))));
 		}
-		DATA_OBJECT contentsWrapper;
-		SetType(&contentsWrapper, MULTIFIELD);
-		SetValue(&contentsWrapper, contentsMultifield);
-		EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, block), "contents", contentsWrapper);
-		llvm::SmallVector<std;:string, 8> predContainer;
-		for(llvm::pred_iterator it = pred_begin(block); it != pred_end(block); ++it) {
-			std::string tmp(EnvGetInstanceName(theEnv,
-						convert(theEnv, *it, parent)));
-			predContainer.push_back(tmp);
+		directPutMultifield(theEnv, block, "contents", contentsMultifield);
+		llvm::SmallVector<llvm::BasicBlock*, 8> predecessors(pred_begin(block), pred_end(block))
+		void *predMultifield = EnvCreateMultifield(theEnv, predecessors->size());
+		index = 1;
+		for (llvm::SmallVector<llvm::BasicBlock*,8>::iterator it = predecessors.begin();
+				it != predecessors.end(); ++it, ++index) {
+			SetMFType(predMultifield, index, INSTANCE_NAME);
+			SetMFValue(predMultifield, index, 
+					EnvAddSymbol(theEnv,
+						EnvGetInstanceName(theEnv, 
+							convert(theEnv, *it, parent))));
 		}
-		//void* preds = EnvCreateMultifield(theEnv, 
+		directPutMultifield(theEnv, block, "predecessors", predMultifield);
 
+		llvm::SmallVector<llvm::BasicBlock*, 8> successors(succ_begin(block), succ_end(block));
+		void *succMultifield = EnvCreateMultifield(theEnv, successors->size());
+		void *producesMultifield = EnvCreateMultifield(theEnv, successors->size());
+		index = 1;
+		for (llvm::SmallVector<llvm::BasicBlock*, 8>::iterator it = successors.begin(); 
+				it != successors.end(); ++it, ++index) {
+			void* result = EnvAddSymbol(theEnv, EnvGetInstanceName(theEnv, convert(theEnv, *it, parent)));
+			SetMFType(producesMultifield, index, INSTANCE_NAME);
+			SetMFValue(producesMultifield, index, result);
+			SetMFType(succMultifield, index, INSTANCE_NAME);
+			SetMFValue(succMultifield, index, result);
+		}
+		directPutMultifield(theEnv, block, "successors", succMultifield);
+		directPutMultifield(theEnv, block, "produces", producesMultifield);
 		// now go through and create everything
 		return GetNativeInstance(theEnv, block);
 	}
@@ -152,6 +177,7 @@ void* convert(void* theEnv, llvm::GlobalValue* value) {
 void* convert(void* theEnv, llvm::Type* type) {
 
 }
+#undef OnTypeNotRegistered
 #undef FIELD
 }
 
