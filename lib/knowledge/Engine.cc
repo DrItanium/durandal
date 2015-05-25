@@ -12,6 +12,11 @@ extern "C" {
 	void populateInstance(void* theEnv, type * data) 
 #define FIELD(name, value) " (" << name << " " << value << ") "
 namespace knowledge {
+static int counter = 0;
+#define RegisterInstanceCounter(type) \
+	ExternalAddressRegistration<type>::externalAddressId = counter++
+RegisterInstanceCounter(llvm::BasicBlock);
+RegisterInstanceCounter(llvm::Module);
 void* makeInstance(void* theEnv, const std::string& str) {
 	void* result = EnvMakeInstance(theEnv, str.c_str());
 	if (result == NULL) {
@@ -116,7 +121,6 @@ buildInstanceHeader(llvm::Argument) {
 populateInstanceHeader(llvm::Argument) {
 	setParent(theEnv, data);
 }
-
 
 
 #undef FIELD

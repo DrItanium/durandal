@@ -49,6 +49,12 @@ struct ElectronClassNameSelector {
 		str << "";
 	}
 };
+
+template<typename T>
+struct ExternalAddressRegistration {
+	static int externalAddressId;
+};
+
 #define ElectronClassNameAssociation(type, className) \
 	template<> \
 struct ElectronClassNameSelector<type> { \
@@ -56,48 +62,12 @@ struct ElectronClassNameSelector<type> { \
 		str << className ; \
 	} \
 }
-#define DeclareEngineNode(type, className) \
+#define X(unused, type, className) \
 	ElectronClassNameAssociation(type, className); \
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, type* data); \
-void populateInstance(void* theEnv, type* data)
-DeclareEngineNode(llvm::Module, "llvm::module");
-DeclareEngineNode(llvm::BasicBlock, "llvm::basic-block");
-DeclareEngineNode(llvm::Argument, "llvm::argument");
-DeclareEngineNode(llvm::Function, "llvm::function");
-DeclareEngineNode(llvm::Loop, "llvm::loop");
-DeclareEngineNode(llvm::Region, "llvm::region");
-DeclareEngineNode(llvm::Constant, "llvm::constant");
-DeclareEngineNode(llvm::Operator, "llvm::operator");
-DeclareEngineNode(llvm::GlobalVariable, "llvm::global-variable");
-DeclareEngineNode(llvm::GlobalAlias, "llvm::global-alias");
-DeclareEngineNode(llvm::GlobalValue, "llvm::global-value");
-DeclareEngineNode(llvm::AddrSpaceCastInst, "llvm::address-space-cast-instruction");
-DeclareEngineNode(llvm::BitCastInst, "llvm::bit-cast-instruction");
-DeclareEngineNode(llvm::FPExtInst, "llvm::fp-ext-instruction");
-DeclareEngineNode(llvm::FPToSIInst, "llvm::fp-to-si-instruction");
-DeclareEngineNode(llvm::AllocaInst, "llvm::alloca-instruction");
-DeclareEngineNode(llvm::FCmpInst, "llvm::floating-point-compare-instruction");
-DeclareEngineNode(llvm::ICmpInst, "llvm::integer-compare-instruction");
-DeclareEngineNode(llvm::PHINode, "llvm::phi-node");
-DeclareEngineNode(llvm::StoreInst, "llvm::store-instruction");
-DeclareEngineNode(llvm::BinaryOperator, "llvm::binary-operator");
-DeclareEngineNode(llvm::LoadInst, "llvm::load-instruction");
-DeclareEngineNode(llvm::BranchInst, "llvm::branch-instruction");
-DeclareEngineNode(llvm::IndirectBrInst, "llvm::indirect-branch-instruction");
-DeclareEngineNode(llvm::ReturnInst, "llvm::return-instruction");
-DeclareEngineNode(llvm::SwitchInst, "llvm::switch-instruction");
-DeclareEngineNode(llvm::UnreachableInst, "llvm::unreachable-instruction");
-DeclareEngineNode(llvm::VAArgInst, "llvm::vaarg-instruction");
-DeclareEngineNode(llvm::Type, "llvm::type");
-DeclareEngineNode(llvm::Instruction, "llvm::instruction");
-DeclareEngineNode(llvm::User, "llvm::user");
-DeclareEngineNode(llvm::Value, "llvm::value");
-DeclareEngineNode(llvm::TerminatorInst, "llvm::terminator-instruction");
-DeclareEngineNode(llvm::UnaryInstruction, "llvm::unary-instruction");
-DeclareEngineNode(llvm::CastInst, "llvm::cast-instruction");
-DeclareEngineNode(llvm::CallInst, "llvm::call-instruction");
-DeclareEngineNode(llvm::IntrinsicInst, "llvm::intrinsic-instruction");
-DeclareEngineNode(llvm::CmpInst, "llvm::compare-instruction");
+	void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, type* data); \
+	void populateInstance(void* theEnv, type* data);
+#include "knowledge/EngineNodes.def"
+#undef X
 // SO FUCKING BEAUTIFUL :D
 #define WhenInstanceDoesNotExist(env, instance) \
 	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
@@ -225,6 +195,17 @@ DefineCustomDispatch(llvm::CallInst) {
 		Otherwise(llvm::CallInst, theEnv, nativeInstance);
 	}
 }
+
+
+#define ExtAddrType(name) RegisterExternalAddressId_ ## name
+enum {
+	RegisterExternalAddressIdBegin = 0,
+#define X(a, b, c) \
+	ExtAddrType(a),
+#include "knowledge/EngineNodes.def"
+#undef X
+	RegisterExternalAddressIdEnd,
+};
 
 #undef CondDispatch
 #undef WhenInstanceDoesNotExist
