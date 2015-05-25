@@ -39,21 +39,50 @@ class EngineBookkeeping {
 		// just the pointers ma'am
 		llvm::DenseMap<void*, std::string> instanceMap;
 };
-void* convert(void* theEnv, llvm::Module* module);
-void* convert(void* theEnv, llvm::BasicBlock* block, void* parent);
-void* convert(void* theEnv, llvm::Instruction* inst, void* parent);
-void* convert(void* theEnv, llvm::Function* func, void* parent);
-void* convert(void* theEnv, llvm::Loop* loop, void* parent);
-void* convert(void* theEnv, llvm::Region* region, void* parent);
-void* convert(void* theEnv, llvm::Constant* constant, void* parent);
-void* convert(void* theEnv, llvm::Value* value, void* parent);
-void* convert(void* theEnv, llvm::User* user, void* parent);
-void* convert(void* theEnv, llvm::Operator* op, void* parent);
-void* convert(void* theEnv, llvm::Argument* arg, void* parent);
-void* convert(void* theEnv, llvm::GlobalVariable* var);
-void* convert(void* theEnv, llvm::GlobalAlias* alias);
-void* convert(void* theEnv, llvm::GlobalValue* value);
-void* convert(void* theEnv, llvm::Type* type);
+template<class T>
+void* construct(void* theEnv, T* nativeInstance) {
+	void* potentiallyAlreadyExistingInstance = GetNativeInstance(theEnv, nativeInstance); 
+	if (potentiallyAlreadyExistingInstance != NULL) { 
+		return potentiallyAlreadyExistingInstance; 
+	} else {
+		llvm::raw_string_ostream& str;
+		buildInstance(str, theEnv, nativeInstance);
+		RegisterInstance(theEnv, nativeInstance, makeInstance(theEnv, str.str().c_str()));
+		populateInstance(theEnv, nativeInstance);
+		return GetNativeInstance(theEnv, block);
+	}
+}
+
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Module* module);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::BasicBlock* block);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Instruction* inst);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Function* func);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Loop* loop);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Region* region);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Constant* constant);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Value* value);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::User* user);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Operator* op);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Argument* arg);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::GlobalVariable* var);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::GlobalAlias* alias);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::GlobalValue* value);
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Type* type);
+void populateInstance(void* theEnv, llvm::Module* module);
+void populateInstance(void* theEnv, llvm::BasicBlock* block);
+void populateInstance(void* theEnv, llvm::Instruction* inst);
+void populateInstance(void* theEnv, llvm::Function* func);
+void populateInstance(void* theEnv, llvm::Loop* loop);
+void populateInstance(void* theEnv, llvm::Region* region);
+void populateInstance(void* theEnv, llvm::Constant* constant);
+void populateInstance(void* theEnv, llvm::Value* value);
+void populateInstance(void* theEnv, llvm::User* user);
+void populateInstance(void* theEnv, llvm::Operator* op);
+void populateInstance(void* theEnv, llvm::Argument* arg);
+void populateInstance(void* theEnv, llvm::GlobalVariable* var);
+void populateInstance(void* theEnv, llvm::GlobalAlias* alias);
+void populateInstance(void* theEnv, llvm::GlobalValue* value);
+void populateInstance(void* theEnv, llvm::Type* type);
 }
 
 #endif // _KNOWLEDGE_ENGINE_H_

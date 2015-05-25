@@ -7,8 +7,13 @@ extern "C" {
 #include "clips.h"
 }
 
+#define FIELD(name, value) " (" << name << " " << value << ") "
+#define OnTypeNotRegistered(env, input) \
+	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, input); \
+	if (potentiallyAlreadyExistingInstance != NULL) { \
+		return potentiallyAlreadyExistingInstance; \
+	} else 
 namespace knowledge {
-
 void* makeInstance(void* theEnv, llvm::raw_string_ostream& str) {
 	void* result = EnvMakeInstance(theEnv, str.str().c_str());
 	if (result == NULL) {
@@ -18,12 +23,6 @@ void* makeInstance(void* theEnv, llvm::raw_string_ostream& str) {
 	} 
 	return result;
 }
-#define FIELD(name, value) " (" << name << " " << value << ") "
-#define OnTypeNotRegistered(env, input) \
-	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, input); \
-	if (potentiallyAlreadyExistingInstance != NULL) { \
-		return potentiallyAlreadyExistingInstance; \
-	} else 
 llvm::raw_string_ostream& booleanField(llvm::raw_string_ostream& str, 
 		const std::string& name, bool value) {
 	if (!value) {
@@ -133,10 +132,12 @@ void* convert(void* theEnv, llvm::Argument* arg) {
 		llvm::raw_string_ostream str;
 		str << "(of llvm::basic-block "
 			<< FIELD("index", arg->getArgNo())
+			/*
 			<< booleanField(str, "has-nest-attribute", arg->hasNextAttr())
 			<< booleanField(str, "has-no-alias-attribute", arg->hasNoAliasAttr())
 			<< booleanField(str, "has-no-capture-attribute", arg->hasNoCaptureAttr())
 			<< booleanField(str, "has-non-null-attr", arg->hasNonNullAttr())
+			*/
 			<< ")";
 		RegisterInstance(theEnv, block, 
 				makeInstance(theEnv, str.str().c_str()));
@@ -144,13 +145,18 @@ void* convert(void* theEnv, llvm::Argument* arg) {
 		return GetNativeInstance(theEnv, arg);
 	}
 }
-
+void* construct(void* theEnv, void* nativeInstance, const std::string& instance) {
+	RegisterInstance(theEnv, nativeInstance,
+			makeInstance(theEnv, instance));
+}
 void* convert(void* theEnv, llvm::Instruction* inst) {
-
+	OnTypeNotRegistered(theEnv, inst) {
+	}
 }
 
 void* convert(void* theEnv, llvm::Function* func) {
-
+//TODO: put calling convention stuff in here if you feel like it...fucking
+//christ I put in a lot of stuff that just isn't necessary in the old version
 }
 
 void* convert(void* theEnv, llvm::Constant* constant) {
@@ -158,7 +164,7 @@ void* convert(void* theEnv, llvm::Constant* constant) {
 }
 
 void* convert(void* theEnv, llvm::Value* value) {
-
+	
 }
 
 void* convert(void* theEnv, llvm::User* user) {
