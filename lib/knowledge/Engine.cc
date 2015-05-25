@@ -33,18 +33,45 @@ llvm::raw_string_ostream& booleanField(llvm::raw_string_ostream& str,
 	}
 
 }
-llvm::raw_string_ostream& setParent(llvm::raw_string_ostream& str, void* theEnv, void* parent) {
-	if (parent == NULL) {
-		return str;
-	} else {
-		void* result = GetNativeInstance(theEnv, parent);
-		if (result == NULL) {
-			llvm::report_fatal_error("Attempted to get an assocaited instance for a non registered type");
-		} else {
-			return str << FIELD("parent", << "[" << EnvGetInstanceName(theEnv, result) << "]");
-		}
-	}
+template<class T>
+void setParent(void* theEnv, T* target)
+{
+	DATA_OBJECT wrapper;
+	SetType(wrapper, INSTANCE_NAME);
+	SetValue(wrapper, EnvAddSymbol(theEnv,
+				EnvGetInstanceName(theEnv,
+					convert(theEnv, target->getParent()))));
+	EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, target), "parent", &wrapper);
 }
+template<class C> 
+void* getInstanceName(void* theEnv, C* instance) {
+	return EnvAddSymbol(theEnv, EnvGetInstanceName(theEnv, convert(theEnv, instance)));
+}
+void directPutMultifield(void* theEnv, void* nativeInstance,
+		const std::string& slotName, void* multifieldData, int multifieldBegin,
+		int multifieldEnd) {
+	DATA_OBJECT wrapper;
+	SetType(wrapper, MULTIFIELD);
+	SetValue(wrapper, multifieldData);
+	SetDOBegin(wrapper, multifieldBegin);
+	SetDOEnd(wrapper, multifieldEnd);
+	EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, nativeInstance),
+			slotName.c_str(), &wrapper);
+}
+template<class C>
+void directPutMultifieldInstanceName(void* theEnv, 
+		C* rawInstance, const std::string& slotName) {
+	void* mf = EnvCreateMultifield(theEnv, rawInstance->size());
+	int index = 1;
+	for(typename C::iterator it = rawInstance->begin(); 
+			it != rawInstance->end(); 
+			++it, ++index) {
+		SetMFType(mf, index, INSTANCE_NAME);
+		SetMFValue(mf, index, getInstanceName(theEnv, *it));
+	}
+	directPutMultifield(theEnv, rawInstance, slotName, mf, 1, index - 1);
+}
+
 void* convert(void* theEnv, llvm::Module* module) {
 	OnTypeNotRegistered(theEnv, module) {
 		llvm::raw_string_ostream str;
@@ -58,52 +85,27 @@ void* convert(void* theEnv, llvm::Module* module) {
 		return GetNativeInstance(theEnv, module)
 	}
 }
-llvm::raw_string_ostream& build(llvm::raw_string_ostream& str, 
-		void* theEnv, llvm::Value* value, void* parent) 
-{
-	str << setParent(str, theEnv, parent);
-	return str;
-}
-void directPutMultifield(void* theEnv, void* target, const std::string& slotName, void* multifield) {
-		DATA_OBJECT wrapper;
-		SetType(wrapper, MULTIFIELD);
-		SetValue(wrapper, multifield);
-		EnvDirectPutSlot(theEnv, 
-				GetNativeInstance(theEnv, target),
-				slotName, 
-				&wrapper);
-}
-		
-void* convert(void* theEnv, llvm::BasicBlock* block, void* parent) {
+
+void* convert(void* theEnv, llvm::BasicBlock* block) {
 	OnTypeNotRegistered(theEnv, block) {
 		llvm::raw_string_ostream str;
 		str << "(of llvm::basic-block "
-			<< build(str, theEnv, (llvm::Value*)block, parent)
 			<< booleanField(str, "is-landing-pad", block->isLandingPad())
 			<< booleanField(str, "has-address-taken", block->hasAddressTaken())
 			<< ")";
 		RegisterInstance(theEnv, block, 
 				makeInstance(theEnv, str.str().c_str()));
-		void* contentsMultifield = EnvCreateMultifield(theEnv, block->size());
-		int index = 1;
-		for(llvm::BasicBlock::iterator it = block->begin(); it != block->end(); ++it, ++index) {
-			SetMFType(contentsMultifield, index, INSTANCE_NAME);
-			SetMFValue(contentsMultifield, index, 
-					EnvAddSymbol(theEnv, 
-						EnvGetInstanceName(theEnv, 
-							convert(theEnv, *it, block))));
+		setParent(theEnv, block);
+		if (block->size() > 0) {
+			directPutMultifieldInstanceName(theEnv, block, "contents");
 		}
-		directPutMultifield(theEnv, block, "contents", contentsMultifield);
 		llvm::SmallVector<llvm::BasicBlock*, 8> predecessors(pred_begin(block), pred_end(block))
 		void *predMultifield = EnvCreateMultifield(theEnv, predecessors->size());
 		index = 1;
 		for (llvm::SmallVector<llvm::BasicBlock*,8>::iterator it = predecessors.begin();
 				it != predecessors.end(); ++it, ++index) {
 			SetMFType(predMultifield, index, INSTANCE_NAME);
-			SetMFValue(predMultifield, index, 
-					EnvAddSymbol(theEnv,
-						EnvGetInstanceName(theEnv, 
-							convert(theEnv, *it, parent))));
+			SetMFValue(predMultifield, index, getInstanceName(theEnv, *it));
 		}
 		directPutMultifield(theEnv, block, "predecessors", predMultifield);
 
@@ -113,7 +115,7 @@ void* convert(void* theEnv, llvm::BasicBlock* block, void* parent) {
 		index = 1;
 		for (llvm::SmallVector<llvm::BasicBlock*, 8>::iterator it = successors.begin(); 
 				it != successors.end(); ++it, ++index) {
-			void* result = EnvAddSymbol(theEnv, EnvGetInstanceName(theEnv, convert(theEnv, *it, parent)));
+			void* result = getInstanceName(theEnv, *it);
 			SetMFType(producesMultifield, index, INSTANCE_NAME);
 			SetMFValue(producesMultifield, index, result);
 			SetMFType(succMultifield, index, INSTANCE_NAME);
@@ -126,41 +128,47 @@ void* convert(void* theEnv, llvm::BasicBlock* block, void* parent) {
 	}
 }
 
-void* convert(void* theEnv, llvm::Instruction* inst, void* parent) {
+void* convert(void* theEnv, llvm::Argument* arg) {
+	OnTypeNotRegistered(theEnv, arg) {
+		llvm::raw_string_ostream str;
+		str << "(of llvm::basic-block "
+			<< FIELD("index", arg->getArgNo())
+			<< booleanField(str, "has-nest-attribute", arg->hasNextAttr())
+			<< booleanField(str, "has-no-alias-attribute", arg->hasNoAliasAttr())
+			<< booleanField(str, "has-no-capture-attribute", arg->hasNoCaptureAttr())
+			<< booleanField(str, "has-non-null-attr", arg->hasNonNullAttr())
+			<< ")";
+		RegisterInstance(theEnv, block, 
+				makeInstance(theEnv, str.str().c_str()));
+		setParent(theEnv, block);
+		return GetNativeInstance(theEnv, arg);
+	}
+}
+
+void* convert(void* theEnv, llvm::Instruction* inst) {
 
 }
 
-void* convert(void* theEnv, llvm::Function* func, void* parent) {
+void* convert(void* theEnv, llvm::Function* func) {
 
 }
 
-void* convert(void* theEnv, llvm::Loop* loop, void* parent) {
+void* convert(void* theEnv, llvm::Constant* constant) {
 
 }
 
-void* convert(void* theEnv, llvm::Region* region, void* parent) {
+void* convert(void* theEnv, llvm::Value* value) {
 
 }
 
-void* convert(void* theEnv, llvm::Constant* constant, void* parent) {
+void* convert(void* theEnv, llvm::User* user) {
 
 }
 
-void* convert(void* theEnv, llvm::Value* value, void* parent) {
+void* convert(void* theEnv, llvm::Operator* op) {
 
 }
 
-void* convert(void* theEnv, llvm::User* user, void* parent) {
-
-}
-
-void* convert(void* theEnv, llvm::Operator* op, void* parent) {
-
-}
-
-void* convert(void* theEnv, llvm::Argument* arg, void* parent) {
-
-}
 
 void* convert(void* theEnv, llvm::GlobalVariable* var) {
 
