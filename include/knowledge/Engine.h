@@ -54,7 +54,6 @@ template<typename T>
 struct ExternalAddressRegistration {
 	static int externalAddressId;
 };
-
 #define ElectronClassNameAssociation(type, className) \
 	template<> \
 struct ElectronClassNameSelector<type> { \
@@ -64,6 +63,10 @@ struct ElectronClassNameSelector<type> { \
 }
 #define X(unused, type, className) \
 	ElectronClassNameAssociation(type, className); \
+	template<> \
+	struct ExternalAddressRegistration<type> { \
+		static int externalAddressId; \
+	}; \
 	void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, type* data); \
 	void populateInstance(void* theEnv, type* data);
 #include "knowledge/EngineNodes.def"

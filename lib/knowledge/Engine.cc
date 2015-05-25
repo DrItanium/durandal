@@ -12,11 +12,10 @@ extern "C" {
 	void populateInstance(void* theEnv, type * data) 
 #define FIELD(name, value) " (" << name << " " << value << ") "
 namespace knowledge {
-static int counter = 0;
-#define RegisterInstanceCounter(type) \
-	ExternalAddressRegistration<type>::externalAddressId = counter++
-RegisterInstanceCounter(llvm::BasicBlock);
-RegisterInstanceCounter(llvm::Module);
+#define X(a, b, c) \
+	int ExternalAddressRegistration<b>::externalAddressId = ExtAddrType(a);
+#include "knowledge/EngineNodes.def"
+#undef X
 void* makeInstance(void* theEnv, const std::string& str) {
 	void* result = EnvMakeInstance(theEnv, str.c_str());
 	if (result == NULL) {
