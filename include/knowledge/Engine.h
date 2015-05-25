@@ -28,9 +28,21 @@ extern "C" void RegisterEngineBookkeeping(void* theEnv);
 extern "C" void RegisterNativeInstance(void* theEnv, void* native, void* instance);
 extern "C" bool ContainsNativeInstance(void* theEnv, void* key);
 extern "C" void* GetNativeInstance(void* theEnv, void* key);
+extern "C" void RegisterExternalAddressId(void* theEnv, int type, struct externalAddressType* ea);
+extern "C" bool ContainsExternAddressId(void* theEnv, int type);
+extern "C" int GetExternalAddressId(void* theEnv, int type);
 #define EngineBookkeepingData(theEnv) \
 	((struct knowledge::EngineBookkeeping*) GetEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA))
 namespace knowledge {
+#define ExtAddrType(name) RegisterExternalAddressId_ ## name
+enum {
+	// according to the c++ spec these values will start from 0
+#define X(a, b, c) \
+	ExtAddrType(a),
+#include "knowledge/EngineNodes.def"
+#undef X
+	RegisteredExternalAddressTypes,
+};
 void* makeInstance(void* theEnv, const std::string& str);
 class EngineBookkeeping {
 	public:
@@ -39,9 +51,15 @@ class EngineBookkeeping {
 		void registerInstance(void* key, std::string& value);
 		bool containsInstance(void* key);
 		std::string getRelatedInstance(void* key);
+		void registerExternalAddress(int type, int id);
+		bool containsExternalAddress(int type);
+		int getRelatedExternalAddress(int type);
 	private:
 		// just the pointers ma'am
 		llvm::DenseMap<void*, std::string> instanceMap;
+		// make it a statically sized array as registration is done at compile
+		// time :D
+		int externalAddrs[RegisteredExternalAddressTypes];
 };
 template<typename T>
 struct ElectronClassNameSelector {
@@ -52,7 +70,7 @@ struct ElectronClassNameSelector {
 
 template<typename T>
 struct ExternalAddressRegistration {
-	static int externalAddressId;
+	static int indirectId;
 };
 #define ElectronClassNameAssociation(type, className) \
 	template<> \
@@ -65,12 +83,24 @@ struct ElectronClassNameSelector<type> { \
 	ElectronClassNameAssociation(type, className); \
 	template<> \
 	struct ExternalAddressRegistration<type> { \
-		static int externalAddressId; \
+		static int indirectId; \
 	}; \
 	void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, type* data); \
 	void populateInstance(void* theEnv, type* data);
 #include "knowledge/EngineNodes.def"
 #undef X
+template<typename T>
+void registerExternalAddressId(void* theEnv, struct externalAddressType* ea) {
+	RegisterExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId, ea);
+}
+template<typename T>
+bool containsExternalAddressId(void* theEnv) {
+	return ContainsExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
+}
+template<typename T>
+int getExternalAddressId(void* theEnv) {
+	return GetExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
+}
 // SO FUCKING BEAUTIFUL :D
 #define WhenInstanceDoesNotExist(env, instance) \
 	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
@@ -200,15 +230,6 @@ DefineCustomDispatch(llvm::CallInst) {
 }
 
 
-#define ExtAddrType(name) RegisterExternalAddressId_ ## name
-enum {
-	RegisterExternalAddressIdBegin = 0,
-#define X(a, b, c) \
-	ExtAddrType(a),
-#include "knowledge/EngineNodes.def"
-#undef X
-	RegisterExternalAddressIdEnd,
-};
 
 #undef CondDispatch
 #undef WhenInstanceDoesNotExist

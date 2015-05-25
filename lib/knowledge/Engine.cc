@@ -13,7 +13,7 @@ extern "C" {
 #define FIELD(name, value) " (" << name << " " << value << ") "
 namespace knowledge {
 #define X(a, b, c) \
-	int ExternalAddressRegistration<b>::externalAddressId = ExtAddrType(a);
+	int ExternalAddressRegistration<b>::indirectId = ExtAddrType(a);
 #include "knowledge/EngineNodes.def"
 #undef X
 void* makeInstance(void* theEnv, const std::string& str) {
