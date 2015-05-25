@@ -20,7 +20,7 @@ extern "C" bool ContainsNativeInstance(void* theEnv, void* key) {
 }
 extern "C" void* GetNativeInstance(void* theEnv, void* key) {
     if (EngineBookkeepingData(theEnv)->containsInstance(key)) {
-        std::string& tmp = EngineBookkeepingData(theEnv)->getRelatedInstance(key);
+        std::string tmp = EngineBookkeepingData(theEnv)->getRelatedInstance(key);
         return EnvFindInstance(theEnv, NULL, tmp.c_str(), TRUE);
     } else {
         return NULL;
@@ -32,12 +32,12 @@ EngineBookkeeping::EngineBookkeeping() { }
 EngineBookkeeping::~EngineBookkeeping() { }
 void EngineBookkeeping::registerInstance(void* nativeInstance, std::string& clipsInstance) {
 	std::pair<void*, std::string> pair(nativeInstance, clipsInstance);
-	instanceMap->insert(pair);
+	instanceMap.insert(pair);
 }
-bool EngineBookkeeping::contains(void* nativeInstance) {
-	return instanceMap->find(nativeInstance) != instanceMap->end();
+bool EngineBookkeeping::containsInstance(void* nativeInstance) {
+	return instanceMap.find(nativeInstance) != instanceMap.end();
 }
-std::string& EngineBookkeeping::getRelatedInstance(void* nativeInstance) {
-	return (contains(nativeInstance) ? instanceMap[nativeInstance] : NULL);
+std::string EngineBookkeeping::getRelatedInstance(void* nativeInstance) {
+	return (containsInstance(nativeInstance) ? instanceMap[nativeInstance] : "");
 }
 }

@@ -19,6 +19,7 @@
 #include "llvm/IR/GlobalAlias.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/Support/Casting.h"
 extern "C" {
 #include "clips.h"
 }
@@ -30,14 +31,14 @@ extern "C" void* GetNativeInstance(void* theEnv, void* key);
 #define EngineBookkeepingData(theEnv) \
 	((struct knowledge::EngineBookkeeping*) GetEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA))
 namespace knowledge {
-void* makeInstance(void* theEnv, llvm::raw_string_ostream& str);
+void* makeInstance(void* theEnv, const std::string& str);
 class EngineBookkeeping {
 	public:
 		EngineBookkeeping();
 		~EngineBookkeeping();
 		void registerInstance(void* key, std::string& value);
 		bool containsInstance(void* key);
-		std::string& getRelatedInstance(void* key);
+		std::string getRelatedInstance(void* key);
 	private:
 		// just the pointers ma'am
 		llvm::DenseMap<void*, std::string> instanceMap;
@@ -50,15 +51,15 @@ struct ElectronClassNameSelector {
 };
 #define ElectronClassNameAssociation(type, className) \
 	template<> \
-	struct ElectronClassNameSelector<type> { \
-		static void selectName(llvm::raw_string_ostream& str, type * value) { \
-			str << className ; \
-		} \
-	}
+struct ElectronClassNameSelector<type> { \
+	static void selectName(llvm::raw_string_ostream& str, type* value) { \
+		str << className ; \
+	} \
+}
 #define DeclareEngineNode(type, className) \
 	ElectronClassNameAssociation(type, className); \
-	void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, type *data); \
-	void populateInstance(void* theEnv, type *data)
+void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, type* data); \
+void populateInstance(void* theEnv, type* data)
 DeclareEngineNode(llvm::Module, "llvm::module");
 DeclareEngineNode(llvm::BasicBlock, "llvm::basic-block");
 DeclareEngineNode(llvm::Argument, "llvm::argument");
@@ -100,24 +101,18 @@ DeclareEngineNode(llvm::CmpInst, "llvm::compare-instruction");
 // SO FUCKING BEAUTIFUL :D
 #define WhenInstanceDoesNotExist(env, instance) \
 	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
-	if (potentiallyAlreadyExistingInstance != NULL) { \
-		return potentiallyAlreadyExistingInstance; \
-	} else 
+if (potentiallyAlreadyExistingInstance != NULL) { \
+	return potentiallyAlreadyExistingInstance; \
+} else 
 #define DefineCustomDispatch(type) \
-	template<> \
-	void* dispatch< type >(void* theEnv, type * nativeInstance) 
+	void* dispatch(void* theEnv, type* nativeInstance) 
 #define CondDispatch(type, env, val) \
-		if (type * v = llvm::dyn_cast<type>((val))) return dispatch<type>((env), v)
+	if (type* v = llvm::dyn_cast<type>(val)) return dispatch(env, v)
 #define Otherwise(type, env, val) \
-		return construct<type>(env, val)
-template<class T>
-void* dispatch(void* theEnv, T* nativeInstance) {
-	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
-		return construct(theEnv, nativeInstance);
-	}
-}
-template<class T>
-void* construct(void* theEnv, T* nativeInstance) {
+	return constructInstance<type>(env, val)
+
+template<typename T>
+void* constructInstance(void* theEnv, T* nativeInstance) {
 	std::string tmp;
 	llvm::raw_string_ostream str(tmp);
 	str << "( of ";
@@ -125,9 +120,47 @@ void* construct(void* theEnv, T* nativeInstance) {
 	str << " ";
 	buildInstance(str, theEnv, nativeInstance);
 	str << ")";
-	RegisterInstance(theEnv, nativeInstance, makeInstance(theEnv, tmp.c_str()));
+	RegisterNativeInstance(theEnv, nativeInstance, makeInstance(theEnv, tmp.c_str()));
 	populateInstance(theEnv, nativeInstance);
 	return GetNativeInstance(theEnv, nativeInstance);
+}
+template<typename T>
+void* dispatch(void* theEnv, T* nativeInstance) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		Otherwise(T, theEnv, nativeInstance);
+	}
+}
+
+DefineCustomDispatch(llvm::TerminatorInst) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::BranchInst, theEnv, nativeInstance);
+		CondDispatch(llvm::IndirectBrInst, theEnv, nativeInstance);
+		CondDispatch(llvm::InvokeInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ResumeInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ReturnInst, theEnv, nativeInstance);
+		CondDispatch(llvm::SwitchInst, theEnv, nativeInstance);
+		CondDispatch(llvm::UnreachableInst, theEnv, nativeInstance);
+		Otherwise(llvm::TerminatorInst, theEnv, nativeInstance);
+	}
+}
+
+DefineCustomDispatch(llvm::UnaryInstruction) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::AllocaInst, theEnv, nativeInstance);
+		CondDispatch(llvm::CastInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ExtractValueInst, theEnv, nativeInstance);
+		CondDispatch(llvm::LoadInst, theEnv, nativeInstance);
+		CondDispatch(llvm::VAArgInst, theEnv, nativeInstance);
+		Otherwise(llvm::UnaryInstruction, theEnv, nativeInstance);
+	}
+}
+
+DefineCustomDispatch(llvm::CmpInst) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::FCmpInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ICmpInst, theEnv, nativeInstance);
+		Otherwise(llvm::CmpInst, theEnv, nativeInstance);
+	}
 }
 
 DefineCustomDispatch(llvm::Instruction) {
@@ -150,6 +183,7 @@ DefineCustomDispatch(llvm::Instruction) {
 		Otherwise(llvm::Instruction, theEnv, nativeInstance);
 	}
 }
+
 DefineCustomDispatch(llvm::User) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
 		CondDispatch(llvm::Instruction, theEnv, nativeInstance);
@@ -169,28 +203,6 @@ DefineCustomDispatch(llvm::Value) {
 		Otherwise(llvm::Value, theEnv, nativeInstance);
 	}
 }
-DefineCustomDispatch(llvm::TerminatorInst) {
-	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
-		CondDispatch(llvm::BranchInst, theEnv, nativeInstance);
-		CondDispatch(llvm::IndirectBrInst, theEnv, nativeInstance);
-		CondDispatch(llvm::InvokeInst, theEnv, nativeInstance);
-		CondDispatch(llvm::ResumeInst, theEnv, nativeInstance);
-		CondDispatch(llvm::ReturnInst, theEnv, nativeInstance);
-		CondDispatch(llvm::SwitchInst, theEnv, nativeInstance);
-		CondDispatch(llvm::UnreachableInst, theEnv, nativeInstance);
-		Otherwise(llvm::TerminatorInst, theEnv, nativeInstance);
-	}
-}
-DefineCustomDispatch(llvm::UnaryInstruction) {
-	WhenInstanceDoesNotExist(llvm::UnaryInstruction) {
-		CondDispatch(llvm::AllocaInst, theEnv, nativeInstance);
-		CondDispatch(llvm::CastInst, theEnv, nativeInstance);
-		CondDispatch(llvm::ExtractValueInst, theEnv, nativeInstance);
-		CondDispatch(llvm::LoadInst, theEnv, nativeInstance);
-		CondDispatch(llvm::VAArgInst, theEnv, nativeInstance);
-		Otherwise(llvm::UnaryInstruction, theEnv, nativeInstance);
-	}
-}
 DefineCustomDispatch(llvm::CastInst) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
 		CondDispatch(llvm::AddrSpaceCastInst, theEnv, nativeInstance);
@@ -200,12 +212,6 @@ DefineCustomDispatch(llvm::CastInst) {
 		Otherwise(llvm::CastInst, theEnv, nativeInstance);
 	}
 }
-DefineCustomDispatch(llvm::CallInst) {
-	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
-		CondDispatch(llvm::IntrinsicInst, theEnv, nativeInstance);
-		Otherwise(llvm::CallInst, theEnv, nativeInstance);
-	}
-}
 //TODO: Finish defining this custom dispatch at some point
 //DefineCustomDispatch(llvm::IntrinsicInst) {
 //	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
@@ -213,13 +219,11 @@ DefineCustomDispatch(llvm::CallInst) {
 //		Otherwise(llvm::IntrinsicInst, theEnv, nativeInstance);
 //	}
 //}
-DefineCustomDispatch(llvm::CmpInst) {
+DefineCustomDispatch(llvm::CallInst) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
-		CondDispatch(llvm::FCmpInst, theEnv, nativeInstance);
-		CondDispatch(llvm::ICmpInst, theEnv, nativeInstance);
-		Otherwise(llvm::CmpInst, theEnv, nativeInstance);
+		CondDispatch(llvm::IntrinsicInst, theEnv, nativeInstance);
+		Otherwise(llvm::CallInst, theEnv, nativeInstance);
 	}
-}
 }
 
 #undef CondDispatch
@@ -227,4 +231,5 @@ DefineCustomDispatch(llvm::CmpInst) {
 #undef DeclareEngineNode
 #undef ElectronClassNameAssociation
 
+}
 #endif // _KNOWLEDGE_ENGINE_H_

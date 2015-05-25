@@ -12,8 +12,8 @@ extern "C" {
 	void populateInstance(void* theEnv, type * data) 
 #define FIELD(name, value) " (" << name << " " << value << ") "
 namespace knowledge {
-void* makeInstance(void* theEnv, llvm::raw_string_ostream& str) {
-	void* result = EnvMakeInstance(theEnv, str.str().c_str());
+void* makeInstance(void* theEnv, const std::string& str) {
+	void* result = EnvMakeInstance(theEnv, str.c_str());
 	if (result == NULL) {
 		llvm::raw_string_ostream msg;
 		msg << "Couldn't create instance from " << str.str();
