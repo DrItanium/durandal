@@ -49,25 +49,36 @@ struct ElectronClassNameSelector {
 		str << ElectronClassName<T>::name;
 	}
 }
-
-
+// SO FUCKING BEAUTIFUL :D
+#define WhenInstanceDoesNotExist(env, instance) \
+	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
+	if (potentiallyAlreadyExistingInstance != NULL) { \
+		return potentiallyAlreadyExistingInstance; \
+	} else 
+#define DefineCustomDispatch(type) \
+	template<> \
+	void* dispatch<type>(void* theEnv, type * nativeInstance) 
+#define CondDispatch(type, env, val) \
+		if (type * v = dyn_cast<type>((val))) return convert<type>((env), v)
+#define Otherwise(type, env, val) \
+		return convert<type>(env, val)
+template<class T>
+void* dispatch(void* theEnv, T* nativeInstance) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		return construct<T>(theEnv, nativeInstance);
+	}
+}
 template<class T>
 void* construct(void* theEnv, T* nativeInstance) {
-	void* potentiallyAlreadyExistingInstance = GetNativeInstance(theEnv, nativeInstance); 
-	if (potentiallyAlreadyExistingInstance != NULL) { 
-		return potentiallyAlreadyExistingInstance; 
-	} else {
-		llvm::raw_string_ostream& str;
-
-		str << "( of ";
-		ElectronClassNameSelector<T>::selectName(str, nativeInstance);
-		str << " ";
-		buildInstance(str, theEnv, nativeInstance);
-		str << ")";
-		RegisterInstance(theEnv, nativeInstance, makeInstance(theEnv, str.str().c_str()));
-		populateInstance(theEnv, nativeInstance);
-		return GetNativeInstance(theEnv, block);
-	}
+	llvm::raw_string_ostream& str;
+	str << "( of ";
+	ElectronClassNameSelector<T>::selectName(str, nativeInstance);
+	str << " ";
+	buildInstance(str, theEnv, nativeInstance);
+	str << ")";
+	RegisterInstance(theEnv, nativeInstance, makeInstance(theEnv, str.str().c_str()));
+	populateInstance(theEnv, nativeInstance);
+	return GetNativeInstance(theEnv, block);
 }
 #define ElectronClassNameAssociation(type, className) \
 	template<> \
@@ -80,35 +91,25 @@ void* construct(void* theEnv, T* nativeInstance) {
 	void populateInstance(void* theEnv, type *data)
 DeclareEngineNode(llvm::Value, "llvm::value");
 template<>
-struct ElectronClassNameSelector<llvm::Value> {
-	static void selectName(llvm::raw_string_ostream& str, llvm::Value* value) {
-#define CondDispatch(cond, type, val) \
-		cond (type * v = dyn_cast<type>(val)) ElectronClassNameSelector<type>(val)
-		CondDispatch(if, llvm::User, value);
-		CondDispatch(else if, llvm::BasicBlock, value);
-		CondDispatch(else if, llvm::Argument, value);
-		// CondDispatch(else if, llvm::InlineAsm, value);
-		// CondDispatch(else if, llvm::MDNode, value);
-		// CondDispatch(else if, llvm::MDString, value);
-		else {
-			str << ElectronClassName<llvm::Value>::name;
-		}
-#undef CondDispatch
+void* dispatch<llvm::Value>(void* theEnv, llvm::Value* nativeInstance) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::User, nativeInstance);
+		CondDispatch(llvm::BasicBlock, nativeInstance);
+		CondDispatch(llvm::Argument, nativeInstance);
+		// CondDispatch(llvm::InlineAsm, value);
+		// CondDispatch(llvm::MDNode, value);
+		// CondDispatch(llvm::MDString, value);
+		Otherwise(llvm::Value, nativeInstance);
 	}
 }
 DeclareEngineNode(llvm::User, "llvm::user");
 template<>
-struct ElectronClassNameSelector<llvm::User> {
-	static void selectName(llvm::raw_string_ostream& str, llvm::User* value) {
-#define CondDispatch(cond, type, val) \
-		cond (type * v = dyn_cast<type>(val)) ElectronClassNameSelector<type>(val)
-		CondDispatch(if, llvm::Instruction, value);
-		CondDispatch(else if, llvm::Constant, value);
-		CondDispatch(else if, llvm::Operator, value);
-		else {
-			str << ElectronClassName<llvm::User>::name;
-		}
-#undef CondDispatch
+void* dispatch<llvm::User>(void* theEnv, llvm::User* nativeInstance) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::Instruction, theEnv, nativeInstance);
+		CondDispatch(llvm::Constant, theEnv, nativeInstance);
+		CondDispatch(llvm::Operator, theEnv, nativeInstance);
+		Otherwise(llvm::User, theEnv, nativeInstance);
 	}
 }
 DeclareEngineNode(llvm::Module, "llvm::module");
@@ -124,11 +125,38 @@ DeclareEngineNode(llvm::GlobalVariable, "llvm::global-variable");
 DeclareEngineNode(llvm::GlobalAlias, "llvm::global-alias");
 DeclareEngineNode(llvm::GlobalValue, "llvm::global-value");
 DeclareEngineNode(llvm::Instruction, "llvm::instruction");
-DeclareEngineNode(llvm::PHINode, "llvm::phi-node");
+DefineCustomDispatch(llvm::Instruction) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::PHINode, theEnv, nativeInstance);
+		CondDispatch(llvm::StoreInst, theEnv, nativeInstance);
+		CondDispatch(llvm::BinaryOperator, theEnv, nativeInstance);
+		CondDispatch(llvm::CallInst, theEnv, nativeInstance);
+		CondDispatch(llvm::CmpInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ExtractElementInst, theEnv, nativeInstance);
+		CondDispatch(llvm::FenceInst, theEnv, nativeInstance);
+		CondDispatch(llvm::GetElementPtrInst, theEnv, nativeInstance);
+		CondDispatch(llvm::InsertElementInst, theEnv, nativeInstance);
+		CondDispatch(llvm::InsertValueInst, theEnv, nativeInstance);
+		CondDispatch(llvm::LandingPadInst, theEnv, nativeInstance);
+		CondDispatch(llvm::SelectInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ShuffleVectorInst, theEnv, nativeInstance);
+		CondDispatch(llvm::TerminatorInstruction, theEnv, nativeInstance);
+		CondDispatch(llvm::UnaryInstruction, theEnv, nativeInstance);
+		Otherwise(llvm::Instruction, theEnv, nativeInstance);
+	}
+}
 DeclareEngineNode(llvm::TerminatorInstruction, "llvm::terminator-instruction");
+DeclareEngineNode(llvm::UnaryInstruction, "llvm::unary-instruction");
+DeclareEngineNode(llvm::CallInst, "llvm::call-instruction");
+DefineCustomDispatch(llvm::CallInst) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::IntrinsicInst, theEnv, nativeInstance);
+		Otherwise(llvm::CallInst, theEnv, nativeInstance);
+	}
+}
+DeclareEngineNode(llvm::PHINode, "llvm::phi-node");
 DeclareEngineNode(llvm::StoreInst, "llvm::store-instruction");
 DeclareEngineNode(llvm::BinaryOperator, "llvm::binary-operator");
-DeclareEngineNode(llvm::UnaryInstruction, "llvm::unary-instruction");
 DeclareEngineNode(llvm::LoadInst, "llvm::load-instruction");
 DeclareEngineNode(llvm::AllocaInst, "llvm::alloca-instruction");
 DeclareEngineNode(llvm::BranchInst, "llvm::branch-instruction");
@@ -137,6 +165,8 @@ DeclareEngineNode(llvm::ReturnInst, "llvm::return-instruction");
 DeclareEngineNode(llvm::SwitchInst, "llvm::switch-instruction");
 }
 
+#undef CondDispatch
+#undef WhenInstanceDoesNotExist
 #undef DeclareEngineNode
 #undef ElectronClassNameAssociation
 
