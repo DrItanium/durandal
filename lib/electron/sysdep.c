@@ -185,7 +185,7 @@
 #endif
 
 #if MAYA_EXTENSIONS
-#include "libmaya.h"
+#include "maya/libmaya.h"
 #endif
 
 /***************/

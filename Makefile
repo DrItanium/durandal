@@ -19,13 +19,17 @@ include $(LEVEL)/Makefile.common
 
 CFLAGS += -I$(PROJ_SRC_DIR)/$(DURANDAL_LEVEL)/include \
           -I$(PROJ_OBJ_DIR)/$(DURANDAL_LEVEL)/include \
-			 -I$(PROJ_SRC_DIR)/$(LEVEL)/tools/clang/include \
-			 -I$(PROJ_OBJ_DIR)/$(LEVEL)/tools/clang/include 
+		  -I$(PROJ_SRC_DIR)/$(DURANDAL_LEVEL)/include/electron \
+		  -I$(PROJ_OBJ_DIR)/$(DURANDAL_LEVEL)/include/electron \
+		  -I$(PROJ_SRC_DIR)/$(LEVEL)/tools/clang/include \
+		  -I$(PROJ_OBJ_DIR)/$(LEVEL)/tools/clang/include
 
 CXXFLAGS += -I$(PROJ_SRC_DIR)/$(DURANDAL_LEVEL)/include \
             -I$(PROJ_OBJ_DIR)/$(DURANDAL_LEVEL)/include \
-			   -I$(PROJ_SRC_DIR)/$(LEVEL)/tools/clang/include \
-			   -I$(PROJ_OBJ_DIR)/$(LEVEL)tools/clang/include
+			-I$(PROJ_SRC_DIR)/$(DURANDAL_LEVEL)/include/electron \
+			-I$(PROJ_OBJ_DIR)/$(DURANDAL_LEVEL)/include/electron \
+			-I$(PROJ_SRC_DIR)/$(LEVEL)/tools/clang/include \
+			-I$(PROJ_OBJ_DIR)/$(LEVEL)tools/clang/include
 
 ifeq ($(IS_TOP_LEVEL),1)
 
