@@ -39,6 +39,18 @@ class EngineBookkeeping {
 		// just the pointers ma'am
 		llvm::DenseMap<void*, std::string> instanceMap;
 };
+template<typename T>
+struct ElectronClassName {
+	static const char* name = "";
+};
+template<typename T>
+struct ElectronClassNameSelector {
+	static void selectName(llvm::raw_string_ostream& str, T* value) {
+		str << ElectronClassName<T>::name;
+	}
+}
+
+
 template<class T>
 void* construct(void* theEnv, T* nativeInstance) {
 	void* potentiallyAlreadyExistingInstance = GetNativeInstance(theEnv, nativeInstance); 
@@ -46,43 +58,86 @@ void* construct(void* theEnv, T* nativeInstance) {
 		return potentiallyAlreadyExistingInstance; 
 	} else {
 		llvm::raw_string_ostream& str;
+
+		str << "( of ";
+		ElectronClassNameSelector<T>::selectName(str, nativeInstance);
+		str << " ";
 		buildInstance(str, theEnv, nativeInstance);
+		str << ")";
 		RegisterInstance(theEnv, nativeInstance, makeInstance(theEnv, str.str().c_str()));
 		populateInstance(theEnv, nativeInstance);
 		return GetNativeInstance(theEnv, block);
 	}
 }
-
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Module* module);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::BasicBlock* block);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Instruction* inst);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Function* func);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Loop* loop);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Region* region);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Constant* constant);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Value* value);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::User* user);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Operator* op);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Argument* arg);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::GlobalVariable* var);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::GlobalAlias* alias);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::GlobalValue* value);
-void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, llvm::Type* type);
-void populateInstance(void* theEnv, llvm::Module* module);
-void populateInstance(void* theEnv, llvm::BasicBlock* block);
-void populateInstance(void* theEnv, llvm::Instruction* inst);
-void populateInstance(void* theEnv, llvm::Function* func);
-void populateInstance(void* theEnv, llvm::Loop* loop);
-void populateInstance(void* theEnv, llvm::Region* region);
-void populateInstance(void* theEnv, llvm::Constant* constant);
-void populateInstance(void* theEnv, llvm::Value* value);
-void populateInstance(void* theEnv, llvm::User* user);
-void populateInstance(void* theEnv, llvm::Operator* op);
-void populateInstance(void* theEnv, llvm::Argument* arg);
-void populateInstance(void* theEnv, llvm::GlobalVariable* var);
-void populateInstance(void* theEnv, llvm::GlobalAlias* alias);
-void populateInstance(void* theEnv, llvm::GlobalValue* value);
-void populateInstance(void* theEnv, llvm::Type* type);
+#define ElectronClassNameAssociation(type, className) \
+	template<> \
+	struct ElectronClassName<type> { \
+		static const char* name = className; \
+	}
+#define DeclareEngineNode(type, className) \
+	ElectronClassNameAssociation(type, className); \
+	void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, type *data); \
+	void populateInstance(void* theEnv, type *data)
+DeclareEngineNode(llvm::Value, "llvm::value");
+template<>
+struct ElectronClassNameSelector<llvm::Value> {
+	static void selectName(llvm::raw_string_ostream& str, llvm::Value* value) {
+#define CondDispatch(cond, type, val) \
+		cond (type * v = dyn_cast<type>(val)) ElectronClassNameSelector<type>(val)
+		CondDispatch(if, llvm::User, value);
+		CondDispatch(else if, llvm::BasicBlock, value);
+		CondDispatch(else if, llvm::Argument, value);
+		// CondDispatch(else if, llvm::InlineAsm, value);
+		// CondDispatch(else if, llvm::MDNode, value);
+		// CondDispatch(else if, llvm::MDString, value);
+		else {
+			str << ElectronClassName<llvm::Value>::name;
+		}
+#undef CondDispatch
+	}
 }
+DeclareEngineNode(llvm::User, "llvm::user");
+template<>
+struct ElectronClassNameSelector<llvm::User> {
+	static void selectName(llvm::raw_string_ostream& str, llvm::User* value) {
+#define CondDispatch(cond, type, val) \
+		cond (type * v = dyn_cast<type>(val)) ElectronClassNameSelector<type>(val)
+		CondDispatch(if, llvm::Instruction, value);
+		CondDispatch(else if, llvm::Constant, value);
+		CondDispatch(else if, llvm::Operator, value);
+		else {
+			str << ElectronClassName<llvm::User>::name;
+		}
+#undef CondDispatch
+	}
+}
+DeclareEngineNode(llvm::Module, "llvm::module");
+DeclareEngineNode(llvm::BasicBlock, "llvm::basic-block");
+DeclareEngineNode(llvm::Argument, "llvm::argument");
+DeclareEngineNode(llvm::Function, "llvm::function");
+DeclareEngineNode(llvm::Loop, "llvm::loop");
+DeclareEngineNode(llvm::Region, "llvm::region");
+DeclareEngineNode(llvm::Constant, "llvm::constant");
+DeclareEngineNode(llvm::Operator, "llvm::operator");
+DeclareEngineNode(llvm::Type, "llvm::type");
+DeclareEngineNode(llvm::GlobalVariable, "llvm::global-variable");
+DeclareEngineNode(llvm::GlobalAlias, "llvm::global-alias");
+DeclareEngineNode(llvm::GlobalValue, "llvm::global-value");
+DeclareEngineNode(llvm::Instruction, "llvm::instruction");
+DeclareEngineNode(llvm::PHINode, "llvm::phi-node");
+DeclareEngineNode(llvm::TerminatorInstruction, "llvm::terminator-instruction");
+DeclareEngineNode(llvm::StoreInst, "llvm::store-instruction");
+DeclareEngineNode(llvm::BinaryOperator, "llvm::binary-operator");
+DeclareEngineNode(llvm::UnaryInstruction, "llvm::unary-instruction");
+DeclareEngineNode(llvm::LoadInst, "llvm::load-instruction");
+DeclareEngineNode(llvm::AllocaInst, "llvm::alloca-instruction");
+DeclareEngineNode(llvm::BranchInst, "llvm::branch-instruction");
+DeclareEngineNode(llvm::IndirectBrInst, "llvm::indirect-branch-instruction");
+DeclareEngineNode(llvm::ReturnInst, "llvm::return-instruction");
+DeclareEngineNode(llvm::SwitchInst, "llvm::switch-instruction");
+}
+
+#undef DeclareEngineNode
+#undef ElectronClassNameAssociation
 
 #endif // _KNOWLEDGE_ENGINE_H_
