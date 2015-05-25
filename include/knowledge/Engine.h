@@ -59,7 +59,7 @@ struct ElectronClassNameSelector {
 	template<> \
 	void* dispatch<type>(void* theEnv, type * nativeInstance) 
 #define CondDispatch(type, env, val) \
-		if (type * v = dyn_cast<type>((val))) return convert<type>((env), v)
+		if (type * v = dyn_cast<type>((val))) return dispatch<type>((env), v)
 #define Otherwise(type, env, val) \
 		return convert<type>(env, val)
 template<class T>
@@ -90,21 +90,19 @@ void* construct(void* theEnv, T* nativeInstance) {
 	void buildInstance(llvm::raw_string_ostream& instanceBuilder, void* theEnv, type *data); \
 	void populateInstance(void* theEnv, type *data)
 DeclareEngineNode(llvm::Value, "llvm::value");
-template<>
-void* dispatch<llvm::Value>(void* theEnv, llvm::Value* nativeInstance) {
+DefineCustomDispatch(llvm::Value) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
-		CondDispatch(llvm::User, nativeInstance);
-		CondDispatch(llvm::BasicBlock, nativeInstance);
-		CondDispatch(llvm::Argument, nativeInstance);
-		// CondDispatch(llvm::InlineAsm, value);
-		// CondDispatch(llvm::MDNode, value);
-		// CondDispatch(llvm::MDString, value);
-		Otherwise(llvm::Value, nativeInstance);
+		CondDispatch(llvm::User, theEnv, nativeInstance);
+		CondDispatch(llvm::BasicBlock, theEnv, nativeInstance);
+		CondDispatch(llvm::Argument, theEnv, nativeInstance);
+		// CondDispatch(llvm::InlineAsm, theEnv, value);
+		// CondDispatch(llvm::MDNode, theEnv, value);
+		// CondDispatch(llvm::MDString, theEnv, value);
+		Otherwise(llvm::Value, theEnv, nativeInstance);
 	}
 }
 DeclareEngineNode(llvm::User, "llvm::user");
-template<>
-void* dispatch<llvm::User>(void* theEnv, llvm::User* nativeInstance) {
+DefineCustomDispatch(llvm::User) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
 		CondDispatch(llvm::Instruction, theEnv, nativeInstance);
 		CondDispatch(llvm::Constant, theEnv, nativeInstance);
@@ -112,18 +110,6 @@ void* dispatch<llvm::User>(void* theEnv, llvm::User* nativeInstance) {
 		Otherwise(llvm::User, theEnv, nativeInstance);
 	}
 }
-DeclareEngineNode(llvm::Module, "llvm::module");
-DeclareEngineNode(llvm::BasicBlock, "llvm::basic-block");
-DeclareEngineNode(llvm::Argument, "llvm::argument");
-DeclareEngineNode(llvm::Function, "llvm::function");
-DeclareEngineNode(llvm::Loop, "llvm::loop");
-DeclareEngineNode(llvm::Region, "llvm::region");
-DeclareEngineNode(llvm::Constant, "llvm::constant");
-DeclareEngineNode(llvm::Operator, "llvm::operator");
-DeclareEngineNode(llvm::Type, "llvm::type");
-DeclareEngineNode(llvm::GlobalVariable, "llvm::global-variable");
-DeclareEngineNode(llvm::GlobalAlias, "llvm::global-alias");
-DeclareEngineNode(llvm::GlobalValue, "llvm::global-value");
 DeclareEngineNode(llvm::Instruction, "llvm::instruction");
 DefineCustomDispatch(llvm::Instruction) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
@@ -146,7 +132,39 @@ DefineCustomDispatch(llvm::Instruction) {
 	}
 }
 DeclareEngineNode(llvm::TerminatorInstruction, "llvm::terminator-instruction");
+DefineCustomDispatch(llvm::TerminatorInstruction) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::BranchInst, theEnv, nativeInstance);
+		CondDispatch(llvm::IndirectBrInst, theEnv, nativeInstance);
+		CondDispatch(llvm::InvokeInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ResumeInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ReturnInst, theEnv, nativeInstance);
+		CondDispatch(llvm::SwitchInst, theEnv, nativeInstance);
+		CondDispatch(llvm::UnreachableInst, theEnv, nativeInstance);
+		Otherwise(llvm::TerminatorInstruction, theEnv, nativeInstance);
+	}
+}
 DeclareEngineNode(llvm::UnaryInstruction, "llvm::unary-instruction");
+DefineCustomDispatch(llvm::UnaryInstruction) {
+	WhenInstanceDoesNotExist(llvm::UnaryInstruction) {
+		CondDispatch(llvm::AllocaInst, theEnv, nativeInstance);
+		CondDispatch(llvm::CastInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ExtractValueInst, theEnv, nativeInstance);
+		CondDispatch(llvm::LoadInst, theEnv, nativeInstance);
+		CondDispatch(llvm::VAArgInst, theEnv, nativeInstance);
+		Otherwise(llvm::UnaryInstruction, theEnv, nativeInstance);
+	}
+}
+DeclareEngineNode(llvm::CastInst, "llvm::cast-instruction");
+DefineCustomDispatch(llvm::CastInst) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::AddrSpaceCastInst, theEnv, nativeInstance);
+		CondDispatch(llvm::BitCastInst, theEnv, nativeInstance);
+		CondDispatch(llvm::FPExtInst, theEnv, nativeInstance);
+		CondDispatch(llvm::FPToSIInst, theEnv, nativeInstance);
+		Otherwise(llvm::CastInst, theEnv, nativeInstance);
+	}
+}
 DeclareEngineNode(llvm::CallInst, "llvm::call-instruction");
 DefineCustomDispatch(llvm::CallInst) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
@@ -154,15 +172,51 @@ DefineCustomDispatch(llvm::CallInst) {
 		Otherwise(llvm::CallInst, theEnv, nativeInstance);
 	}
 }
+DeclareEngineNode(llvm::IntrinsicInst, "llvm::intrinsic-instruction");
+//TODO: Finish defining this custom dispatch at some point
+//DefineCustomDispatch(llvm::IntrinsicInst) {
+//	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+//		CondDispatch(llvm::DbgInfoIntrinsic, theEnv, nativeInstance);
+//		Otherwise(llvm::IntrinsicInst, theEnv, nativeInstance);
+//	}
+//}
+DeclareEngineNode(llvm::CmpInst, "llvm::compare-instruction");
+DefineCustomDispatch(llvm::CmpInst) {
+	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
+		CondDispatch(llvm::FCmpInst, theEnv, nativeInstance);
+		CondDispatch(llvm::ICmpInst, theEnv, nativeInstance);
+		Otherwise(llvm::CmpInst, theEnv, nativeInstance);
+	}
+}
+DeclareEngineNode(llvm::Module, "llvm::module");
+DeclareEngineNode(llvm::BasicBlock, "llvm::basic-block");
+DeclareEngineNode(llvm::Argument, "llvm::argument");
+DeclareEngineNode(llvm::Function, "llvm::function");
+DeclareEngineNode(llvm::Loop, "llvm::loop");
+DeclareEngineNode(llvm::Region, "llvm::region");
+DeclareEngineNode(llvm::Constant, "llvm::constant");
+DeclareEngineNode(llvm::Operator, "llvm::operator");
+DeclareEngineNode(llvm::GlobalVariable, "llvm::global-variable");
+DeclareEngineNode(llvm::GlobalAlias, "llvm::global-alias");
+DeclareEngineNode(llvm::GlobalValue, "llvm::global-value");
+DeclareEngineNode(llvm::AddrSpaceCastInst, "llvm::address-space-cast-instruction");
+DeclareEngineNode(llvm::BitCastInst, "llvm::bit-cast-instruction");
+DeclareEngineNode(llvm::FPExtInst, "llvm::fp-ext-instruction");
+DeclareEngineNode(llvm::FPToSIInst, "llvm::fp-to-si-instruction");
+DeclareEngineNode(llvm::AllocaInst, "llvm::alloca-instruction");
+DeclareEngineNode(llvm::FCmpInst, "llvm::floating-point-compare-instruction");
+DeclareEngineNode(llvm::ICmpInst, "llvm::integer-compare-instruction");
 DeclareEngineNode(llvm::PHINode, "llvm::phi-node");
 DeclareEngineNode(llvm::StoreInst, "llvm::store-instruction");
 DeclareEngineNode(llvm::BinaryOperator, "llvm::binary-operator");
 DeclareEngineNode(llvm::LoadInst, "llvm::load-instruction");
-DeclareEngineNode(llvm::AllocaInst, "llvm::alloca-instruction");
 DeclareEngineNode(llvm::BranchInst, "llvm::branch-instruction");
 DeclareEngineNode(llvm::IndirectBrInst, "llvm::indirect-branch-instruction");
 DeclareEngineNode(llvm::ReturnInst, "llvm::return-instruction");
 DeclareEngineNode(llvm::SwitchInst, "llvm::switch-instruction");
+DeclareEngineNode(llvm::UnreachableInst, "llvm::unreachable-instruction");
+DeclareEngineNode(llvm::VAArgInst, "llvm::vaarg-instruction");
+DeclareEngineNode(llvm::Type, "llvm::type");
 }
 
 #undef CondDispatch
