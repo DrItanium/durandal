@@ -121,6 +121,31 @@ populateInstanceHeader(llvm::Argument) {
 	setParent(theEnv, data);
 }
 
+buildInstanceHeader(llvm::Function) {
+	buildInstance(str, theEnv, (llvm::GlobalObject*)data);
+	str << " (attributes ";
+#define tryInsertAttribute(stream, symbol, cond) if (cond) stream << " " << symbol << " "
+	tryInsertAttribute(str, "is-var-arg", data->isVarArg());
+	tryInsertAttribute(str, "is-materializable", data->isMaterializable());
+	tryInsertAttribute(str, "is-intrinsic", data->isIntrinsic());
+	tryInsertAttribute(str, "has-gc", data->hasGC());
+	tryInsertAttribute(str, "calls-function-that-returns-twice", data->callsFunctionThatReturnsTwice());
+	tryInsertAttribute(str, "is-def-trivally-dead", data->isDefTriviallyDead());
+	tryInsertAttribute(str, "has-prologue-data", data->hasPrologueData());
+	tryInsertAttribute(str, "does-not-throw", data->doesNotThrow());
+	tryInsertAttribute(str, "does-not-return", data->doesNotReturn());
+	tryInsertAttribute(str, "does-not-access-memory", data->doesNotAccessMemory());
+	tryInsertAttribute(str, "cannot-duplicate", data->cannotDuplicate());
+	tryInsertAttribute(str, "has-uw-table", data->hasUWTable());
+	tryInsertAttribute(str, "needs-unwind-table-entry", data->needsUnwindTableEntry());
+#undef tryInsertAttribute
+	str << ") " 
+		<< FIELD("gc", data->getGC());
+}
+populateInstanceHeader(llvm::Function) {
+	populateInstance(theEnv, (llvm::GlobalObject*)data);
+}
+
 
 #undef FIELD
 #undef populateInstanceHeader

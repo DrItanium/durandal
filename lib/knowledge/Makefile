@@ -2,7 +2,7 @@
 DURANDAL_LEVEL = ../..
 
 # Name of the library to build
-LIBRARYNAME = ExpertSystem 
+LIBRARYNAME = knowledge 
 
 # Make the shared library become a loadable module so the tools can 
 # dlopen/dlsym on the resulting library.
