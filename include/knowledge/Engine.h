@@ -63,7 +63,7 @@ class EngineBookkeeping {
 };
 template<typename T>
 struct ElectronClassNameSelector {
-	static void selectName(llvm::raw_string_ostream& str, T* value) {
+	static void selectName(llvm::raw_string_ostream& str) {
 		str << "";
 	}
 };
@@ -75,7 +75,7 @@ struct ExternalAddressRegistration {
 #define ElectronClassNameAssociation(type, className) \
 	template<> \
 struct ElectronClassNameSelector<type> { \
-	static void selectName(llvm::raw_string_ostream& str, type* value) { \
+	static void selectName(llvm::raw_string_ostream& str) { \
 		str << className ; \
 	} \
 }
@@ -119,7 +119,7 @@ void* constructInstance(void* theEnv, T* nativeInstance) {
 	std::string tmp;
 	llvm::raw_string_ostream str(tmp);
 	str << "( of ";
-	ElectronClassNameSelector<T>::selectName(str, nativeInstance);
+	ElectronClassNameSelector<T>::selectName(str);
 	str << " ";
 	buildInstance(str, theEnv, nativeInstance);
 	str << ")";
@@ -131,6 +131,13 @@ template<typename T>
 void* dispatch(void* theEnv, T* nativeInstance) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
 		Otherwise(T, theEnv, nativeInstance);
+	}
+}
+
+template<typename T>
+void* dispatch(void* theEnv, T& nativeInstance) {
+	WhenInstanceDoesNotExist(theEnv, &nativeInstance) {
+		Otherwise(T, theEnv, &nativeInstance);
 	}
 }
 

@@ -13,42 +13,6 @@ extern "C" {
     intBool CallNative ## shortType (void* theEnv, DATA_OBJECT* theValue, DATA_OBJECT* retVal);
 #include "knowledge/EngineNodes.def"
 #undef X
-#define DefaultNewImplementation(shortType, fullType) \
-    void NewNative ## shortType (void* theEnv, DATA_OBJECT* retVal) { \
-        int count; \
-        fullType * tmp; \
-        DATA_OBJECT x; \
-        count = EnvRtnArgCount(theEnv); \
-        if (count == 2) { \
-            if (EnvArgTypeCheck(theEnv, "new (llvm " STR(shortType) ")", 2, EXTERNAL_ADDRESS, &x) == FALSE) { \
-                PrintErrorID(theEnv, "NEW", 1, FALSE); \
-                EnvPrintRouter(theEnv, WERROR, "Function new expected an external address as the second argument.\n"); \
-                SetEvaluationError(theEnv, TRUE); \
-                return; \
-            } \
-            if (DOGetExternalAddressType(x) != knowledge::getExternalAddress<fullType>(theEnv)) { \
-                PrintErrorID(theEnv, "NEW", 1, FALSE); \
-                EnvPrintRouter(theEnv, WERROR, "Attempted to make a copy of the wrong external address type as " STR(shortType) "!\n"); \
-                SetEvaluationError(theEnv, TRUE); \
-                return; \
-            } \
-            tmp = DOToExternalAddress(x); \
-            SetpType(retVal, EXTERNAL_ADDRESS); \
-            SetpValue(retVal, EnvAddExternalAddress(theEnv, (void*)tmp, \
-                        knowledge::getExternalAddress<fullType>(theEnv)); \
-            return; \
-        }  else { \
-            PrintErrorID(theEnv, "NEW", 1, FALSE); \
-            EnvPrintRouter(theEnv, WERROR, "Too many or too few arguments passed while trying to construct a new " STR(shortType) "!\n"); \
-            SetEvaluationError(theEnv, TRUE); \
-            return; \
-        } \
-    } 
-
-#define DefaultDeallocateImplementation(shortType) \
-    intBool DeallocateNative ## shortType (void* theEnv, void* theValue) { \
-        return TRUE; \
-    }
 extern "C" void RegisterEngineBookkeeping(void* theEnv) {
 	if(!AllocateEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA, 
 				sizeof(knowledge::EngineBookkeeping), NULL)) {
@@ -136,3 +100,41 @@ int  EngineBookkeeping::getRelatedExternalAddress(int type) {
 }
 
 }
+#define DefaultNewImplementation(shortType, fullType) \
+    void NewNative ## shortType (void* theEnv, DATA_OBJECT* retVal) { \
+        int count; \
+        fullType * tmp; \
+        DATA_OBJECT x; \
+        count = EnvRtnArgCount(theEnv); \
+        if (count == 2) { \
+            if (EnvArgTypeCheck(theEnv, "new (llvm " STR(shortType) ")", 2, EXTERNAL_ADDRESS, &x) == FALSE) { \
+                PrintErrorID(theEnv, "NEW", 1, FALSE); \
+                EnvPrintRouter(theEnv, WERROR, "Function new expected an external address as the second argument.\n"); \
+                SetEvaluationError(theEnv, TRUE); \
+                return; \
+            } \
+            if (DOGetExternalAddressType(x) != knowledge::getExternalAddress<fullType>(theEnv)) { \
+                PrintErrorID(theEnv, "NEW", 1, FALSE); \
+                EnvPrintRouter(theEnv, WERROR, "Attempted to make a copy of the wrong external address type as " STR(shortType) "!\n"); \
+                SetEvaluationError(theEnv, TRUE); \
+                return; \
+            } \
+            tmp = DOToExternalAddress(x); \
+            SetpType(retVal, EXTERNAL_ADDRESS); \
+            SetpValue(retVal, EnvAddExternalAddress(theEnv, (void*)tmp, \
+                        knowledge::getExternalAddress<fullType>(theEnv)); \
+            return; \
+        }  else { \
+            PrintErrorID(theEnv, "NEW", 1, FALSE); \
+            EnvPrintRouter(theEnv, WERROR, "Too many or too few arguments passed while trying to construct a new " STR(shortType) "!\n"); \
+            SetEvaluationError(theEnv, TRUE); \
+            return; \
+        } \
+    } 
+
+#define DefaultDeallocateImplementation(shortType) \
+    intBool DeallocateNative ## shortType (void* theEnv, void* theValue) { \
+        return TRUE; \
+    }
+#undef DefaultNewImplementation
+#undef DefaultDeallocateImplementation

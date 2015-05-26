@@ -44,9 +44,11 @@
 
 #define OFF           0
 #define ON            1
-#define LHS           0
-#define RHS           1
-#define NESTED_RHS    2
+enum {
+    LHS = 0,
+    RHS = 1,
+    NESTED_RHS = 2,
+};
 #define NEGATIVE      0
 #define POSITIVE      1
 #define EOS        '\0'
