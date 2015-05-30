@@ -28,21 +28,72 @@ extern "C" {
 namespace knowledge {
 template<typename Pass, typename T>
 struct ProcessingNode {
-	static void* constructInstance(void* env, T* inst) {
-		std::string tmp;
-		llvm::raw_string_ostream str(tmp);
-		str << "( of ";
-		ElectronClassNameSelector<T>::selectName(str);
-		str << " ";
-		ProcessingNode<Pass,T>::buildInstance(str, env, inst);
-		str << ")";
-		RegisterNativeInstance(env, inst, makeInstance(env, tmp.c_str()));
-		ProcessingNode<Pass,T>::populateInstance(env, inst);
-		return GetNativeInstance(env, inst);
-	}
-	static void populateInstance(void* env, T* instance) { }
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Module * data) { }
+	static void* constructInstance(void* env, T* inst, Pass& pass);
+	static void populateInstance(void* env, T* instance, Pass& pass);
+	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, T* data, Pass& pass);
+	static void* getInstanceName(void* theEnv, T* instance, Pass& pass);
+	static void setParent(void* theEnv, T* target, Pass& pass);
 };
+template<typename Pass, typename T>
+struct Router {
+	static void* dispatch(void* env, T* inst, Pass& pass) {
+		WhenInstanceDoesNotExist(env, inst) {
+			return ProcessingNode<Pass,T>::constructInstance(env, inst, pass);
+		}
+	}
+};
+
+template<typename Pass, typename T>
+void* dispatch(void* env, T* inst, Pass& pass) {
+	return Router<Pass,T>::dispatch(env, inst, pass);
+}
+template<typename Pass, typename T>
+void* dispatch(void* env, T& inst, Pass& pass) {
+	return Router<Pass,T>::dispatch(env, &inst, pass);
+}
+
+template<typename Pass, typename T>
+void* ProcessingNode<Pass,T>::getInstanceName(void* env, T* inst, Pass& p) {
+	return EnvAddSymbol(env, EnvGetInstanceName(env, dispatch(env, inst, p)));
+}
+
+template<typename Pass, typename T>
+void* getInstanceName(void* theEnv, T* instance, Pass& pass) {
+	return ProcessingNode<Pass,T>::getInstanceName(theEnv, instance, pass);
+}
+
+template<typename Pass, typename T>
+void setParent(void* theEnv, T* inst, Pass& pass) {
+	ProcessingNode<Pass,T>::setParent(theEnv, inst, pass);
+}
+
+template<typename Pass, typename T>
+void ProcessingNode<Pass,T>::setParent(void* theEnv, T* target, Pass& pass) {
+	DATA_OBJECT wrapper;
+	void* instanceName = knowledge::getInstanceName(theEnv, target->getParent(), pass);
+	SetType(wrapper, INSTANCE_NAME);
+	SetValue(wrapper, instanceName);
+	EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, target), "parent", &wrapper);
+}
+template<typename Pass, typename T>
+void ProcessingNode<Pass,T>::populateInstance(void* env, T* instance, Pass& pass) { }
+
+template<typename Pass, typename T>
+void ProcessingNode<Pass,T>::buildInstance(llvm::raw_string_ostream& str, void* theEnv, T* data, Pass& pass) { }
+
+template<typename Pass, typename T>
+void* ProcessingNode<Pass,T>::constructInstance(void* env, T* inst, Pass& pass) {
+	std::string tmp;
+	llvm::raw_string_ostream str(tmp);
+	str << "( of ";
+	ElectronClassNameSelector<T>::selectName(str);
+	str << " ";
+	ProcessingNode<Pass,T>::buildInstance(str, env, inst);
+	str << ")";
+	RegisterNativeInstance(env, inst, makeInstance(env, tmp.c_str()));
+	ProcessingNode<Pass,T>::populateInstance(env, inst);
+	return GetNativeInstance(env, inst);
+}
 
 }
 #endif

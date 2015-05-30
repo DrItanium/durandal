@@ -1,6 +1,11 @@
 #ifndef _KNOWLEDGE_ENGINE_H_
 #define _KNOWLEDGE_ENGINE_H_
+#include "knowledge/ExternalAddressRegistration.h"
+#include "knowledge/ClassNameSelector.h"
 #include "knowledge/EngineBookkeeping.h"
+#include "knowledge/ProcessingNode.h"
+#include "knowledge/EngineDecl.h"
+#include "knowledge/GenericProcessing.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -25,21 +30,8 @@ extern "C" {
 #include "clips.h"
 }
 namespace knowledge {
-
-template<typename T>
-struct ExternalAddressRegistration {
-	static int indirectId;
-};
-// SO FUCKING BEAUTIFUL :D
-#define WhenInstanceDoesNotExist(env, instance) \
-	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
-if (potentiallyAlreadyExistingInstance != NULL) { \
-	return potentiallyAlreadyExistingInstance; \
-} else 
-
-
-
-
-
+void* makeInstance(void* theEnv, const std::string& str);
+inline void booleanField(llvm::raw_string_ostream& str, const std::string& name, bool value);
+void directPutMultifield(void* theEnv, void* nativeInstance, const std::string& slotName, void* multifieldData, int multifieldBegin, int multifieldEnd);
 }
 #endif // _KNOWLEDGE_ENGINE_H_

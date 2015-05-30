@@ -38,10 +38,10 @@ namespace knowledge {
 #undef X
 // SO FUCKING BEAUTIFUL :D
 #define Route(type, env, inst) \
-	static void dispatch(void* env, type * inst) 
+	static void* dispatch(void* env, type * inst, Pass& pass) 
 #define BeginCustomDispatch(type, env, inst) \
 	template<typename Pass> \
-	struct Router<type> { \
+	struct Router<Pass, type> { \
 		Route(type, env, inst) { \
 			WhenInstanceDoesNotExist(env, inst) {
 
@@ -50,7 +50,9 @@ namespace knowledge {
 
 
 #define CondDispatch(type, env, val) \
-	if (type* v = llvm::dyn_cast<type>(val)) return Router<Pass, type>::dispatch(env, v)
+	if (type* v = llvm::dyn_cast<type>(val)) return Router<Pass, type>::dispatch(env, v, pass)
+#define Otherwise(type, env, val) \
+	return ProcessingNode<Pass, type>::constructInstance(env, val, pass)
 
 
 BeginCustomDispatch(llvm::TerminatorInst, env, inst)
