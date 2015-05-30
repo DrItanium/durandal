@@ -1,6 +1,6 @@
 #ifndef _CLASS_NAME_SELECTOR_H_
 #define _CLASS_NAME_SELECTOR_H_
-#include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
 namespace knowledge {
 template<typename T>
 struct ElectronClassNameSelector {
