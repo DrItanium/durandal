@@ -42,6 +42,18 @@ void* makeInstance(void* theEnv, const std::string& str);
 inline void booleanField(llvm::raw_string_ostream& str, const std::string& name, bool value);
 void directPutMultifield(void* theEnv, void* nativeInstance, const std::string& slotName, void* multifieldData, int multifieldBegin, int multifieldEnd);
 template<typename T>
+void field(llvm::raw_string_ostream& str, const std::string& name, T value) {
+	str << " (" << name << " " << value << ") ";
+}
+void field(llvm::raw_string_ostream& str, const std::string& name, const std::string& value) {
+	str << " (" << name << " " << value << ") ";
+}
+void field(llvm::raw_string_ostream& str, const std::string& name, bool value) {
+	if (value) {
+		field(str, name, "TRUE");
+	}
+}
+template<typename T>
 struct ExternalAddressRegistration {
 	static int indirectId;
 };
@@ -76,7 +88,7 @@ enum
 if (potentiallyAlreadyExistingInstance != NULL) { \
 	return potentiallyAlreadyExistingInstance; \
 } else 
-
+void* makeInstance(void* theEnv, const std::string& str);
 class EngineBookkeeping {
 	public:
 		EngineBookkeeping();
@@ -106,65 +118,68 @@ template<typename T>
 int getExternalAddressId(void* theEnv) {
 	return GetExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
 }
-template<typename P, typename T>
-struct ProcessingNode {
-	static void* constructInstance(void* env, T* inst, P* pass) {
-		std::string tmp;
-		llvm::raw_string_ostream str(tmp);
-		str << "( of ";
-		ElectronClassNameSelector<T>::selectName(str);
-		str << " ";
-		ProcessingNode<P,T>::buildInstance(str, env, inst);
-		str << ")";
-		RegisterNativeInstance(env, inst, makeInstance(env, tmp.c_str()));
-		ProcessingNode<P,T>::populateInstance(env, inst);
-		return GetNativeInstance(env, inst);
-	}
-	static void populateInstance(void* env, T* instance, P* pass) {
-
-	}
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, T* data, P* pass) {
-
-	}
-	static void* getInstanceName(void* theEnv, T* instance, P* pass);
-	static void setParent(void* theEnv, T* target, P* pass);
+template<typename T, typename Pass = llvm::Pass>
+struct InstanceBuilderNode {
+	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, T* data, Pass* pass) { }
 };
 
-template<typename P, typename T>
+
+template<typename T, typename Pass = llvm::Pass>
+struct InstancePopulatorNode {
+	static void populateInstance(void* env, T* instance, Pass* pass) { }
+};
+template<typename T, typename Pass = llvm::Pass>
+struct InstanceQueryNode {
+	static void* getInstanceName(void* theEnv, T* instance, Pass* pass);
+};
+template<typename T, typename Pass = llvm::Pass>
+struct SetParentNode {
+	static void setParent(void* theEnv, T* target, Pass* pass);
+};
+template<typename T, typename Pass = llvm::Pass>
+struct ProcessingNode {
+	static void* constructInstance(void* env, T* inst, Pass* pass);
+};
+
+template<typename T, typename Pass = llvm::Pass>
 struct Router {
-	static void* dispatch(void* env, T* inst, P* pass) {
+	static void* dispatch(void* env, T* inst, Pass* pass) {
 		WhenInstanceDoesNotExist(env, inst) {
-			return ProcessingNode<P,T>::constructInstance(env, inst, pass);
+			return ProcessingNode<T,Pass>::constructInstance(env, inst, pass);
 		}
 	}
 };
-
-template<typename P, typename T>
-void* dispatch(void* env, T* inst, P* pass) {
-	return Router<P,T>::dispatch(env, inst, pass);
+template<typename T, typename Pass = llvm::Pass>
+void* dispatch(void* env, T* inst, Pass* pass) {
+	return Router<T,Pass>::dispatch(env, inst, pass);
 }
-template<typename P, typename T>
-void* dispatch(void* env, T& inst, P* pass) {
-	return Router<P,T>::dispatch(env, &inst, pass);
+template<typename T, typename Pass = llvm::Pass>
+void* dispatch(void* env, T& inst, Pass* pass) {
+	return Router<T,Pass>::dispatch(env, &inst, pass);
 }
 
-template<typename P, typename T>
-void* ProcessingNode<P,T>::getInstanceName(void* env, T* inst, P* p) {
+template<typename T, typename Pass = llvm::Pass>
+void* dispatch(void* env, T* inst, Pass& pass) {
+	return Router<T,Pass>::dispatch(env, inst, &pass);
+}
+template<typename T, typename Pass = llvm::Pass>
+void* dispatch(void* env, T& inst, Pass& pass) {
+	return Router<T,Pass>::dispatch(env, &inst, &pass);
+}
+
+template<typename T, typename Pass>
+void* InstanceQueryNode<T,Pass>::getInstanceName(void* env, T* inst, Pass* p) {
 	return EnvAddSymbol(env, EnvGetInstanceName(env, dispatch(env, inst, p)));
 }
 
-template<typename P, typename T>
-void* getInstanceName(void* theEnv, T* instance, P* pass) {
-	return ProcessingNode<P,T>::getInstanceName(theEnv, instance, pass);
+template<typename T, typename Pass = llvm::Pass>
+void* getInstanceName(void* theEnv, T* instance, Pass* pass) {
+	return InstanceQueryNode<T,Pass>::getInstanceName(theEnv, instance, pass);
 }
 
-template<typename P, typename T>
-void setParent(void* theEnv, T* inst, P* pass) {
-	ProcessingNode<P,T>::setParent(theEnv, inst, pass);
-}
 
-template<typename P, typename T>
-void ProcessingNode<P,T>::setParent(void* theEnv, T* target, P* pass) {
+template<typename T, typename Pass>
+void SetParentNode<T,Pass>::setParent(void* theEnv, T* target, Pass* pass) {
 	DATA_OBJECT wrapper;
 	void* instanceName = knowledge::getInstanceName(theEnv, target->getParent(), pass);
 	SetType(wrapper, INSTANCE_NAME);
@@ -172,27 +187,43 @@ void ProcessingNode<P,T>::setParent(void* theEnv, T* target, P* pass) {
 	EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, target), "parent", &wrapper);
 }
 
-template<typename T>
-void field(llvm::raw_string_ostream& str, const std::string& name, T value) {
-	str << " (" << name << " " << value << ") ";
+template<typename T, typename Pass = llvm::Pass>
+void setParent(void* theEnv, T* inst, Pass* pass) {
+	SetParentNode<T,Pass>::setParent(theEnv, inst, pass);
 }
-void field(llvm::raw_string_ostream& str, const std::string& name, const std::string& value) {
-	str << " (" << name << " " << value << ") ";
+template<typename T, typename Pass>
+void* ProcessingNode<T,Pass>::constructInstance(void* env, T* inst, Pass* pass) {
+	std::string tmp;
+	llvm::raw_string_ostream str(tmp);
+	str << "( of ";
+	ElectronClassNameSelector<T>::selectName(str);
+	str << " ";
+	InstanceBuilderNode<T, Pass>::buildInstance(str, env, inst, pass);
+	str << ")";
+	RegisterNativeInstance(env, inst, makeInstance(env, tmp.c_str()));
+	InstancePopulatorNode<T,Pass>::populateInstance(env, inst, pass);
+	return GetNativeInstance(env, inst);
 }
-void field(llvm::raw_string_ostream& str, const std::string& name, bool value) {
-	if (value) {
-		field(str, name, "TRUE");
-	}
+
+/*
+template<typename T, typename Pass = llvm::Pass>
+void* constructInstance(void* env, T* inst, Pass* pass) {
+	return ProcessingNode<T, Pass>::constructInstance(env, inst, pass);
 }
-template<typename P>
-struct ProcessingNode<P, llvm::BasicBlock> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* env, llvm::BasicBlock* instance, P* pass) {
+*/
+
+template<typename Pass>
+struct InstanceBuilderNode<llvm::BasicBlock, Pass> {
+	static void buildInstance(llvm::raw_string_ostream& str, void* env, llvm::BasicBlock* instance, Pass* pass) {
 		DATA_OBJECT tmp;
 		field(str, "is-landing-pad", instance->isLandingPad());
 		field(str, "has-address-taken", instance->hasAddressTaken());
 		EnvEval(env, "(printout t partial-specialization crlf)", &tmp);
 	}
-	static void populateInstance(void* env, llvm::BasicBlock* blk, P* pass) {
+};
+template<typename Pass>
+struct InstancePopulatorNode<llvm::BasicBlock, Pass> {
+	static void populateInstance(void* env, llvm::BasicBlock* blk, Pass* pass) {
 		int index = 0;
 		knowledge::setParent(env, blk, pass);
 		if (blk->size() > 0) {
@@ -234,39 +265,39 @@ struct ProcessingNode<P, llvm::BasicBlock> {
 	}
 };
 template<>
-struct ProcessingNode<llvm::BasicBlockPass,llvm::BasicBlock> {
-	static void populateInstance(void* env, llvm::BasicBlock* blk, llvm::BasicBlockPass& pass) {
+struct InstancePopulatorNode<llvm::BasicBlock, llvm::BasicBlockPass> {
+	static void populateInstance(void* env, llvm::BasicBlock* blk, llvm::BasicBlockPass* pass) {
 		//do nothing
 	}
 };
 
-template<typename P>
-struct ProcessingNode<P, llvm::Argument> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Argument* data, P* pass) {
+template<typename Pass>
+struct InstanceBuilderNode<llvm::Argument, Pass> {
+	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Argument* data, Pass* pass) {
 		field(str, "index", data->getArgNo());
 	}
-	static void populateInstance(void* theEnv, llvm::Argument* data, P* pass) {
+};
+template<typename Pass>
+struct InstancePopulatorNode<llvm::Argument, Pass> {
+	static void populateInstance(void* theEnv, llvm::Argument* data, Pass* pass) {
 		knowledge::setParent(theEnv, data, pass);
 	}
 };
 
-template<typename P>
-struct ProcessingNode<P, llvm::Module> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Module * data, P* pass) {
+template<typename Pass>
+struct InstanceBuilderNode<llvm::Module, Pass> {
+	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Module * data, Pass* pass) {
 		field(str, "triple", data->getTargetTriple());
 		field(str, "data-layout", data->getDataLayoutStr());
 		field(str, "module-identifier", data->getModuleIdentifier());
 		field(str, "inline-asm", data->getModuleInlineAsm());
 	}
-	static void populateInstance(void* theEnv, llvm::Module* data, P* pass) { 
-
-	}
 };
 
-template<typename P>
-struct ProcessingNode<P, llvm::Function> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Function* data, P* pass) {
-		ProcessingNode<P, llvm::GlobalObject>::buildInstance(str, theEnv, (llvm::GlobalObject*)data, pass);
+template<typename Pass>
+struct InstanceBuilderNode<llvm::Function, Pass> {
+	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Function* data, Pass* pass) {
+		InstanceBuilderNode<llvm::GlobalObject, Pass>::buildInstance(str, theEnv, (llvm::GlobalObject*)data, pass);
 		field(str, "is-var-arg", data->isVarArg());
 		field(str, "is-materializable", data->isMaterializable());
 		field(str, "is-intrinsic", data->isIntrinsic());
@@ -282,8 +313,11 @@ struct ProcessingNode<P, llvm::Function> {
 		field(str, "needs-unwind-table-entry", data->needsUnwindTableEntry());
 		field(str, "gc", data->getGC());
 	}
-	static void populateInstance(void* theEnv, llvm::Function* data, P* pass) {
-		ProcessingNode<P, llvm::GlobalObject>::populateInstance(theEnv, (llvm::GlobalObject*)data, pass);
+};
+template<typename Pass>
+struct InstancePopulatorNode<llvm::Function, Pass> {
+	static void populateInstance(void* theEnv, llvm::Function* data, Pass* pass) {
+		InstancePopulatorNode<llvm::GlobalObject, Pass>::populateInstance(theEnv, (llvm::GlobalObject*)data, pass);
 	}
 };
 
@@ -298,10 +332,10 @@ struct ProcessingNode<P, llvm::Function> {
 #undef X
 // SO FUCKING BEAUTIFUL :D
 #define Route(type, env, inst) \
-	static void* dispatch(void* env, type * inst, P* pass) 
+	static void* dispatch(void* env, type * inst, Pass* pass) 
 #define BeginCustomDispatch(type, env, inst) \
-	template<typename P> \
-	struct Router<P, type> { \
+	template<typename Pass> \
+	struct Router<type, Pass> { \
 		Route(type, env, inst) { \
 			WhenInstanceDoesNotExist(env, inst) {
 
@@ -310,9 +344,9 @@ struct ProcessingNode<P, llvm::Function> {
 
 
 #define CondDispatch(type, env, val) \
-	if (type* v = llvm::dyn_cast<type>(val)) return Router<P, type>::dispatch(env, v, pass)
+	if (type* v = llvm::dyn_cast<type>(val)) return Router<type, Pass>::dispatch(env, v, pass)
 #define Otherwise(type, env, val) \
-	return ProcessingNode<P, type>::constructInstance(env, val, pass)
+	return ProcessingNode<Pass, type>::constructInstance(env, val, pass)
 
 
 BeginCustomDispatch(llvm::TerminatorInst, env, inst)
