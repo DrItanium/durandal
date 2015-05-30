@@ -1,10 +1,10 @@
 #include "knowledge/FunctionKnowledgeConversionPass.h"
-#include "knowledge/ProcessingNode.h"
+#include "knowledge/Engine.h"
 
 
 namespace knowledge {
 bool FunctionKnowledgeConversionPass::runOnFunctionImpl(llvm::Function& fn) {
-	knowledge::dispatch(theEnv, fn, &this);
+	knowledge::dispatch(theEnv, &fn, this);
 	return false;
 }
 }
