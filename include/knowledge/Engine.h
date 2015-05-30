@@ -32,10 +32,6 @@ struct ElectronClassNameSelector {
 	}
 };
 
-template<typename T>
-struct ExternalAddressRegistration {
-	static int indirectId;
-};
 #define ElectronClassNameAssociation(type, className) \
 	template<> \
 struct ElectronClassNameSelector<type> { \
@@ -43,28 +39,18 @@ struct ElectronClassNameSelector<type> { \
 		str << className ; \
 	} \
 }
+
+template<typename T>
+struct ExternalAddressRegistration {
+	static int indirectId;
+};
 // SO FUCKING BEAUTIFUL :D
 #define WhenInstanceDoesNotExist(env, instance) \
 	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
 if (potentiallyAlreadyExistingInstance != NULL) { \
 	return potentiallyAlreadyExistingInstance; \
 } else 
-#define Otherwise(pass, type, env, val) \
-	return ProcessingNode<pass,type>::constructInstance(env, val)
 
-template<typename P, typename T>
-void* dispatch(void* theEnv, T* instance) {
-	WhenInstanceDoesNotExist(theEnv, instance) {
-		Otherwise(T, theEnv, instance);
-	}
-}
-
-template<typename P, typename T>
-void* dispatch(void* theEnv, T& instance) {
-	WhenInstanceDoesNotExist(theEnv, &instance) {
-		Otherwise(T, theEnv, &instance);
-	}
-}
 
 
 

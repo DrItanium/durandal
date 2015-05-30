@@ -1,7 +1,8 @@
-#ifndef _PROCESSING_NODE_H_
-#define _PROCESSING_NODE_H_
+#ifndef _DISPATCHER_H_
+#define _DISPATCHER_H_
 #include "knowledge/EngineBookkeeping.h"
 #include "knowledge/Engine.h"
+#include "knowledge/ProcessingNode.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -27,22 +28,15 @@ extern "C" {
 }
 namespace knowledge {
 template<typename Pass, typename T>
-struct ProcessingNode {
-	static void* constructInstance(void* env, T* inst) {
-		std::string tmp;
-		llvm::raw_string_ostream str(tmp);
-		str << "( of ";
-		ElectronClassNameSelector<T>::selectName(str);
-		str << " ";
-		ProcessingNode<Pass,T>::buildInstance(str, env, inst);
-		str << ")";
-		RegisterNativeInstance(env, inst, makeInstance(env, tmp.c_str()));
-		ProcessingNode<Pass,T>::populateInstance(env, inst);
-		return GetNativeInstance(env, inst);
+struct Router {
+	static void* dispatch(void* env, T& inst) {
+		return Router<Pass,T>::dispatch(env, &inst);
 	}
-	static void populateInstance(void* env, T* instance) { }
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Module * data) { }
+	static void* dispatch(void* env, T* inst) {
+		WhenInstanceDoesNotExist(env, inst) {
+			return ProcessingNode<Pass,T>::constructInstance(env, inst);
+		}
+	}
 };
-
 }
 #endif
