@@ -43,51 +43,26 @@ struct ElectronClassNameSelector<type> { \
 		str << className ; \
 	} \
 }
-template<typename T>
-void registerExternalAddressId(void* theEnv, struct externalAddressType* ea) {
-	RegisterExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId, ea);
-}
-template<typename T>
-bool containsExternalAddressId(void* theEnv) {
-	return ContainsExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
-}
-template<typename T>
-int getExternalAddressId(void* theEnv) {
-	return GetExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
-}
 // SO FUCKING BEAUTIFUL :D
 #define WhenInstanceDoesNotExist(env, instance) \
 	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
 if (potentiallyAlreadyExistingInstance != NULL) { \
 	return potentiallyAlreadyExistingInstance; \
 } else 
-#define Otherwise(type, env, val) \
-	return constructInstance<type>(env, val)
+#define Otherwise(pass, type, env, val) \
+	return ProcessingNode<pass,type>::constructInstance(env, val)
 
 template<typename P, typename T>
-void* constructInstance(void* theEnv, T* nativeInstance) {
-	std::string tmp;
-	llvm::raw_string_ostream str(tmp);
-	str << "( of ";
-	ElectronClassNameSelector<T>::selectName(str);
-	str << " ";
-	buildInstance(str, theEnv, nativeInstance);
-	str << ")";
-	RegisterNativeInstance(theEnv, nativeInstance, makeInstance(theEnv, tmp.c_str()));
-	populateInstance(theEnv, nativeInstance);
-	return GetNativeInstance(theEnv, nativeInstance);
-}
-template<typename P, typename T>
-void* dispatch(void* theEnv, T* nativeInstance) {
-	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
-		Otherwise(T, theEnv, nativeInstance);
+void* dispatch(void* theEnv, T* instance) {
+	WhenInstanceDoesNotExist(theEnv, instance) {
+		Otherwise(T, theEnv, instance);
 	}
 }
 
 template<typename P, typename T>
-void* dispatch(void* theEnv, T& nativeInstance) {
-	WhenInstanceDoesNotExist(theEnv, &nativeInstance) {
-		Otherwise(T, theEnv, &nativeInstance);
+void* dispatch(void* theEnv, T& instance) {
+	WhenInstanceDoesNotExist(theEnv, &instance) {
+		Otherwise(T, theEnv, &instance);
 	}
 }
 

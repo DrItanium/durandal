@@ -43,5 +43,17 @@ class EngineBookkeeping {
 		// time :D
 		int externalAddrs[RegisteredExternalAddressTypes];
 };
+template<typename T>
+void registerExternalAddressId(void* theEnv, struct externalAddressType* ea) {
+	RegisterExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId, ea);
+}
+template<typename T>
+bool containsExternalAddressId(void* theEnv) {
+	return ContainsExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
+}
+template<typename T>
+int getExternalAddressId(void* theEnv) {
+	return GetExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
+}
 }
 #endif
