@@ -78,7 +78,7 @@ if (potentiallyAlreadyExistingInstance != NULL) { \
 #define Otherwise(type, env, val) \
 	return constructInstance<type>(env, val)
 
-template<typename T>
+template<typename P, typename T>
 void* constructInstance(void* theEnv, T* nativeInstance) {
 	std::string tmp;
 	llvm::raw_string_ostream str(tmp);
@@ -91,14 +91,14 @@ void* constructInstance(void* theEnv, T* nativeInstance) {
 	populateInstance(theEnv, nativeInstance);
 	return GetNativeInstance(theEnv, nativeInstance);
 }
-template<typename T>
+template<typename P, typename T>
 void* dispatch(void* theEnv, T* nativeInstance) {
 	WhenInstanceDoesNotExist(theEnv, nativeInstance) {
 		Otherwise(T, theEnv, nativeInstance);
 	}
 }
 
-template<typename T>
+template<typename P, typename T>
 void* dispatch(void* theEnv, T& nativeInstance) {
 	WhenInstanceDoesNotExist(theEnv, &nativeInstance) {
 		Otherwise(T, theEnv, &nativeInstance);
