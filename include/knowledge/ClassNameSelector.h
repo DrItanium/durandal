@@ -1,5 +1,5 @@
-#ifndef _KNOWLEDGE_ENGINE_H_
-#define _KNOWLEDGE_ENGINE_H_
+#ifndef _CLASS_NAME_SELECTOR_H_
+#define _CLASS_NAME_SELECTOR_H_
 #include "knowledge/EngineBookkeeping.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Instruction.h"
@@ -25,21 +25,21 @@ extern "C" {
 #include "clips.h"
 }
 namespace knowledge {
-
 template<typename T>
-struct ExternalAddressRegistration {
-	static int indirectId;
+struct ElectronClassNameSelector {
+	static void selectName(llvm::raw_string_ostream& str) {
+		str << "";
+	}
 };
-// SO FUCKING BEAUTIFUL :D
-#define WhenInstanceDoesNotExist(env, instance) \
-	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
-if (potentiallyAlreadyExistingInstance != NULL) { \
-	return potentiallyAlreadyExistingInstance; \
-} else 
 
-
-
+#define ElectronClassNameAssociation(type, className) \
+	template<> \
+struct ElectronClassNameSelector<type> { \
+	static void selectName(llvm::raw_string_ostream& str) { \
+		str << className ; \
+	} \
+}
 
 
 }
-#endif // _KNOWLEDGE_ENGINE_H_
+#endif // _CLASS_NAME_SELECTOR_H_

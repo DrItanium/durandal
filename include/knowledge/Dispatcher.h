@@ -27,6 +27,12 @@ extern "C" {
 #include "clips.h"
 }
 namespace knowledge {
+// SO FUCKING BEAUTIFUL :D
+#define WhenInstanceDoesNotExist(env, instance) \
+	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
+if (potentiallyAlreadyExistingInstance != NULL) { \
+	return potentiallyAlreadyExistingInstance; \
+} else 
 template<typename Pass, typename T>
 struct Router {
 	static void* dispatch(void* env, T& inst) {

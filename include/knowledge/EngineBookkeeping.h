@@ -1,6 +1,7 @@
 #ifndef _ENGINE_BOOKKEEPING_H_
 #define _ENGINE_BOOKKEEPING_H_
 #include "llvm/ADT/DenseMap.h"
+#include "knowledge/ClassNameSelector.h"
 extern "C" {
 #include "clips.h"
 }
