@@ -1,4 +1,6 @@
 #include "knowledge/Engine.h"
+#include "knowledge/EngineDecl.h"
+#include "knowledge/EngineBookkeeping.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -6,14 +8,10 @@
 extern "C" {
 #include "clips.h"
 }
-#define buildInstanceHeader(type) \
-	void buildInstance(llvm::raw_string_ostream& str, void* theEnv, type * data)
-#define populateInstanceHeader(type) \
-	void populateInstance(void* theEnv, type * data) 
 #define FIELD(name, value) " (" << name << " " << value << ") "
 namespace knowledge {
 #define X(a, b, c) \
-	int ExternalAddressRegistration<b>::indirectId = ExtAddrType(a);
+	int knowledge::ExternalAddressRegistration<b>::indirectId = ExtAddrType(a);
 #include "knowledge/EngineNodes.def"
 #undef X
 void* makeInstance(void* theEnv, const std::string& str) {
@@ -26,18 +24,18 @@ void* makeInstance(void* theEnv, const std::string& str) {
 	} 
 	return result;
 }
-void booleanField(llvm::raw_string_ostream& str, const std::string& name, bool value) {
+inline void booleanField(llvm::raw_string_ostream& str, const std::string& name, bool value) {
 	if (value) {
 		str << FIELD(name, "TRUE");
 	}
 }
-template<class C> 
+template<typename P, typename C> 
 void* getInstanceName(void* theEnv, C* instance) {
 	return EnvAddSymbol(theEnv, 
 			EnvGetInstanceName(theEnv, 
-				dispatch(theEnv, instance)));
+				dispatch<P>(theEnv, instance)));
 }
-template<class T>
+template<typename P, typename T>
 void setParent(void* theEnv, T* target)
 {
 	DATA_OBJECT wrapper;
@@ -58,21 +56,31 @@ void directPutMultifield(void* theEnv, void* nativeInstance,
 			slotName.c_str(), &wrapper);
 }
 
-buildInstanceHeader(llvm::Module) {
+
+template<typename P> 
+void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Module * data) {
 		str << FIELD("triple", data->getTargetTriple()) 
 			<< FIELD("data-layout", data->getDataLayoutStr()) 
 			<< FIELD("module-identifier", data->getModuleIdentifier())
 			<< FIELD("inline-asm", data->getModuleInlineAsm());
 }
-populateInstanceHeader(llvm::Module) { }
+template<typename P>
+void populateInstance(void* theEnv, llvm::Module* data) { 
+}
 
-buildInstanceHeader(llvm::BasicBlock) {
+template<typename P> 
+void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::BasicBlock * data) {
 	booleanField(str, "is-landing-pad", data->isLandingPad());
 	booleanField(str, "has-address-taken", data->hasAddressTaken());
 }
-populateInstanceHeader(llvm::BasicBlock) {
+template<>
+void populateInstance<llvm::BasicBlockPass, llvm::BasicBlock>(void* theEnv, llvm::BasicBlock* data) {
+
+}
+template<typename P>
+void populateInstance(void* theEnv, llvm::BasicBlock* data)  {
 	int index = 0;
-	setParent(theEnv, data);
+	setParent<P, llvm::BasicBlock>(theEnv, data);
 	if (data->size() > 0) {
 		void* mf = EnvCreateMultifield(theEnv, data->size());
 		index = 1;
@@ -114,15 +122,18 @@ populateInstanceHeader(llvm::BasicBlock) {
 			1, successors.size());
 }
 
-buildInstanceHeader(llvm::Argument) {
+template<typename P> 
+void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Argument* data) {
 	str << FIELD("index", data->getArgNo());
 }
-populateInstanceHeader(llvm::Argument) {
-	setParent(theEnv, data);
+template<typename P>
+void populateInstance(void* theEnv, llvm::Argument* data) {
+	setParent<P>(theEnv, data);
 }
 
-buildInstanceHeader(llvm::Function) {
-	buildInstance(str, theEnv, (llvm::GlobalObject*)data);
+template<typename P> 
+void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Function* data) {
+	buildInstance<P,llvm::GlobalObject>(str, theEnv, (llvm::GlobalObject*)data);
 	str << " (attributes ";
 #define tryInsertAttribute(stream, symbol, cond) if (cond) stream << " " << symbol << " "
 	tryInsertAttribute(str, "is-var-arg", data->isVarArg());
@@ -142,13 +153,10 @@ buildInstanceHeader(llvm::Function) {
 	str << ") " 
 		<< FIELD("gc", data->getGC());
 }
-populateInstanceHeader(llvm::Function) {
-	populateInstance(theEnv, (llvm::GlobalObject*)data);
+template<typename P>
+void populateInstance(void* theEnv, llvm::Function* data) {
+	populateInstance<P,llvm::GlobalObject>(theEnv, (llvm::GlobalObject*)data);
 }
-
-
 #undef FIELD
-#undef populateInstanceHeader
-#undef buildInstanceHeader
 }
 
