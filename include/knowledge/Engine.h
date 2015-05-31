@@ -529,6 +529,9 @@ struct InstanceBuilderNode<llvm::Type, Pass> {
 		field(str, "is-float-type", instance->isFloatTy());
 		field(str, "is-double-type", instance->isDoubleTy());
 		field(str, "is-x86-fp80-type", instance->isX86_FP80Ty());
+		field(str, "is-fp128-type", instance->isFP128Ty());
+		field(str, "is-ppc-fp128-type", instance->isPPC_FP128Ty());
+		field(str, "is-floating-point", instance->isFloatingPointTy());
 		field(str, "is-x86-mmx-type", instance->isX86_MMXTy());
 		field(str, "is-label-type", instance->isLabelTy());
 	}
