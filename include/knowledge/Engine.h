@@ -50,7 +50,11 @@ void field(llvm::raw_string_ostream& str, const std::string& name, const std::st
 void field(llvm::raw_string_ostream& str, const std::string& name, uint64_t value);
 void field(llvm::raw_string_ostream& str, const std::string& name, unsigned value);
 void field(llvm::raw_string_ostream& str, const std::string& name, bool value);
-
+//bool convert(llvm::BasicBlock* blk, llvm::BasicBlockPass* pass);
+//bool convert(llvm::Function* fn, llvm::FunctionPass* pass);
+//bool convert(llvm::Module* mod, llvm::ModulePass* pass);
+//bool convert(llvm::Region* region, llvm::RegionPass* pass);
+//bool convert(llvm::Loop* loop, llvm::LoopPass* pass);
 template<typename T>
 struct ExternalAddressRegistration {
 	static int indirectId;
@@ -127,11 +131,11 @@ struct InstancePopulatorNode {
 };
 template<typename T, typename Pass = llvm::Pass>
 struct InstanceQueryNode {
-	static void* getInstanceName(void* theEnv, T* instance, Pass* pass);
+	static void* queryInstanceName(void* theEnv, T* instance, Pass* pass);
 };
 template<typename T, typename Pass = llvm::Pass>
-struct SetParentNode {
-	static void setParent(void* theEnv, T* target, Pass* pass);
+struct InstanceParentImbueNode {
+	static void imbueParent(void* theEnv, T* target, Pass* pass);
 };
 template<typename T, typename Pass = llvm::Pass>
 struct ProcessingNode {
@@ -165,18 +169,18 @@ void* dispatch(void* env, T& inst, Pass& pass) {
 }
 
 template<typename T, typename Pass>
-void* InstanceQueryNode<T,Pass>::getInstanceName(void* env, T* inst, Pass* p) {
+void* InstanceQueryNode<T,Pass>::queryInstanceName(void* env, T* inst, Pass* p) {
 	return EnvAddSymbol(env, EnvGetInstanceName(env, dispatch(env, inst, p)));
 }
 
 template<typename T, typename Pass = llvm::Pass>
 void* getInstanceName(void* theEnv, T* instance, Pass* pass) {
-	return InstanceQueryNode<T,Pass>::getInstanceName(theEnv, instance, pass);
+	return InstanceQueryNode<T,Pass>::queryInstanceName(theEnv, instance, pass);
 }
 
 
 template<typename T, typename Pass>
-void SetParentNode<T,Pass>::setParent(void* theEnv, T* target, Pass* pass) {
+void InstanceParentImbueNode<T,Pass>::imbueParent(void* theEnv, T* target, Pass* pass) {
 	DATA_OBJECT wrapper;
 	void* instanceName = getInstanceName(theEnv, target->getParent(), pass);
 	SetType(wrapper, INSTANCE_NAME);
@@ -186,7 +190,7 @@ void SetParentNode<T,Pass>::setParent(void* theEnv, T* target, Pass* pass) {
 
 template<typename T, typename Pass = llvm::Pass>
 void setParent(void* theEnv, T* inst, Pass* pass) {
-	SetParentNode<T,Pass>::setParent(theEnv, inst, pass);
+	InstanceParentImbueNode<T,Pass>::imbueParent(theEnv, inst, pass);
 }
 template<typename T, typename Pass>
 void* ProcessingNode<T,Pass>::constructInstance(void* env, T* inst, Pass* pass) {
@@ -203,12 +207,12 @@ void* ProcessingNode<T,Pass>::constructInstance(void* env, T* inst, Pass* pass) 
 }
 
 template<typename T, typename Pass = llvm::Pass>
-void populateInstance(void* env, T* instance, Pass* pass) {
+void populate(void* env, T* instance, Pass* pass) {
 	InstancePopulatorNode<T, Pass>::populateInstance(env, instance, pass);
 }
 
 template<typename T, typename Pass = llvm::Pass>
-void buildInstance(llvm::raw_string_ostream& str, void* env, T* instance, Pass* pass) {
+void build(llvm::raw_string_ostream& str, void* env, T* instance, Pass* pass) {
 	InstanceBuilderNode<T, Pass>::buildInstance(str, env, instance, pass);
 }
 
@@ -245,7 +249,7 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 #define CondDispatch(type, env, val) \
 	if (type* v = llvm::dyn_cast<type>(val)) return Router<type, Pass>::dispatch(env, v, pass)
 #define Otherwise(type, env, val) \
-	return ProcessingNode<Pass, type>::constructInstance(env, val, pass)
+	return ProcessingNode<type, Pass>::constructInstance(env, val, pass)
 
 
 BeginCustomDispatch(llvm::TerminatorInst, env, inst)
@@ -396,7 +400,7 @@ struct name <type, passType>
 	
 
 BeginInstanceBuilderNode_Partial(llvm::IntegerType, str, env, t, p)  {
-	buildInstance(str, env, (llvm::Type*)t, p);
+	build(str, env, (llvm::Type*)t, p);
 	field(str, "bit-width", t->getBitWidth());
 	field(str, "bit-mask", t->getBitMask());
 	field(str, "sign-bit", t->getSignBit());
@@ -405,18 +409,18 @@ BeginInstanceBuilderNode_Partial(llvm::IntegerType, str, env, t, p)  {
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::IntegerType, env, t, p) {
-	populateInstance(env, (llvm::Type*)t, p);
+	populate(env, (llvm::Type*)t, p);
 }
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::FunctionType, str, env, t, p) {
-	buildInstance(str, env, (llvm::Type*)t, p);
+	build(str, env, (llvm::Type*)t, p);
 	field(str, "is-var-arg", t->isVarArg());
 }
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::FunctionType, env, t, p) {
-	populateInstance(env, (llvm::Type*)t, p);
+	populate(env, (llvm::Type*)t, p);
 	directPutInstanceName(env, t, "return-type", 
 			getInstanceName(env, t->getReturnType(), p));
 	void* argsmf = EnvCreateMultifield(env, t->getNumParams());
@@ -431,17 +435,17 @@ BeginInstancePopulatorNode_Partial(llvm::FunctionType, env, t, p) {
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::CompositeType, str, env, t, p) {
-	buildInstance(str, env, (llvm::Type*)t, p);
+	build(str, env, (llvm::Type*)t, p);
 }
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::CompositeType, env, t, p) {
-	populateInstance(env, (llvm::Type*)t, p);
+	populate(env, (llvm::Type*)t, p);
 }
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::StructType, str, env, t, p) {
-	buildInstance(str, env, (llvm::CompositeType*)t, p);
+	build(str, env, (llvm::CompositeType*)t, p);
 	field(str, "packed", t->isPacked());
 	field(str, "literal", t->isLiteral());
 	field(str, "opaque", t->isOpaque());
@@ -453,54 +457,54 @@ BeginInstanceBuilderNode_Partial(llvm::StructType, str, env, t, p) {
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::StructType, env, t, p) {
-	populateInstance(env, (llvm::CompositeType*)t, p);
+	populate(env, (llvm::CompositeType*)t, p);
 }
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::SequentialType, str, env, t, p) {
-	buildInstance(str, env, (llvm::CompositeType*)t, p);
+	build(str, env, (llvm::CompositeType*)t, p);
 }
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::SequentialType, env, t, p) {
-	populateInstance(env, (llvm::CompositeType*)t, p);
+	populate(env, (llvm::CompositeType*)t, p);
 	directPutInstanceName(env, t, "element-type", 
 			getInstanceName(env, t->getElementType(), p));
 }
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::ArrayType, str, env, t, p) {
-	buildInstance(str, env, (llvm::SequentialType*)t, p);
+	build(str, env, (llvm::SequentialType*)t, p);
 	field(str, "num-elements", t->getNumElements());
 }
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::ArrayType, env, t, p) {
-	populateInstance(env, (llvm::SequentialType*)t, p);
+	populate(env, (llvm::SequentialType*)t, p);
 	//TODO: populate sub elements
 }
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::PointerType, str, env, t, p) {
-	buildInstance(str, env, (llvm::SequentialType*)t, p);
+	build(str, env, (llvm::SequentialType*)t, p);
 	field(str, "address-space", t->getAddressSpace());
 }
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::PointerType, env, t, p) {
-	populateInstance(env, (llvm::SequentialType*)t, p);
+	populate(env, (llvm::SequentialType*)t, p);
 	//TODO: populate sub elements
 }
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::VectorType, str, env, t, p) {
-	buildInstance(str, env, (llvm::SequentialType*)t, p);
+	build(str, env, (llvm::SequentialType*)t, p);
 	field(str, "bit-width", t->getBitWidth());
 }
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::VectorType, env, t, p) {
-	populateInstance(env, (llvm::SequentialType*)t, p);
+	populate(env, (llvm::SequentialType*)t, p);
 	//TODO: populate sub elements
 }
 EndInstancePopulatorNode
@@ -569,7 +573,7 @@ BeginInstancePopulatorNode_Partial(llvm::Value, env, v, p) {
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::Argument, str, env, t, p) {
-	buildInstance(str, env, (llvm::Value*)t, p);
+	build(str, env, (llvm::Value*)t, p);
 	field(str, "index", t->getArgNo());
 	//TODO: migrate these attributes to a list to make code maintentance easier
 	field(str, "non-null-attr", t->hasNonNullAttr());
@@ -594,61 +598,69 @@ BeginInstanceBuilderNode_Partial(llvm::Argument, str, env, t, p) {
 EndInstancePopulatorNode
 
 BeginInstancePopulatorNode_Partial(llvm::Argument, env, t, p) {
-	populateInstance(env, (llvm::Value*)t, p);
+	populate(env, (llvm::Value*)t, p);
 	knowledge::setParent(env, t, p);
 }
 EndInstancePopulatorNode
 
-template<typename Pass>
-struct InstanceBuilderNode<llvm::BasicBlock, Pass> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* env, llvm::BasicBlock* instance, Pass* pass) {
-		field(str, "is-landing-pad", instance->isLandingPad());
-		field(str, "has-address-taken", instance->hasAddressTaken());
-	}
-};
-template<typename Pass>
-struct InstancePopulatorNode<llvm::BasicBlock, Pass> {
-	static void populateInstance(void* env, llvm::BasicBlock* blk, Pass* pass) {
-		int index = 0;
-		knowledge::setParent(env, blk, pass);
-		if (blk->size() > 0) {
-			void* mf = EnvCreateMultifield(env, blk->size());
-			index = 1;
-			for(llvm::BasicBlock::iterator it = blk->begin();
-					it != blk->end();
-					++it, ++index) {
-				llvm::Instruction& inst = *it;
-				SetMFType(mf, index, INSTANCE_NAME);
-				SetMFValue(mf, index, getInstanceName(env, &inst, pass));
-			}
-			directPutMultifield(env, blk, "contents", mf, 1, index - 1);
-		}
-		llvm::SmallVector<llvm::BasicBlock*, 8> preds(pred_begin(blk), pred_end(blk));
-		void *predmf = EnvCreateMultifield(env, preds.size());
-		index = 1;
-		for (llvm::SmallVector<llvm::BasicBlock*,8>::iterator it = preds.begin();
-				it != preds.end(); ++it, ++index) {
-			SetMFType(predmf, index, INSTANCE_NAME);
-			SetMFValue(predmf, index, getInstanceName(env, *it, pass));
-		}
-		directPutMultifield(env, blk, "predecessors", predmf, 1, preds.size());
 
-		llvm::SmallVector<llvm::BasicBlock*, 8> succs(succ_begin(blk), succ_end(blk));
-		void *succmf = EnvCreateMultifield(env, succs.size());
-		void *prodmf = EnvCreateMultifield(env, succs.size());
-		index = 1;
-		for (llvm::SmallVector<llvm::BasicBlock*, 8>::iterator it = succs.begin(); 
-				it != succs.end(); ++it, ++index) {
-			void* result = getInstanceName(env, *it, pass);
-			SetMFType(prodmf, index, INSTANCE_NAME);
-			SetMFValue(prodmf, index, result);
-			SetMFType(succmf, index, INSTANCE_NAME);
-			SetMFValue(succmf, index, result);
+BeginInstanceBuilderNode_Partial(llvm::BasicBlock, str, env, t, p) {
+	build(str, env, (llvm::Value*)t, p);
+	field(str, "is-landing-pad", t->isLandingPad());
+	field(str, "has-address-taken", t->hasAddressTaken());
+}
+EndInstanceBuilderNode
+
+void commonPopulateInstance(void* env, llvm::BasicBlock* t, llvm::Pass* p) {
+	populate(env, (llvm::Value*)t, p);
+	if (t->size() > 0) {
+		void* mf = EnvCreateMultifield(env, t->size());
+		int index = 1;
+		for(llvm::BasicBlock::iterator it = t->begin();
+				it != t->end();
+				++it, ++index) {
+			llvm::Instruction& inst = *it;
+			SetMFType(mf, index, INSTANCE_NAME);
+			SetMFValue(mf, index, getInstanceName(env, &inst, p));
 		}
-		directPutMultifield(env, blk, "successors", succmf, 1, succs.size());
-		directPutMultifield(env, blk, "produces", prodmf, 1, succs.size());
+		directPutMultifield(env, t, "contents", mf, 1, index - 1);
 	}
-};
+}
+BeginInstancePopulatorNode_Full(llvm::BasicBlock, llvm::BasicBlockPass, env, t, p) {
+	commonPopulateInstance(env, t, p);
+}
+EndInstancePopulatorNode
+
+BeginInstancePopulatorNode_Partial(llvm::BasicBlock, env, blk, p) {
+	commonPopulateInstance(env, blk, p);
+	int index = 0;
+	knowledge::setParent(env, blk, p);
+	llvm::SmallVector<llvm::BasicBlock*, 8> preds(pred_begin(blk), pred_end(blk));
+	void *predmf = EnvCreateMultifield(env, preds.size());
+	index = 1;
+	for (llvm::SmallVector<llvm::BasicBlock*,8>::iterator it = preds.begin();
+			it != preds.end(); ++it, ++index) {
+		SetMFType(predmf, index, INSTANCE_NAME);
+		SetMFValue(predmf, index, getInstanceName(env, *it, p));
+	}
+	directPutMultifield(env, blk, "predecessors", predmf, 1, preds.size());
+
+	llvm::SmallVector<llvm::BasicBlock*, 8> succs(succ_begin(blk), succ_end(blk));
+	void *succmf = EnvCreateMultifield(env, succs.size());
+	void *prodmf = EnvCreateMultifield(env, succs.size());
+	index = 1;
+	for (llvm::SmallVector<llvm::BasicBlock*, 8>::iterator it = succs.begin(); 
+			it != succs.end(); ++it, ++index) {
+		void* result = getInstanceName(env, *it, p);
+		SetMFType(prodmf, index, INSTANCE_NAME);
+		SetMFValue(prodmf, index, result);
+		SetMFType(succmf, index, INSTANCE_NAME);
+		SetMFValue(succmf, index, result);
+	}
+	directPutMultifield(env, blk, "successors", succmf, 1, succs.size());
+	directPutMultifield(env, blk, "produces", prodmf, 1, succs.size());
+}
+EndInstancePopulatorNode
 
 template<typename Pass>
 struct InstanceBuilderNode<llvm::Module, Pass> {
@@ -663,7 +675,7 @@ struct InstanceBuilderNode<llvm::Module, Pass> {
 template<typename Pass>
 struct InstanceBuilderNode<llvm::Function, Pass> {
 	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Function* data, Pass* pass) {
-		InstanceBuilderNode<llvm::GlobalObject, Pass>::buildInstance(str, theEnv, (llvm::GlobalObject*)data, pass);
+		build(str, theEnv, (llvm::GlobalObject*)data, pass);
 		field(str, "is-var-arg", data->isVarArg());
 		field(str, "is-materializable", data->isMaterializable());
 		field(str, "is-intrinsic", data->isIntrinsic());
@@ -681,12 +693,6 @@ struct InstanceBuilderNode<llvm::Function, Pass> {
 	}
 };
 // Basic Block Pass
-template<>
-struct InstancePopulatorNode<llvm::BasicBlock, llvm::BasicBlockPass> {
-	static void populateInstance(void* env, llvm::BasicBlock* blk, llvm::BasicBlockPass* pass) {
-		//do nothing
-	}
-};
 
 }
 #endif
