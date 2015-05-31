@@ -458,15 +458,6 @@ EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::StructType, env, t, p) {
 	populateInstance(env, (llvm::CompositeType*)t, p);
-	// TODO: populate elements
-	void* elementmf = EnvCreateMultifield(env, t->getNumElements());
-	int elementIndex = 1;
-	for (llvm::StructType::element_iterator it = t->element_begin();
-			it != t->element_end(); ++it, ++elementIndex) {
-		SetMFType(elementmf, elementIndex, INSTANCE_NAME);
-		SetMFValue(elementmf, elementIndex, knowledge::getInstanceName(env, *it, p));
-	}
-	directPutMultifield(env, t, "elements", elementmf, 1, elementIndex - 1);
 }
 EndInstancePopulatorNode
 
@@ -521,21 +512,51 @@ EndInstancePopulatorNode
 
 
 
-template<typename Pass>
-struct InstanceBuilderNode<llvm::Type, Pass> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* env, llvm::Type* instance, Pass* pass) {
-		field(str, "is-void-type", instance->isVoidTy());
-		field(str, "is-half-type", instance->isHalfTy());
-		field(str, "is-float-type", instance->isFloatTy());
-		field(str, "is-double-type", instance->isDoubleTy());
-		field(str, "is-x86-fp80-type", instance->isX86_FP80Ty());
-		field(str, "is-fp128-type", instance->isFP128Ty());
-		field(str, "is-ppc-fp128-type", instance->isPPC_FP128Ty());
-		field(str, "is-floating-point", instance->isFloatingPointTy());
-		field(str, "is-x86-mmx-type", instance->isX86_MMXTy());
-		field(str, "is-label-type", instance->isLabelTy());
+BeginInstanceBuilderNode_Partial(llvm::Type, str, env, t, p) {
+	field(str, "is-void-type", t->isVoidTy());
+	field(str, "is-half-type", t->isHalfTy());
+	field(str, "is-float-type", t->isFloatTy());
+	field(str, "is-double-type", t->isDoubleTy());
+	field(str, "is-x86-fp80-type", t->isX86_FP80Ty());
+	field(str, "is-fp128-type", t->isFP128Ty());
+	field(str, "is-ppc-fp128-type", t->isPPC_FP128Ty());
+	field(str, "is-floating-point", t->isFloatingPointTy());
+	field(str, "is-x86-mmx-type", t->isX86_MMXTy());
+	field(str, "is-fp-or-fp-vector-type", t->isFPOrFPVectorTy());
+	field(str, "is-label-type", t->isLabelTy());
+	field(str, "is-metadata-type", t->isMetadataTy());
+	field(str, "is-int-or-int-vector-type", t->isIntOrIntVectorTy());
+	field(str, "is-ptr-or-ptr-vector-type", t->isPtrOrPtrVectorTy());
+	field(str, "is-empty-type", t->isEmptyTy());
+	field(str, "is-first-class-type", t->isFirstClassType());
+	field(str, "is-single-value-type", t->isSingleValueType());
+	field(str, "is-aggregate-type", t->isAggregateType());
+	field(str, "primitive-bit-size", t->getPrimitiveSizeInBits());
+	field(str, "scalar-bit-size", t->getScalarSizeInBits());
+	field(str, "fp-mantissa-width", t->getFPMantissaWidth());
+	// omit the entries like is-integer-type since CLIPS' type system has
+	// awesome reflective capabilities
+	//
+}
+EndInstanceBuilderNode
+
+BeginInstancePopulatorNode_Partial(llvm::Type, env, t, p) {
+	// first populate the scalar type, this can be a wierd case as it may
+	// return this class! So it is something to be aware of in CLIPS itself
+	directPutInstanceName(env, t, "scalar-type", 
+			knowledge::getInstanceName(env, t->getScalarType(), p));
+	if (t->getNumContainedTypes() > 0) {
+		void* elementmf = EnvCreateMultifield(env, t->getNumContainedTypes());
+		int elementIndex = 1;
+		for (llvm::StructType::element_iterator it = t->subtype_begin();
+				it != t->subtype_end(); ++it, ++elementIndex) {
+			SetMFType(elementmf, elementIndex, INSTANCE_NAME);
+			SetMFValue(elementmf, elementIndex, knowledge::getInstanceName(env, *it, p));
+		}
+		directPutMultifield(env, t, "subtypes", elementmf, 1, elementIndex - 1);
 	}
-};
+}
+EndInstancePopulatorNode
 template<typename Pass>
 struct InstancePopulatorNode<llvm::Value, Pass> {
 	static void populateInstance(void* env, llvm::Value* v, Pass* pass) {
