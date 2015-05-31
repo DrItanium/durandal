@@ -231,7 +231,7 @@ void* ProcessingNode<T,Pass>::constructInstance(void* env, T* inst, Pass* pass) 
 	str << " ";
 	InstanceBuilderNode<T, Pass>::buildInstance(str, env, inst, pass);
 	str << ")";
-	RegisterNativeInstance(env, inst, makeInstance(env, tmp.c_str()));
+	RegisterNativeInstance(env, inst, makeInstance(env, str.str().c_str()));
 	InstancePopulatorNode<T,Pass>::populateInstance(env, inst, pass);
 	return GetNativeInstance(env, inst);
 }
@@ -800,25 +800,6 @@ extern "C" void RegisterEngineBookkeeping(void* theEnv) {
 #undef X
 
 }
-// Generate the registrationFunctions
-#define STR(input) #input
-// Automate the building of these types since they'll always be the same
-#define X(shortType, fullType, str) \
-    void RegisterExternalAddress_Native ## shortType (void* theEnv) { \
-        struct externalAddressType tmp = { \
-            STR(Native ## shortType), \
-            PrintNative ## shortType ## Address , \
-            PrintNative ## shortType ## Address , \
-            DeallocateNative ## shortType , \
-            NewNative ## shortType , \
-            CallNative ## shortType, \
-        }; \
-        knowledge::registerExternalAddressId<fullType>(theEnv, &tmp); \
-    }
-#include "knowledge/EngineNodes.def"
-#undef X
-
-
 extern "C" void RegisterNativeInstance(void* theEnv, void* native, void* instance) {
     std::string iname(EnvGetInstanceName(theEnv, instance));
     EngineBookkeepingData(theEnv)->registerInstance(native, iname);
@@ -843,45 +824,76 @@ extern "C" bool ContainsExternAddressId(void* theEnv, int type) {
 extern "C" int GetExternalAddressId(void* theEnv, int type) {
     return EngineBookkeepingData(theEnv)->getRelatedExternalAddress(type);
 }
+// Generate the registrationFunctions
+#define STR(input) #input
+// Automate the building of these types since they'll always be the same
+//
+// We only support copying already existing external addresses instead of
+// building new ones which doesn't actually make sense at this point.
+//
+// Since we are storing the pointers directly, deallocation really isn't
+// necessary, this could change but for now this will work
+namespace {
+	void printHexIntoClips(void* theEnv, const char* logicalName, const std::string& name, void* ptr) {
+		// use c++'s iostream stuff
+		std::string t;
+		llvm::raw_string_ostream str(t);
+		str << "<Pointer-" << name << "-" << ptr << ">";
+		EnvPrintRouter(theEnv, logicalName, str.str().c_str());
+	}
+}
+#define X(shortType, fullType, str) \
+void RegisterExternalAddress_Native ## shortType (void* theEnv) { \
+	struct externalAddressType tmp = { \
+		STR(Native ## shortType), \
+		PrintNative ## shortType ## Address , \
+		PrintNative ## shortType ## Address , \
+		DeallocateNative ## shortType , \
+		NewNative ## shortType , \
+		CallNative ## shortType, \
+	}; \
+	knowledge::registerExternalAddressId<fullType>(theEnv, &tmp); \
+} \
+void NewNative ## shortType (void* theEnv, DATA_OBJECT* retVal) { \
+	int count; \
+	fullType * tmp; \
+	DATA_OBJECT x; \
+	count = EnvRtnArgCount(theEnv); \
+	if (count == 2) { \
+		if (EnvArgTypeCheck(theEnv, "new (llvm " STR(shortType) ")", 2, EXTERNAL_ADDRESS, &x) == FALSE) { \
+			PrintErrorID(theEnv, "NEW", 1, FALSE); \
+			EnvPrintRouter(theEnv, WERROR, "Function new expected an external address as the second argument.\n"); \
+			SetEvaluationError(theEnv, TRUE); \
+			return; \
+		} \
+		if (EnvDOToExternalAddressType(theEnv, x) != knowledge::getExternalAddressId<fullType>(theEnv)) { \
+			PrintErrorID(theEnv, "NEW", 1, FALSE); \
+			EnvPrintRouter(theEnv, WERROR, "Attempted to make a copy of the wrong external address type as " STR(shortType) "!\n"); \
+			SetEvaluationError(theEnv, TRUE); \
+			return; \
+		} \
+		tmp = (fullType *)DOToExternalAddress(x); \
+		SetpType(retVal, EXTERNAL_ADDRESS); \
+		SetpValue(retVal, EnvAddExternalAddress(theEnv, (void*)tmp, knowledge::getExternalAddressId<fullType>(theEnv))); \
+		return; \
+	}  else { \
+		PrintErrorID(theEnv, "NEW", 1, FALSE); \
+		EnvPrintRouter(theEnv, WERROR, "Too many or too few arguments passed while trying to construct a new " STR(shortType) "!\n"); \
+		SetEvaluationError(theEnv, TRUE); \
+		return; \
+	} \
+} \
+intBool DeallocateNative ## shortType (void* theEnv, void* theValue) { \
+	return TRUE; \
+} \
+void PrintNative ## shortType ## Address(void* theEnv, const char* logicalName, void* theValue) { \
+	printHexIntoClips(theEnv, logicalName, STR(Native ## shortType), ValueToExternalAddress(theValue)); \
+}
+#include "knowledge/EngineNodes.def"
+#undef X
+
+
 #define X(a, b, c) \
 	int knowledge::ExternalAddressRegistration<b>::indirectId = ExtAddrType(a);
 #include "knowledge/EngineNodes.def"
 #undef X
-
-#define X(shortType, fullType, unused) \
-    void NewNative ## shortType (void* theEnv, DATA_OBJECT* retVal) { \
-        int count; \
-        fullType * tmp; \
-        DATA_OBJECT x; \
-        count = EnvRtnArgCount(theEnv); \
-        if (count == 2) { \
-            if (EnvArgTypeCheck(theEnv, "new (llvm " STR(shortType) ")", 2, EXTERNAL_ADDRESS, &x) == FALSE) { \
-                PrintErrorID(theEnv, "NEW", 1, FALSE); \
-                EnvPrintRouter(theEnv, WERROR, "Function new expected an external address as the second argument.\n"); \
-                SetEvaluationError(theEnv, TRUE); \
-                return; \
-            } \
-            if (EnvDOToExternalAddressType(theEnv, x) != knowledge::getExternalAddressId<fullType>(theEnv)) { \
-                PrintErrorID(theEnv, "NEW", 1, FALSE); \
-                EnvPrintRouter(theEnv, WERROR, "Attempted to make a copy of the wrong external address type as " STR(shortType) "!\n"); \
-                SetEvaluationError(theEnv, TRUE); \
-                return; \
-            } \
-            tmp = (fullType *)DOToExternalAddress(x); \
-            SetpType(retVal, EXTERNAL_ADDRESS); \
-            SetpValue(retVal, EnvAddExternalAddress(theEnv, (void*)tmp, knowledge::getExternalAddressId<fullType>(theEnv))); \
-            return; \
-        }  else { \
-            PrintErrorID(theEnv, "NEW", 1, FALSE); \
-            EnvPrintRouter(theEnv, WERROR, "Too many or too few arguments passed while trying to construct a new " STR(shortType) "!\n"); \
-            SetEvaluationError(theEnv, TRUE); \
-            return; \
-        } \
-    }
-#include "knowledge/EngineNodes.def"
-#undef X
-#define DefaultDeallocateImplementation(shortType) \
-    intBool DeallocateNative ## shortType (void* theEnv, void* theValue) { \
-        return TRUE; \
-    }
-#undef DefaultDeallocateImplementation
