@@ -44,6 +44,25 @@ void directPutInstanceName(void* env, void* addr, const std::string& slotName, v
 	SetValue(wrapper, iname);
 	EnvDirectPutSlot(env, GetNativeInstance(env, addr), slotName.c_str(), &wrapper);
 }
+void field(llvm::raw_string_ostream& str, const std::string& name, const std::string& value) {
+	str << " (" << name << " " << value << ") ";
+}
+void field(llvm::raw_string_ostream& str, const std::string& name, uint64_t value) {
+	if (value > 0) {
+		str << " (" << name << " " << value << ") ";
+	}
+}
+void field(llvm::raw_string_ostream& str, const std::string& name, unsigned value) {
+	if (value > 0) {
+		str << " (" << name << " " << value << ") ";
+	}
+
+}
+void field(llvm::raw_string_ostream& str, const std::string& name, bool value) {
+	if (value) {
+		field(str, name, "TRUE");
+	}
+}
 
 
 #undef FIELD

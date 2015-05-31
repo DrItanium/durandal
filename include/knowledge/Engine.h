@@ -46,14 +46,11 @@ template<typename T>
 void field(llvm::raw_string_ostream& str, const std::string& name, T value) {
 	str << " (" << name << " " << value << ") ";
 }
-void field(llvm::raw_string_ostream& str, const std::string& name, const std::string& value) {
-	str << " (" << name << " " << value << ") ";
-}
-void field(llvm::raw_string_ostream& str, const std::string& name, bool value) {
-	if (value) {
-		field(str, name, "TRUE");
-	}
-}
+void field(llvm::raw_string_ostream& str, const std::string& name, const std::string& value);
+void field(llvm::raw_string_ostream& str, const std::string& name, uint64_t value);
+void field(llvm::raw_string_ostream& str, const std::string& name, unsigned value);
+void field(llvm::raw_string_ostream& str, const std::string& name, bool value);
+
 template<typename T>
 struct ExternalAddressRegistration {
 	static int indirectId;
@@ -89,7 +86,6 @@ enum
 if (potentiallyAlreadyExistingInstance != NULL) { \
 	return potentiallyAlreadyExistingInstance; \
 } else 
-void* makeInstance(void* theEnv, const std::string& str);
 class EngineBookkeeping {
 	public:
 		EngineBookkeeping();
@@ -182,7 +178,7 @@ void* getInstanceName(void* theEnv, T* instance, Pass* pass) {
 template<typename T, typename Pass>
 void SetParentNode<T,Pass>::setParent(void* theEnv, T* target, Pass* pass) {
 	DATA_OBJECT wrapper;
-	void* instanceName = knowledge::getInstanceName(theEnv, target->getParent(), pass);
+	void* instanceName = getInstanceName(theEnv, target->getParent(), pass);
 	SetType(wrapper, INSTANCE_NAME);
 	SetValue(wrapper, instanceName);
 	EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, target), "parent", &wrapper);
@@ -422,13 +418,13 @@ EndInstanceBuilderNode
 BeginInstancePopulatorNode_Partial(llvm::FunctionType, env, t, p) {
 	populateInstance(env, (llvm::Type*)t, p);
 	directPutInstanceName(env, t, "return-type", 
-			knowledge::getInstanceName(env, t->getReturnType(), p));
+			getInstanceName(env, t->getReturnType(), p));
 	void* argsmf = EnvCreateMultifield(env, t->getNumParams());
 	int argIndex = 1;
 	for (llvm::FunctionType::param_iterator it = t->param_begin();
 			it != t->param_end(); ++it, ++argIndex) {
 		SetMFType(argsmf, argIndex, INSTANCE_NAME);
-		SetMFValue(argsmf, argIndex, knowledge::getInstanceName(env, *it, p));
+		SetMFValue(argsmf, argIndex, getInstanceName(env, *it, p));
 	}
 	directPutMultifield(env, t, "params", argsmf, 1, argIndex - 1);
 }
@@ -469,7 +465,7 @@ EndInstanceBuilderNode
 BeginInstancePopulatorNode_Partial(llvm::SequentialType, env, t, p) {
 	populateInstance(env, (llvm::CompositeType*)t, p);
 	directPutInstanceName(env, t, "element-type", 
-			knowledge::getInstanceName(env, t->getElementType(), p));
+			getInstanceName(env, t->getElementType(), p));
 }
 EndInstancePopulatorNode
 
@@ -544,30 +540,65 @@ BeginInstancePopulatorNode_Partial(llvm::Type, env, t, p) {
 	// first populate the scalar type, this can be a wierd case as it may
 	// return this class! So it is something to be aware of in CLIPS itself
 	directPutInstanceName(env, t, "scalar-type", 
-			knowledge::getInstanceName(env, t->getScalarType(), p));
+			getInstanceName(env, t->getScalarType(), p));
 	if (t->getNumContainedTypes() > 0) {
 		void* elementmf = EnvCreateMultifield(env, t->getNumContainedTypes());
 		int elementIndex = 1;
 		for (llvm::StructType::element_iterator it = t->subtype_begin();
 				it != t->subtype_end(); ++it, ++elementIndex) {
 			SetMFType(elementmf, elementIndex, INSTANCE_NAME);
-			SetMFValue(elementmf, elementIndex, knowledge::getInstanceName(env, *it, p));
+			SetMFValue(elementmf, elementIndex, getInstanceName(env, *it, p));
 		}
 		directPutMultifield(env, t, "subtypes", elementmf, 1, elementIndex - 1);
 	}
 }
 EndInstancePopulatorNode
-template<typename Pass>
-struct InstancePopulatorNode<llvm::Value, Pass> {
-	static void populateInstance(void* env, llvm::Value* v, Pass* pass) {
-		const std::string type("type");
-		void* typeInstance = knowledge::dispatch(env, v->getType(), pass);
-		DATA_OBJECT wrapper;
-		SetType(wrapper, INSTANCE_NAME);
-		SetValue(wrapper, knowledge::dispatch(env, v->getType(), pass));
-		EnvDirectPutSlot(env, GetNativeInstance(env, v), type.c_str(), &wrapper);
-	}
-};
+BeginInstanceBuilderNode_Partial(llvm::Value, str, env, v, p) {
+	field(str, "value-id", v->getValueID());
+	field(str, "has-value-handle", v->hasValueHandle());
+	field(str, "is-used-by-metadata", v->isUsedByMetadata());
+}
+EndInstanceBuilderNode
+
+BeginInstancePopulatorNode_Partial(llvm::Value, env, v, p) {
+	directPutInstanceName(env, v, "native-type", 
+			getInstanceName(env, v->getType(), p));
+	//TODO: add support for converting user and perhaps use iterators to
+	// knowledge
+}
+EndInstancePopulatorNode
+
+BeginInstanceBuilderNode_Partial(llvm::Argument, str, env, t, p) {
+	buildInstance(str, env, (llvm::Value*)t, p);
+	field(str, "index", t->getArgNo());
+	//TODO: migrate these attributes to a list to make code maintentance easier
+	field(str, "non-null-attr", t->hasNonNullAttr());
+	field(str, "has-by-val-attr", t->hasByValAttr());
+	field(str, "has-by-val-or-in-alloca-attr", t->hasByValOrInAllocaAttr());
+	if (t->getType()->isPointerTy()) {
+		field(str, "param-alignment", t->getParent());
+		field(str, "num-dereferenceable-bytes", t->getDereferenceableBytes());
+		// this is referenced in the mainline docs but not in 3.6
+		//field(str, "num-dereferenceable-or-null-bytes", t->getDereferenceableOrNullBytes());
+	} 
+	field(str, "has-nest-attr", t->hasNestAttr());
+	field(str, "has-no-alias-attr", t->hasNoAliasAttr());
+	field(str, "has-no-capture-attr", t->hasNoCaptureAttr());
+	field(str, "has-struct-ret-attr", t->hasStructRetAttr());
+	field(str, "has-returned-attr", t->hasReturnedAttr());
+	field(str, "only-reads-memory", t->onlyReadsMemory());
+	field(str, "has-in-alloca-attr", t->hasInAllocaAttr());
+	field(str, "has-zext-attr", t->hasZExtAttr());
+	field(str, "has-sext-attr", t->hasSExtAttr());
+}
+EndInstancePopulatorNode
+
+BeginInstancePopulatorNode_Partial(llvm::Argument, env, t, p) {
+	populateInstance(env, (llvm::Value*)t, p);
+	knowledge::setParent(env, t, p);
+}
+EndInstancePopulatorNode
+
 template<typename Pass>
 struct InstanceBuilderNode<llvm::BasicBlock, Pass> {
 	static void buildInstance(llvm::raw_string_ostream& str, void* env, llvm::BasicBlock* instance, Pass* pass) {
@@ -608,7 +639,7 @@ struct InstancePopulatorNode<llvm::BasicBlock, Pass> {
 		index = 1;
 		for (llvm::SmallVector<llvm::BasicBlock*, 8>::iterator it = succs.begin(); 
 				it != succs.end(); ++it, ++index) {
-			void* result = knowledge::getInstanceName(env, *it, pass);
+			void* result = getInstanceName(env, *it, pass);
 			SetMFType(prodmf, index, INSTANCE_NAME);
 			SetMFValue(prodmf, index, result);
 			SetMFType(succmf, index, INSTANCE_NAME);
@@ -616,18 +647,6 @@ struct InstancePopulatorNode<llvm::BasicBlock, Pass> {
 		}
 		directPutMultifield(env, blk, "successors", succmf, 1, succs.size());
 		directPutMultifield(env, blk, "produces", prodmf, 1, succs.size());
-	}
-};
-template<typename Pass>
-struct InstanceBuilderNode<llvm::Argument, Pass> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Argument* data, Pass* pass) {
-		field(str, "index", data->getArgNo());
-	}
-};
-template<typename Pass>
-struct InstancePopulatorNode<llvm::Argument, Pass> {
-	static void populateInstance(void* theEnv, llvm::Argument* data, Pass* pass) {
-		knowledge::setParent(theEnv, data, pass);
 	}
 };
 
@@ -661,12 +680,6 @@ struct InstanceBuilderNode<llvm::Function, Pass> {
 		field(str, "gc", data->getGC());
 	}
 };
-template<typename Pass>
-struct InstancePopulatorNode<llvm::Function, Pass> {
-	static void populateInstance(void* theEnv, llvm::Function* data, Pass* pass) {
-	}
-};
-
 // Basic Block Pass
 template<>
 struct InstancePopulatorNode<llvm::BasicBlock, llvm::BasicBlockPass> {
