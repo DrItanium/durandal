@@ -1,19 +1,8 @@
 #ifndef _ENGINE_H_
 #define _ENGINE_H_
 #include "llvm/IR/Module.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/Operator.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Value.h"
-#include "llvm/IR/User.h"
-#include "llvm/IR/Argument.h"
-#include "llvm/IR/Constant.h"
-#include "llvm/Analysis/RegionInfo.h"
-#include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/RegionPass.h"
 #include "llvm/Analysis/LoopPass.h"
 extern "C" void RegisterEngineBookkeeping(void* theEnv);

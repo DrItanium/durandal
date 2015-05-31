@@ -1,3 +1,4 @@
+#include "knowledge/Engine.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -22,6 +23,10 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Analysis/RegionInfo.h"
+#include "llvm/Analysis/LoopInfo.h"
+#include "llvm/Analysis/RegionPass.h"
+#include "llvm/Analysis/LoopPass.h"
 extern "C" {
 #include "clips.h"
 }
@@ -34,7 +39,7 @@ extern "C" void RegisterExternalAddressId(void* theEnv, int type, struct externa
 extern "C" bool ContainsExternAddressId(void* theEnv, int type);
 extern "C" int GetExternalAddressId(void* theEnv, int type);
 #define EngineBookkeepingData(theEnv) \
-	((struct knowledge::EngineBookkeeping*) GetEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA))
+	((knowledge::EngineBookkeeping*) GetEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA))
 namespace knowledge {
 #define ExtAddrType(name) RegisterExternalAddressId_ ## name
 enum 
@@ -755,12 +760,21 @@ int  EngineBookkeeping::getRelatedExternalAddress(int type) {
         return -1;
     }
 }
-
-bool convert(void* env, llvm::Function* func, llvm::FunctionPass* pass) {
-	void* result = dispatch(env, func, pass);
+template<typename T, typename P>
+bool conv(void* env, T* t, P* p) {
+	void* result = dispatch(env, t, p);
+	return result != NULL;
 }
+#define declareConvert(type, passType) \
+	bool convert(void* e, type * t, passType * p) { return conv(e, t, p); }
+declareConvert(llvm::Function, llvm::FunctionPass);
+declareConvert(llvm::BasicBlock, llvm::BasicBlockPass);
+declareConvert(llvm::Module, llvm::ModulePass);
+declareConvert(llvm::Loop, llvm::LoopPass);
+declareConvert(llvm::Region, llvm::RegionPass);
+#undef declareConvert
 
-}
+} // namespace knowledge
 
 // Generate the decls for the registration functions
 #define X(shortType, fullType, str) \
