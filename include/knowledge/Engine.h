@@ -41,6 +41,7 @@ namespace knowledge {
 void* makeInstance(void* theEnv, const std::string& str);
 inline void booleanField(llvm::raw_string_ostream& str, const std::string& name, bool value);
 void directPutMultifield(void* theEnv, void* nativeInstance, const std::string& slotName, void* multifieldData, int multifieldBegin, int multifieldEnd);
+void directPutInstanceName(void* env, void* addr, const std::string& slotName, void* iname);
 template<typename T>
 void field(llvm::raw_string_ostream& str, const std::string& name, T value) {
 	str << " (" << name << " " << value << ") ";
@@ -420,7 +421,16 @@ EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::FunctionType, env, t, p) {
 	populateInstance(env, (llvm::Type*)t, p);
-	//TODO: add code to iterate over param types
+	directPutInstanceName(env, t, "return-type", 
+			knowledge::getInstanceName(env, t->getReturnType(), p));
+	void* argsmf = EnvCreateMultifield(env, t->getNumParams());
+	int argIndex = 1;
+	for (llvm::FunctionType::param_iterator it = t->param_begin();
+			it != t->param_end(); ++it, ++argIndex) {
+		SetMFType(argsmf, argIndex, INSTANCE_NAME);
+		SetMFValue(argsmf, argIndex, knowledge::getInstanceName(env, *it, p));
+	}
+	directPutMultifield(env, t, "params", argsmf, 1, argIndex - 1);
 }
 EndInstancePopulatorNode
 
@@ -440,13 +450,23 @@ BeginInstanceBuilderNode_Partial(llvm::StructType, str, env, t, p) {
 	field(str, "literal", t->isLiteral());
 	field(str, "opaque", t->isOpaque());
 	field(str, "has-name", t->hasName());
-	field(str, "struct-name", t->getName());
+	if (t->hasName()) {
+		field(str, "struct-name", t->getName());
+	}
 }
 EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::StructType, env, t, p) {
 	populateInstance(env, (llvm::CompositeType*)t, p);
 	// TODO: populate elements
+	void* elementmf = EnvCreateMultifield(env, t->getNumElements());
+	int elementIndex = 1;
+	for (llvm::StructType::element_iterator it = t->element_begin();
+			it != t->element_end(); ++it, ++elementIndex) {
+		SetMFType(elementmf, elementIndex, INSTANCE_NAME);
+		SetMFValue(elementmf, elementIndex, knowledge::getInstanceName(env, *it, p));
+	}
+	directPutMultifield(env, t, "elements", elementmf, 1, elementIndex - 1);
 }
 EndInstancePopulatorNode
 
@@ -457,16 +477,14 @@ EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::SequentialType, env, t, p) {
 	populateInstance(env, (llvm::CompositeType*)t, p);
-	const std::string elementType("element-type");
-	DATA_OBJECT wrapper;
-	SetType(wrapper, INSTANCE_NAME);
-	SetValue(wrapper, knowledge::dispatch(env, t->getElementType(), p));
-	EnvDirectPutSlot(env, GetNativeInstance(env, t), elementType.c_str(), &wrapper);
+	directPutInstanceName(env, t, "element-type", 
+			knowledge::getInstanceName(env, t->getElementType(), p));
 }
 EndInstancePopulatorNode
 
 BeginInstanceBuilderNode_Partial(llvm::ArrayType, str, env, t, p) {
 	buildInstance(str, env, (llvm::SequentialType*)t, p);
+	field(str, "num-elements", t->getNumElements());
 }
 EndInstanceBuilderNode
 
@@ -512,7 +530,7 @@ struct InstanceBuilderNode<llvm::Type, Pass> {
 		field(str, "is-double-type", instance->isDoubleTy());
 		field(str, "is-x86-fp80-type", instance->isX86_FP80Ty());
 		field(str, "is-x86-mmx-type", instance->isX86_MMXTy());
-		//field(str, "is-label-type", instance->is
+		field(str, "is-label-type", instance->isLabelTy());
 	}
 };
 template<typename Pass>

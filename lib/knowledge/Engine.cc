@@ -38,6 +38,12 @@ void directPutMultifield(void* theEnv, void* nativeInstance,
 	EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, nativeInstance),
 			slotName.c_str(), &wrapper);
 }
+void directPutInstanceName(void* env, void* addr, const std::string& slotName, void* iname) {
+	DATA_OBJECT wrapper;
+	SetType(wrapper, INSTANCE_NAME);
+	SetValue(wrapper, iname);
+	EnvDirectPutSlot(env, GetNativeInstance(env, addr), slotName.c_str(), &wrapper);
+}
 
 
 #undef FIELD
