@@ -217,6 +217,8 @@ void InstanceParentImbueNode<T,Pass>::imbueParent(void* theEnv, T* target, Pass*
 	SetValue(wrapper, instanceName);
 	EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, target), "parent", &wrapper);
 }
+template<typename T>
+void installNativeInstance(void* env, T* target);
 
 template<typename T, typename Pass = llvm::Pass>
 void setParent(void* theEnv, T* inst, Pass* pass) {
@@ -233,6 +235,8 @@ void* ProcessingNode<T,Pass>::constructInstance(void* env, T* inst, Pass* pass) 
 	str << ")";
 	RegisterNativeInstance(env, inst, makeInstance(env, str.str().c_str()));
 	InstancePopulatorNode<T,Pass>::populateInstance(env, inst, pass);
+	// install the native instance
+	installNativeInstance(env, inst);
 	return GetNativeInstance(env, inst);
 }
 
@@ -757,12 +761,19 @@ bool EngineBookkeeping::containsExternalAddress(int type) {
     return type >= 0 && type < RegisteredExternalAddressTypes;
 }
 
-int  EngineBookkeeping::getRelatedExternalAddress(int type) {
+int EngineBookkeeping::getRelatedExternalAddress(int type) {
     if (type >= 0 && type < RegisteredExternalAddressTypes) {
         return externalAddrs[type];
     } else {
         return -1;
     }
+}
+template<typename T>
+void installNativeInstance(void* env, T* target) {
+	DATA_OBJECT wrapper;
+	SetType(wrapper, EXTERNAL_ADDRESS);
+	SetValue(wrapper, EnvAddExternalAddress(env, (void*)target, getExternalAddressId<T>(env)));
+	EnvDirectPutSlot(env, GetNativeInstance(env, target), "native", &wrapper);
 }
 template<typename T, typename P>
 bool conv(void* env, T* t, P* p) {
@@ -841,6 +852,7 @@ namespace {
 		str << "<Pointer-" << name << "-" << ptr << ">";
 		EnvPrintRouter(theEnv, logicalName, str.str().c_str());
 	}
+
 }
 #define X(shortType, fullType, str) \
 void RegisterExternalAddress_Native ## shortType (void* theEnv) { \
