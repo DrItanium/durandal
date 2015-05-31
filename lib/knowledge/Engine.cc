@@ -31,6 +31,10 @@ extern "C" {
 #include "clips.h"
 }
 
+// Extension functions to extract the type of the external address
+#define EnvDOPToExternalAddressType(theEnv, target) (((struct externalAddressHashNode *) ((target)->value))->type)
+#define EnvDOToExternalAddressType(theEnv, target) (((struct externalAddressHashNode *) ((target).value))->type)
+
 #define ENGINE_BOOKKEEPING_DATA (USER_ENVIRONMENT_DATA + 0)
 extern "C" void RegisterNativeInstance(void* theEnv, void* native, void* instance);
 extern "C" bool ContainsNativeInstance(void* theEnv, void* key);
@@ -843,7 +847,8 @@ extern "C" int GetExternalAddressId(void* theEnv, int type) {
 	int knowledge::ExternalAddressRegistration<b>::indirectId = ExtAddrType(a);
 #include "knowledge/EngineNodes.def"
 #undef X
-#define DefaultNewImplementation(shortType, fullType) \
+
+#define X(shortType, fullType, unused) \
     void NewNative ## shortType (void* theEnv, DATA_OBJECT* retVal) { \
         int count; \
         fullType * tmp; \
@@ -856,16 +861,15 @@ extern "C" int GetExternalAddressId(void* theEnv, int type) {
                 SetEvaluationError(theEnv, TRUE); \
                 return; \
             } \
-            if (DOGetExternalAddressType(x) != knowledge::getExternalAddress<fullType>(theEnv)) { \
+            if (EnvDOToExternalAddressType(theEnv, x) != knowledge::getExternalAddressId<fullType>(theEnv)) { \
                 PrintErrorID(theEnv, "NEW", 1, FALSE); \
                 EnvPrintRouter(theEnv, WERROR, "Attempted to make a copy of the wrong external address type as " STR(shortType) "!\n"); \
                 SetEvaluationError(theEnv, TRUE); \
                 return; \
             } \
-            tmp = DOToExternalAddress(x); \
+            tmp = (fullType *)DOToExternalAddress(x); \
             SetpType(retVal, EXTERNAL_ADDRESS); \
-            SetpValue(retVal, EnvAddExternalAddress(theEnv, (void*)tmp, \
-                        knowledge::getExternalAddress<fullType>(theEnv)); \
+            SetpValue(retVal, EnvAddExternalAddress(theEnv, (void*)tmp, knowledge::getExternalAddressId<fullType>(theEnv))); \
             return; \
         }  else { \
             PrintErrorID(theEnv, "NEW", 1, FALSE); \
@@ -873,11 +877,11 @@ extern "C" int GetExternalAddressId(void* theEnv, int type) {
             SetEvaluationError(theEnv, TRUE); \
             return; \
         } \
-    } 
-
+    }
+#include "knowledge/EngineNodes.def"
+#undef X
 #define DefaultDeallocateImplementation(shortType) \
     intBool DeallocateNative ## shortType (void* theEnv, void* theValue) { \
         return TRUE; \
     }
-#undef DefaultNewImplementation
 #undef DefaultDeallocateImplementation
