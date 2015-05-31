@@ -4,8 +4,7 @@
 
 namespace knowledge {
 bool FunctionKnowledgeConversionPass::runOnFunctionImpl(llvm::Function& fn) {
-	knowledge::dispatch(theEnv, &fn, this);
-	return false;
+	return knowledge::convert(theEnv, &fn, this);
 }
 }
 
