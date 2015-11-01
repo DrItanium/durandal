@@ -24,7 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "clips.h"
-#include "libmaya.h"
+#include "maya/libmaya.h"
 
 void MayaDefinitions(void* theEnv) {
 	/* Insert declarations here */

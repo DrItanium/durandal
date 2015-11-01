@@ -24,7 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "clips.h"
-#include "libmaya.h"
+#include "maya/libmaya.h"
 
 #if ARCHITECTURE_IDENTIFICATION
 static void* GetArchitecture(void* theEnv);

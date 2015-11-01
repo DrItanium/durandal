@@ -285,7 +285,9 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 #define Otherwise(type, env, val) \
 	return ProcessingNode<type, Pass>::constructInstance(env, val, pass)
 
-
+// Define the routing code or where to dispatch things of different types to.
+// This is done using macros and templates because writing this by hand is a
+// major pain in the ass
 BeginCustomDispatch(llvm::TerminatorInst, env, inst)
 	CondDispatch(llvm::BranchInst, env, inst);
 	CondDispatch(llvm::IndirectBrInst, env, inst);

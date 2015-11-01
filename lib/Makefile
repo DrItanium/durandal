@@ -9,6 +9,6 @@ DURANDAL_LEVEL=..
 # List all of the subdirectories that we will compile.
 #
 #DIRS=electron knowledge rampancy indirect core pipeline passes
-DIRS=electron knowledge core 
+DIRS=electron knowledge core maya
 
 include $(DURANDAL_LEVEL)/Makefile

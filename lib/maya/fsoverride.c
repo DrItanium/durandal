@@ -24,7 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <stdlib.h>
 #include "clips.h"
-#include "libmaya.h"
+#include "maya/libmaya.h"
 #if FILE_SYSTEM_ROOTING
 #if ! RUN_TIME
 static void deallocateFileSystemRootData(void* theEnv);
