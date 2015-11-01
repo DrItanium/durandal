@@ -28,7 +28,8 @@
 ;------------------------------------------------------------------------------
 (defclass core::Environment 
  "A wrapper over a clips environment"
- (is-a Object InteropObject))
+ (is-a Object 
+       InteropObject))
  ;(role concrete)
  ;(slot pointer (source composite) (access initialize-only)
  ; (visibility public)))
