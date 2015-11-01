@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-;Copyright (c) 2012, Joshua Scoggins 
+;Copyright (c) 2012-2015, Joshua Scoggins 
 ;All rights reserved.
 ;
 ;Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
 ;------------------------------------------------------------------------------
 
 (defmodule rampancy 
- (import core ?ALL)
- (import llvm ?ALL)
- (export ?ALL))
+           (import core ?ALL)
+           (import llvm ?ALL)
+           (export ?ALL))
 
 (load* "modules/rampancy/CompilerWrappers.clp")

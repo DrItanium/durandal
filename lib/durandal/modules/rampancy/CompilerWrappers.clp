@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-;Copyright (c) 2012, Joshua Scoggins 
+;Copyright (c) 2012-2015, Joshua Scoggins 
 ;All rights reserved.
 ;
 ;Redistribution and use in source and binary forms, with or without
@@ -24,12 +24,25 @@
 ;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;------------------------------------------------------------------------------
-(deffunction rampancy::compile (?compiler ?file $?args)
- (rampancy-compile ?compiler (create$ $?args ?file)))
+(deffunction rampancy::compile 
+             (?compiler 
+               ?file 
+               $?args)
+             (rampancy-compile ?compiler 
+                               (create$ $?args 
+                                        ?file)))
 ;------------------------------------------------------------------------------
-(deffunction rampancy::interpret (?compiler ?source)
- (rampancy-interpret ?compiler ?source))
+(deffunction rampancy::interpret 
+             (?compiler 
+               ?source)
+             (rampancy-interpret ?compiler 
+                                 ?source))
 ;------------------------------------------------------------------------------
-(deffunction rampancy::clang (?file $?args)
- (rampancy-compile clang (create$ $?args -x c ?file)))
+(deffunction rampancy::clang
+             (?file 
+               $?args)
+             (rampancy-compile clang 
+                               (create$ $?args 
+                                        -x c 
+                                        ?file)))
 ;------------------------------------------------------------------------------
