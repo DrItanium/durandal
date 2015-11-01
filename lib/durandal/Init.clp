@@ -31,14 +31,13 @@
 ; itself as being a batch-load command which allows multiple loads to occur as 
 ; a single command
 ;------------------------------------------------------------------------------
-(batch-load 
-  (create$ "modules/core/ModuleHeader.clp"
-			  "modules/llvm/ModuleHeader.clp"
-			  "modules/rampancy/ModuleHeader.clp"
-			  "modules/indirect/ModuleHeader.clp"
-			  "modules/types/ModuleHeader.clp"
-			  "modules/pipeline/ModuleHeader.clp"
-			  ; Add entries to other modules here
-			  "passes/PassRegistry.clp"
-			  "modules/main/ModuleHeader.clp"
-			  ))
+(batch* "modules/core/core.clp")
+(batch-load (create$ "modules/llvm/ModuleHeader.clp"
+                     "modules/rampancy/ModuleHeader.clp"
+                     "modules/indirect/ModuleHeader.clp"
+                     "modules/types/ModuleHeader.clp"
+                     "modules/pipeline/ModuleHeader.clp"
+                     ; Add entries to other modules here
+                     "passes/PassRegistry.clp"
+                     "modules/main/ModuleHeader.clp"
+                     ))
