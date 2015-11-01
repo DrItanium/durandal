@@ -1,0 +1,81 @@
+defdefslot(llvm::Type::TypeID) {
+    str << "(slot " << name << "\n"
+        << "(type SYMBOL)\n"
+        << "(allowed-values void half float double x86-fp80\n"
+        << "fp128 ppc-fp128 label metadata\n"
+        << "x86-mmx token integer function\n"
+        << "struct array pointer vector\n"
+        << ")\n"
+        << "(storage local)\n"
+        << "(visibility public))\n";
+}
+BeginDefClassBuilderNode(llvm::Type) {
+    slot(llvm::Type::TypeID, "type-id");
+	bool_slot("is-void-type");
+	bool_slot("is-half-type");
+	bool_slot("is-float-type");
+	bool_slot("is-double-type");
+	bool_slot("is-x86-fp80-type");
+	bool_slot("is-fp128-type");
+	bool_slot("is-ppc-fp128-type");
+	bool_slot("is-floating-point");
+	bool_slot("is-x86-mmx-type");
+	bool_slot("is-fp-or-fp-vector-type");
+	bool_slot("is-label-type");
+	bool_slot("is-metadata-type");
+	bool_slot("is-int-or-int-vector-type");
+	bool_slot("is-ptr-or-ptr-vector-type");
+	bool_slot("is-empty-type");
+	bool_slot("is-first-class-type");
+	bool_slot("is-single-value-type");
+	bool_slot("is-aggregate-type");
+	slot(unsigned, "primitive-bit-size");
+	slot(unsigned, "scalar-bit-size");
+	slot(int, "fp-mantissa-width");
+	slot(llvm::Type*, "scalar-type");
+	slot(const llvm::fltSemantics&, "float-semantics");
+	multislot(llvm::ArrayRef<llvm::Type*>, "sub-types");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::FunctionType) {
+    call_defclass_parent(llvm::Type);
+    multislot(llvm::ArrayRef<Type*>, "parameters");
+    slot(Type*, "return-type");
+    bool_slot("is-var-arg");
+    slot(unsigned, "num-parameters");
+} 
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::IntegerType) {
+    call_defclass_parent(llvm::Type);
+    slot(unsigned, "bit-width");
+    slot(unsigned, "bit-mask");
+    slot(unsigned, "sign-bit");
+    slot(llvm::APInt, "mask");
+    bool_slot("is-power-of-2-byte-width");
+} 
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::CompositeType) {
+    call_defclass_parent(llvm::Type);
+    multislot(llvm::Type*, "indices");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::SequentialType) {
+    call_defclass_parent(llvm::CompositeType);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::StructType) {
+    call_defclass_parent(llvm::CompositeType);
+    bool_slot("is-packed");
+    bool_slot("is-literal");
+    bool_slot("is-opaque");
+    bool_slot("has-name");
+    slot(llvm::StringRef, "struct-name");
+    multislot(llvm::ArrayRef<llvm::Type*> const, "elements");
+    //slot(unsigned, "num-elements");
+}
+EndDefClassBuilderNode

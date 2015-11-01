@@ -434,12 +434,6 @@ struct name <type, passType>
 
 #define EndInstancePopulatorNode EndNode
 	
-struct defclass_thing_builder {
-	static void defclass(llvm::raw_string_ostream& builder, void* theEnv) {
-		builder << "(defclass llvm::thing (is-a object)";
-		builder << ")";
-	}
-};
 BeginInstanceBuilderNode_Partial(llvm::IntegerType, str, env, t, p)  {
 	build(str, env, (llvm::Type*)t, p);
 	field(str, "bit-width", t->getBitWidth());
@@ -815,17 +809,98 @@ struct ElectronClassInheritanceHierarchy<type> { \
 #include "knowledge/EngineNodes.def"
 #undef X
 template<typename T>
-void defclass(void* env) {
+struct ElectronClassSlotBuilder {
+	static void AddSlots(llvm::raw_string_ostream& str) { }
+};
+template<typename T>
+void defslot(llvm::raw_string_ostream& str, const std::string& name) {
+	str << "(slot " << name << "\n"
+		<< "(visibility public))\n";
+}
+template<typename T>
+void defmultislot(llvm::raw_string_ostream& str, const std::string& name) {
+	str << "(multislot " << name << "\n"
+		<< "(visibility public))\n";
+}
+
+#define defdefslot(type) \
+	template<> \
+	void defslot(llvm::raw_string_ostream& str, const std::string& name) 
+
+template<>
+void defslot<bool>(llvm::raw_string_ostream& str, const std::string& name) {
+	str << "(slot " << name << "\n"
+		<< "(type SYMBOL)\n"
+		<< "(visibility public)\n"
+		<< "(allowed-values FALSE\nTRUE))\n";
+}
+#define defstring_defslot(type) \
+template<> \
+void defslot<type>(llvm::raw_string_ostream& str, const std::string& name) { \
+	str << "(slot " << name << "\n" \
+		<< "(type LEXEME)\n"; \
+		<< "(visibility public))\n" \
+}
+
+defstring_defslot(std::string)
+defstring_defslot(llvm::StringRef)
+
+template<> 
+void defslot<unsigned>(llvm::raw_string_ostream& str, const std::string& name) { 
+	str << "(slot " << name << "\n" 
+		<< "(type NUMBER)\n" 
+		<< "(visibility public)\n" 
+		<< "(range 0 ?VARIABLE))\n"; 
+}
+template<>
+void defslot<int>(llvm::raw_string_ostream& str, const std::string& name) {
+	str << "(slot " << name << "\n" 
+		<< "(type NUMBER)\n" 
+		<< "(visibility public))\n";
+}
+
+#define slot(type, name) \
+		defslot<type>(str, name)
+#define multislot(type, name) \
+		defmultislot<type>(str, name)
+#define bool_slot(name) \
+		slot(bool, name)
+template<typename T>
+struct DefClassBuilderNode {
+	static void buildDefClass(llvm::raw_string_ostream& str) { }
+};
+//Build DefClass Node
+#define BeginDefClassBuilderNode(type) \
+	template<> \
+	struct DefClassBuilderNode<type> { \
+		static void buildDefClass(llvm::raw_string_ostream& str)
+
+#define EndDefClassBuilderNode EndNode
+
+#define call_defclass_parent(type) \
+		DefClassBuilderNode<type>::buildDefClass(str)
+#include "knowledge/defclass_slots.def"
+template<typename T>
+void defclass() {
 	std::string tmp;
 	llvm::raw_string_ostream str(tmp);
 	str << "(defclass ";
 	ElectronClassNameSelector<T>::selectName(str);
 	str << " " << "(is-a ";
 	ElectronClassInheritanceHierarchy<T>::getSupertypes(str);
+	str << " "
+	// slots are going to go here
 	str << ")";
 	// print it out at the end
 	printf("%s\n", tmp.c_str());
 }
+void generateDefClasses() {
+#define X(_, fullType, _, _) \
+	defclass<fullType>();
+#include "knowledge/EngineNodes.def"
+#undef X
+}
+
 } // namespace knowledge
 
 // Generate the decls for the registration functions
