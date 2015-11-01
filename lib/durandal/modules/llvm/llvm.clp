@@ -52,7 +52,7 @@
 
 (defclass llvm::diplomat
   "A Diplomat is a collection of fields that interact with other objects."
-  (is-a object)
+  (is-a thing)
   (multislot produces
              (visibility public))
   (multislot consumes

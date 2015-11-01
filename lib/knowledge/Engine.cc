@@ -49,7 +49,7 @@ namespace knowledge {
 enum 
 {
 	// according to the c++ spec these values will start from 0
-#define X(a, b, c) \
+#define X(a, b, c, unused) \
 	ExtAddrType(a),
 #include "knowledge/EngineNodes.def"
 #undef X
@@ -259,7 +259,7 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 
 
 
-#define X(unused, type, className) \
+#define X(unused, type, className, unused2) \
 	ElectronClassNameAssociation(type, className); \
 	template<> \
 	struct ExternalAddressRegistration<type> { \
@@ -434,7 +434,12 @@ struct name <type, passType>
 
 #define EndInstancePopulatorNode EndNode
 	
-
+struct defclass_thing_builder {
+	static void defclass(llvm::raw_string_ostream& builder, void* theEnv) {
+		builder << "(defclass llvm::thing (is-a object)";
+		builder << ")";
+	}
+};
 BeginInstanceBuilderNode_Partial(llvm::IntegerType, str, env, t, p)  {
 	build(str, env, (llvm::Type*)t, p);
 	field(str, "bit-width", t->getBitWidth());
@@ -791,10 +796,40 @@ declareConvert(llvm::Loop, llvm::LoopPass);
 declareConvert(llvm::Region, llvm::RegionPass);
 #undef declareConvert
 
+template<typename T>
+struct ElectronClassInheritanceHierarchy {
+	static void getSupertypes(llvm::raw_string_ostream& str) {
+		str << "USER";
+	}
+};
+
+#define ElectronClassInheritanceAssociation(type, inherits) \
+	template<> \
+struct ElectronClassInheritanceHierarchy<type> { \
+	static void getSupertypes(llvm::raw_string_ostream& str) { \
+		str << inherits ; \
+	} \
+}
+#define X(unused, type, unused2, inherits) \
+	ElectronClassInheritanceAssociation(type, inherits);
+#include "knowledge/EngineNodes.def"
+#undef X
+template<typename T>
+void defclass(void* env) {
+	std::string tmp;
+	llvm::raw_string_ostream str(tmp);
+	str << "(defclass ";
+	ElectronClassNameSelector<T>::selectName(str);
+	str << " " << "(is-a ";
+	ElectronClassInheritanceHierarchy<T>::getSupertypes(str);
+	str << ")";
+	// print it out at the end
+	printf("%s\n", tmp.c_str());
+}
 } // namespace knowledge
 
 // Generate the decls for the registration functions
-#define X(shortType, fullType, str) \
+#define X(shortType, fullType, str, unused) \
     extern "C" void RegisterExternalAddress_Native ## shortType (void* theEnv); \
     void PrintNative ## shortType ## Address (void* theEnv, const char* logicalName, void* theValue);  \
     intBool DeallocateNative ## shortType (void* theEnv, void* theValue); \
@@ -808,7 +843,7 @@ extern "C" void RegisterEngineBookkeeping(void* theEnv) {
 		llvm::report_fatal_error("Error allocating environment data for ENGINE_BOOKKEEPING_DATA");
 	}
 // call of the registration functions
-#define X(shortType, fullType, str) RegisterExternalAddress_Native ## shortType (theEnv);
+#define X(shortType, fullType, str, unused) RegisterExternalAddress_Native ## shortType (theEnv);
 #include "knowledge/EngineNodes.def"
 #undef X
 
@@ -856,7 +891,7 @@ namespace {
 	}
 
 }
-#define X(shortType, fullType, str) \
+#define X(shortType, fullType, str, unused) \
 void RegisterExternalAddress_Native ## shortType (void* theEnv) { \
 	struct externalAddressType tmp = { \
 		STR(Native ## shortType), \
@@ -907,7 +942,7 @@ void PrintNative ## shortType ## Address(void* theEnv, const char* logicalName, 
 #undef X
 
 
-#define X(a, b, c) \
+#define X(a, b, c, unused) \
 	int knowledge::ExternalAddressRegistration<b>::indirectId = ExtAddrType(a);
 #include "knowledge/EngineNodes.def"
 #undef X
