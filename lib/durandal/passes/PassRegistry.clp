@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-;Copyright (c) 2012, Joshua Scoggins 
+;Copyright (c) 2012-2015, Joshua Scoggins 
 ;All rights reserved.
 ;
 ;Redistribution and use in source and binary forms, with or without
@@ -32,62 +32,62 @@
 ;------------------------------------------------------------------------------
 
 (definstances PersistentPassRegistry
- ([test] of Pass
-  (entry-point "passes/test/PassHeader.clp")
-  (pass-name test)
-  (pass-description "A test of the indirect pass system")
-  (pass-type Module)
-  (need-loops TRUE)
-  (need-regions TRUE)
-  (passes test)
-  (required loops regions)
-  (preserves-cfg TRUE)
-  (preserves-all TRUE))
- ([paths] of Pass
-  (entry-point "passes/path/all/PassHeader.clp")
-  (pass-name paths)
-  (pass-description "Generate the set of paths through a given function") 
-  (pass-type Function)
-  (need-loops TRUE)
-  (need-regions TRUE)
-  (passes paths)
-  (required loops regions))
- ([paths-conditional] of Pass
-  (entry-point "passes/path/conditional/PassHeader.clp")
-  (pass-name paths-conditional)
-  (pass-description "Generate the set of paths through a set of target regions")
-  (pass-type Function)
-  (need-loops TRUE)
-  (need-regions TRUE)
-  (passes paths-conditional)
-  (required loops regions))
- ([loop-region-merging] of Pass
-  (entry-point "passes/loop-region-merging/PassHeader.clp")
-  (pass-name loop-region-merging)
-  (pass-description "Merges the loops and regions of a given function into a single logical CFG.")
-  (pass-type Function)
-  (need-loops TRUE)
-  (need-regions TRUE)
-  (passes loop-region-merging)
-  (required loops regions))
- ([dependency-analysis] of Pass
-  (entry-point "passes/dependency-analysis/PassHeader.clp")
-  (pass-name dependency-analysis)
-  (pass-description "Performs dependency analysis between instructions in a function")
-  (pass-type Function)
-  (need-loops TRUE)
-  (need-regions TRUE)
-  (passes dependency-analysis)
-  (required loops regions))
- ([wavefront-scheduling] of Pass
-  (entry-point "passes/wavefront-scheduling/PassHeader.clp")
-  (pass-name wavefront-scheduling)
-  (pass-description "Performs wavefront scheduling on a target function")
-  (pass-type Function)
-  (need-loops TRUE)
-  (need-regions TRUE)
-  (passes wavefront-scheduling)
-  (required loops regions))
- ;Add more passes here
-)
+              ([test] of Pass
+                      (entry-point "passes/test/PassHeader.clp")
+                      (pass-name test)
+                      (pass-description "A test of the indirect pass system")
+                      (pass-type Module)
+                      (need-loops TRUE)
+                      (need-regions TRUE)
+                      (passes test)
+                      (required loops regions)
+                      (preserves-cfg TRUE)
+                      (preserves-all TRUE))
+              ([paths] of Pass
+                       (entry-point "passes/path/all/PassHeader.clp")
+                       (pass-name paths)
+                       (pass-description "Generate the set of paths through a given function") 
+                       (pass-type Function)
+                       (need-loops TRUE)
+                       (need-regions TRUE)
+                       (passes paths)
+                       (required loops regions))
+              ([paths-conditional] of Pass
+                                   (entry-point "passes/path/conditional/PassHeader.clp")
+                                   (pass-name paths-conditional)
+                                   (pass-description "Generate the set of paths through a set of target regions")
+                                   (pass-type Function)
+                                   (need-loops TRUE)
+                                   (need-regions TRUE)
+                                   (passes paths-conditional)
+                                   (required loops regions))
+              ([loop-region-merging] of Pass
+                                     (entry-point "passes/loop-region-merging/PassHeader.clp")
+                                     (pass-name loop-region-merging)
+                                     (pass-description "Merges the loops and regions of a given function into a single logical CFG.")
+                                     (pass-type Function)
+                                     (need-loops TRUE)
+                                     (need-regions TRUE)
+                                     (passes loop-region-merging)
+                                     (required loops regions))
+              ([dependency-analysis] of Pass
+                                     (entry-point "passes/dependency-analysis/PassHeader.clp")
+                                     (pass-name dependency-analysis)
+                                     (pass-description "Performs dependency analysis between instructions in a function")
+                                     (pass-type Function)
+                                     (need-loops TRUE)
+                                     (need-regions TRUE)
+                                     (passes dependency-analysis)
+                                     (required loops regions))
+              ([wavefront-scheduling] of Pass
+                                      (entry-point "passes/wavefront-scheduling/PassHeader.clp")
+                                      (pass-name wavefront-scheduling)
+                                      (pass-description "Performs wavefront scheduling on a target function")
+                                      (pass-type Function)
+                                      (need-loops TRUE)
+                                      (need-regions TRUE)
+                                      (passes wavefront-scheduling)
+                                      (required loops regions))
+              ;Add more passes here
+              )
 ;------------------------------------------------------------------------------
