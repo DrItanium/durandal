@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-;Copyright (c) 2012, Joshua Scoggins 
+;Copyright (c) 2012-2015, Joshua Scoggins 
 ;All rights reserved.
 ;
 ;Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,6 @@
 ; the pipeline
 ;------------------------------------------------------------------------------
 (defclass pipeline::pass-description
- (is-a Object)
- (multislot passes))
+  (is-a object)
+  (multislot passes))
 ;------------------------------------------------------------------------------

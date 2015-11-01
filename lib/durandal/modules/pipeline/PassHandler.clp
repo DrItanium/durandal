@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------
-;Copyright (c) 2012, Joshua Scoggins 
+;Copyright (c) 2012-2015, Joshua Scoggins 
 ;All rights reserved.
 ;
 ;Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,16 @@
                           (arguments $?passes))
          =>
          (retract ?fct)
-         (make-instance of pass-description (passes $?passes)))
+         (make-instance of pass-description 
+                        (passes $?passes)))
 ;------------------------------------------------------------------------------
 (defrule pipeline::next-pass
          ?obj <- (object (is-a pass-description) 
-                         (passes ?first $?rest))
+                         (passes ?first 
+                                 $?rest))
          =>
-         (modify-instance ?obj (passes $?rest))
+         (modify-instance ?obj 
+                          (passes $?rest))
          ;remove what is currently on the focus stack
          ;			(pop-focus)
          (assert (message (from pipeline) 
