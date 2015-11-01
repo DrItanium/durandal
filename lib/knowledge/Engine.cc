@@ -16,6 +16,7 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/GlobalAlias.h"
+#include "llvm/IR/InlineAsm.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/Casting.h"
@@ -825,7 +826,7 @@ void defmultislot(llvm::raw_string_ostream& str, const std::string& name) {
 
 #define defdefslot(type) \
 	template<> \
-	void defslot(llvm::raw_string_ostream& str, const std::string& name) 
+	void defslot<type>(llvm::raw_string_ostream& str, const std::string& name) 
 
 template<>
 void defslot<bool>(llvm::raw_string_ostream& str, const std::string& name) {
@@ -838,8 +839,8 @@ void defslot<bool>(llvm::raw_string_ostream& str, const std::string& name) {
 template<> \
 void defslot<type>(llvm::raw_string_ostream& str, const std::string& name) { \
 	str << "(slot " << name << "\n" \
-		<< "(type LEXEME)\n"; \
-		<< "(visibility public))\n" \
+		<< "(type LEXEME)\n" \
+		<< "(visibility public))\n"; \
 }
 
 defstring_defslot(std::string)
@@ -888,14 +889,15 @@ void defclass() {
 	ElectronClassNameSelector<T>::selectName(str);
 	str << " " << "(is-a ";
 	ElectronClassInheritanceHierarchy<T>::getSupertypes(str);
-	str << " "
-	// slots are going to go here
+	str << " ";
+	// slots are going to go here, need another router group to dispatch for
+	// this purpose
 	str << ")";
 	// print it out at the end
 	printf("%s\n", tmp.c_str());
 }
 void generateDefClasses() {
-#define X(_, fullType, _, _) \
+#define X(_, fullType, __, ___) \
 	defclass<fullType>();
 #include "knowledge/EngineNodes.def"
 #undef X
