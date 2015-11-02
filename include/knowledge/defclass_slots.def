@@ -1,14 +1,7 @@
-defdefslot(llvm::Type::TypeID) {
-    str << "(slot " << name << "\n"
-        << "(type SYMBOL)\n"
-        << "(allowed-values void half float double x86-fp80\n"
-        << "fp128 ppc-fp128 label metadata\n"
-        << "x86-mmx token integer function\n"
-        << "struct array pointer vector\n"
-        << ")\n"
-        << "(storage local)\n"
-        << "(visibility public))\n";
-}
+#define SimpleDefClassBuilder(type) BeginDefClassBuilderNode(type) { } EndDefClassBuilderNode
+#define defenumdefslot(type, input) defdefslot(type) { str << "(slot " << name << "\n" << "(type SYMBOL)\n" << "(allowed-values " << input << ")\n" << "(storage local)\n" << "(visibility public))\n"; }
+defenumdefslot(llvm::Type::TypeID, "void half float double x86-fp80 fp128 ppc-fp128 label metadata x86-mmx token integer function struct array pointer vector")
+
 BeginDefClassBuilderNode(llvm::Type) {
     slot(llvm::Type::TypeID, "type-id");
 	slot(bool, "is-void-type");
@@ -39,7 +32,6 @@ BeginDefClassBuilderNode(llvm::Type) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::FunctionType) {
-    call_defclass_parent(llvm::Type);
     multislot(llvm::ArrayRef<llvm::Type*>, "parameters");
     slot(llvm::Type*, "return-type");
     slot(bool, "is-var-arg");
@@ -48,7 +40,6 @@ BeginDefClassBuilderNode(llvm::FunctionType) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::IntegerType) {
-    call_defclass_parent(llvm::Type);
     slot(unsigned, "bit-width");
     slot(unsigned, "bit-mask");
     slot(unsigned, "sign-bit");
@@ -58,18 +49,13 @@ BeginDefClassBuilderNode(llvm::IntegerType) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::CompositeType) {
-    call_defclass_parent(llvm::Type);
     multislot(llvm::Type*, "indices");
 }
 EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::SequentialType) {
-    call_defclass_parent(llvm::CompositeType);
-}
-EndDefClassBuilderNode
+SimpleDefClassBuilder(llvm::SequentialType)
 
 BeginDefClassBuilderNode(llvm::StructType) {
-    call_defclass_parent(llvm::CompositeType);
     slot(bool, "is-packed");
     slot(bool, "is-literal");
     slot(bool, "is-opaque");
@@ -79,19 +65,13 @@ BeginDefClassBuilderNode(llvm::StructType) {
     //slot(unsigned, "num-elements");
 }
 EndDefClassBuilderNode
-BeginDefClassBuilderNode(llvm::ArrayType) {
-    call_defclass_parent(llvm::SequentialType);
-    //slot(unsigned, "num-elements");
-}
-EndDefClassBuilderNode
+SimpleDefClassBuilder(llvm::ArrayType)
+
 BeginDefClassBuilderNode(llvm::PointerType) {
-    call_defclass_parent(llvm::SequentialType);
     slot(unsigned, "address-space");
 }
 EndDefClassBuilderNode
 BeginDefClassBuilderNode(llvm::VectorType) {
-    call_defclass_parent(llvm::SequentialType);
-    //slot(unsigned, "num-elements");
     slot(unsigned, "bit-width");
 }
 EndDefClassBuilderNode
@@ -113,7 +93,6 @@ BeginDefClassBuilderNode(llvm::Value) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::User) {
-    call_defclass_parent(llvm::Value);
     multislot(llvm::User::const_op_range, "operands");
     multislot(llvm::ArrayRef<const uint8_t>, "descriptor");
     multislot(llvm::iterator_range<llvm::User::value_op_iterator>, "operand-values");
@@ -121,28 +100,15 @@ BeginDefClassBuilderNode(llvm::User) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::MetadataAsValue) {
-    call_defclass_parent(llvm::Value);
     slot(llvm::Metadata*, "metadata");
 }
 EndDefClassBuilderNode
 
-defdefslot(llvm::InlineAsm::AsmDialect) {
-    str << "(slot " << name << "\n"
-        << "(type SYMBOL)\n"
-        << "(allowed-values att intel)\n"
-        << "(storage local)\n"
-        << "(visibility public))\n";
-}
-defdefslot(llvm::InlineAsm::ConstraintPrefix) {
-    str << "(slot " << name << "\n"
-        << "(type SYMBOL)\n"
-        << "(allowed-values is-input is-output is-clobber)\n"
-        << "(storage local)\n"
-        << "(visibility public))\n";
-}
+defenumdefslot(llvm::InlineAsm::AsmDialect, "att intel")
+defenumdefslot(llvm::InlineAsm::ConstraintPrefix, "is-input is-output is-clobber")
+
 defstring_defslot(const std::string&);
 BeginDefClassBuilderNode(llvm::InlineAsm) {
-    call_defclass_parent(llvm::Value);
     slot(bool, "has-side-effects");
     slot(bool, "is-align-stack");
     slot(llvm::InlineAsm::AsmDialect, "dialect");
@@ -152,7 +118,6 @@ BeginDefClassBuilderNode(llvm::InlineAsm) {
 }
 EndDefClassBuilderNode
 BeginDefClassBuilderNode(llvm::BasicBlock) {
-    call_defclass_parent(llvm::Value);
     slot(llvm::Module*, "module");
     slot(llvm::TerminatorInst*, "terminator");
     multislot(const llvm::BasicBlock*, "successors");
@@ -164,7 +129,6 @@ BeginDefClassBuilderNode(llvm::BasicBlock) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::Argument) {
-    call_defclass_parent(llvm::Value);
     slot(unsigned, "arg-number");
     slot(bool, "has-non-null-attribute");
     slot(unsigned, "dereferenceable-bytes");
@@ -184,56 +148,14 @@ BeginDefClassBuilderNode(llvm::Argument) {
 }
 EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::Instruction) {
-    call_defclass_parent(llvm::User);
-    slot(llvm::Module*, "module");
-    slot(unsigned, "opcode");
-    slot(std::string, "opcode-name");
-    slot(bool, "is-terminator");
-    slot(bool, "is-binary-op");
-    slot(bool, "is-shift");
-    slot(bool, "is-cast");
-    slot(bool, "is-logical-shift");
-    slot(bool, "is-arithmetic-shift");
-    slot(bool, "has-Metadata");
-    slot(bool, "has-MetadataOtherThanDebugLoc");
-    slot(bool, "hasUnsafeAlgebra");
-    slot(bool, "hasNoNaNs");
-    slot(bool, "hasNoInfs");
-    slot(bool, "hasNoSignedZeros");
-    slot(bool, "hasAllowReciprocal");
-    //slot(llvm::FastMathFlags, "getFastMathFlags");
-    slot(bool, "isAssociative");
-    slot(bool, "isCommutative");
-    slot(bool, "isIdempotent");
-    slot(bool, "isNilpotent");
-    slot(bool, "mayWriteToMemory");
-    slot(bool, "mayReadFromMemory");
-    slot(bool, "mayReadOrWriteMemory");
-    slot(bool, "isAtomic");
-    slot(bool, "mayThrow");
-    slot(bool, "mayReturn");
-    slot(bool, "mayHaveSideEffects");
-    slot(bool, "isEHPad");
-
-}
-EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::Operator) {
-    call_defclass_parent(llvm::User);
     slot(unsigned, "opcode");
 }
 EndDefClassBuilderNode
 
-//BeginDefClassBuilderNode(llvm::BitCastOperator) {
-//    call_defclass_parent(llvm::Operator);
-//    slot(llvm::Type*, "source");
-//    slot(llvm::Type*, "destination");
-//}
-//EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::GEPOperator) {
-    call_defclass_parent(llvm::Operator);
     slot(bool, "is-in-bounds");
     slot(llvm::Value*, "pointer-operand");
     slot(llvm::Type*, "pointer-operand-type");
@@ -247,20 +169,15 @@ BeginDefClassBuilderNode(llvm::GEPOperator) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::PtrToIntOperator) {
-    call_defclass_parent(llvm::Operator);
     slot(llvm::Value*, "pointer-operand");
     slot(llvm::Type*, "pointer-operand-type");
     slot(unsigned, "pointer-address-space");
 }
 EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::ZExtOperator) {
-    call_defclass_parent(llvm::Operator);
-}
-EndDefClassBuilderNode
+SimpleDefClassBuilder(llvm::ZExtOperator) 
 
 BeginDefClassBuilderNode(llvm::OverflowingBinaryOperator) {
-    call_defclass_parent(llvm::Operator);
     slot(bool, "has-no-unsigned-wrap");
     slot(bool, "has-no-signed-wrap");
 }
@@ -272,7 +189,6 @@ defdefslot(float) {
         << "(visibility public))\n";
 }
 BeginDefClassBuilderNode(llvm::FPMathOperator) {
-    call_defclass_parent(llvm::Operator);
     slot(bool, "hasUnsafeAlgebra");
     slot(bool, "hasNoNaNs");
     slot(bool, "hasNoInfs");
@@ -284,58 +200,21 @@ BeginDefClassBuilderNode(llvm::FPMathOperator) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::PossiblyExactOperator) {
-    call_defclass_parent(llvm::Operator);
     slot(bool, "is-exact");
 }
 EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::AddOperator) {
-    call_defclass_parent(llvm::OverflowingBinaryOperator);
-}
-EndDefClassBuilderNode
+SimpleDefClassBuilder(llvm::AddOperator)
+SimpleDefClassBuilder(llvm::MulOperator) 
+SimpleDefClassBuilder(llvm::ShlOperator) 
+SimpleDefClassBuilder(llvm::SubOperator)
+SimpleDefClassBuilder(llvm::AShrOperator)
+SimpleDefClassBuilder(llvm::LShrOperator)
+SimpleDefClassBuilder(llvm::SDivOperator) 
+SimpleDefClassBuilder(llvm::UDivOperator)
 
-BeginDefClassBuilderNode(llvm::MulOperator) {
-    call_defclass_parent(llvm::OverflowingBinaryOperator);
-}
-EndDefClassBuilderNode
-
-BeginDefClassBuilderNode(llvm::ShlOperator) {
-    call_defclass_parent(llvm::OverflowingBinaryOperator);
-}
-EndDefClassBuilderNode
-
-BeginDefClassBuilderNode(llvm::SubOperator) {
-    call_defclass_parent(llvm::OverflowingBinaryOperator);
-}
-EndDefClassBuilderNode
-
-BeginDefClassBuilderNode(llvm::AShrOperator) {
-    call_defclass_parent(llvm::PossiblyExactOperator);
-}
-EndDefClassBuilderNode
-
-BeginDefClassBuilderNode(llvm::LShrOperator) {
-    call_defclass_parent(llvm::PossiblyExactOperator);
-}
-EndDefClassBuilderNode
-BeginDefClassBuilderNode(llvm::SDivOperator) {
-    call_defclass_parent(llvm::PossiblyExactOperator);
-}
-EndDefClassBuilderNode
-
-BeginDefClassBuilderNode(llvm::UDivOperator) {
-    call_defclass_parent(llvm::PossiblyExactOperator);
-}
-EndDefClassBuilderNode
-defdefslot(llvm::Constant::PossibleRelocationsTy) {
-    str << "(slot " << name << "\n"
-        << "(type SYMBOL)\n"
-        << "(allowed-values no-relocation local-relocation global-relocations)\n"
-        << "(storage local)\n"
-        << "(visibility public))\n";
-}
+defenumdefslot(llvm::Constant::PossibleRelocationsTy, "no-relocation local-relocation global-relocations")
 BeginDefClassBuilderNode(llvm::Constant) {
-    call_defclass_parent(llvm::User);
     slot(bool , "isNullValue");
     slot(bool , "isOneValue");
     slot(bool , "isAllOnesValue");
@@ -354,26 +233,20 @@ BeginDefClassBuilderNode(llvm::Constant) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::BlockAddress) {
-    call_defclass_parent(llvm::Constant);
     slot(llvm::Function*, "function");
     slot(llvm::BasicBlock*, "basic-block");
 }
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::ConstantAggregateZero) {
-    call_defclass_parent(llvm::Constant);
     slot(llvm::Constant * , "SequentialElement");
     slot(unsigned , "NumElements");
 }
 EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::ConstantArray) {
-    call_defclass_parent(llvm::Constant);
-}
-EndDefClassBuilderNode
+SimpleDefClassBuilder(llvm::ConstantArray) 
 
 BeginDefClassBuilderNode(llvm::ConstantDataSequential) {
-    call_defclass_parent(llvm::Constant);
     slot(llvm::Type * , "getElementType");
     slot(unsigned , "getNumElements");
     slot(unsigned, "getElementByteSize");
@@ -383,7 +256,6 @@ BeginDefClassBuilderNode(llvm::ConstantDataSequential) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::ConstantExpr) {
-    call_defclass_parent(llvm::Constant);
     slot(bool , "isCast");
     slot(bool , "isCompare");
     slot(bool , "hasIndices");
@@ -396,7 +268,6 @@ BeginDefClassBuilderNode(llvm::ConstantExpr) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::ConstantFP) {
-    call_defclass_parent(llvm::Constant);
     slot(const llvm::APFloat &, "float-value");
     slot(bool , "isZero");
     slot(bool , "isNegative");
@@ -406,7 +277,6 @@ BeginDefClassBuilderNode(llvm::ConstantFP) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::ConstantInt) {
-    call_defclass_parent(llvm::Constant);
     slot(const llvm::APInt & , "int-value");
     slot(unsigned , "BitWidth");
     slot(unsigned, "ZExtValue");
@@ -418,79 +288,35 @@ BeginDefClassBuilderNode(llvm::ConstantInt) {
 }
 EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::ConstantPointerNull) {
-    call_defclass_parent(llvm::Constant);
-}
-EndDefClassBuilderNode
+SimpleDefClassBuilder(llvm::ConstantPointerNull)
 
-BeginDefClassBuilderNode(llvm::ConstantStruct) {
-    call_defclass_parent(llvm::Constant);
-}
-EndDefClassBuilderNode
+SimpleDefClassBuilder(llvm::ConstantStruct) 
 
 BeginDefClassBuilderNode(llvm::ConstantVector) {
-    call_defclass_parent(llvm::Constant);
     slot(llvm::Constant*, "splat-value");
 }
 EndDefClassBuilderNode
 
 
 BeginDefClassBuilderNode(llvm::UndefValue) {
-    call_defclass_parent(llvm::Constant);
     slot(llvm::UndefValue*, "sequential-element");
     slot(unsigned, "num-elements");
 }
 EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::ConstantDataArray) {
-    call_defclass_parent(llvm::ConstantDataSequential);
-}
-EndDefClassBuilderNode
+SimpleDefClassBuilder(llvm::ConstantDataArray) 
 
 BeginDefClassBuilderNode(llvm::ConstantDataVector) {
-    call_defclass_parent(llvm::ConstantDataSequential);
     slot(llvm::Constant*, "splat-value");
 }
 EndDefClassBuilderNode
-#define SimpleDefClassBuilder(type, parent) \
-    BeginDefClassBuilderNode(type) { \
-        call_defclass_parent(parent); \
-    } EndDefClassBuilderNode
 
-defdefslot(llvm::GlobalValue::LinkageTypes) {
-    str << "(slot " << name << "\n"
-        << "(type SYMBOL)\n"
-        << "(allowed-values external-linkage available-externally link-once-any link-once-odr\n"
-        << "                weak-any weak-odr appending internal private external-weak common)\n"
-        << "(storage local)\n"
-        << "(visibility public))\n";
-}
-defdefslot(llvm::GlobalValue::VisibilityTypes) {
-    str << "(slot " << name << "\n"
-        << "(type SYMBOL)\n"
-        << "(allowed-values default hidden protected)\n"
-        << "(storage local)\n"
-        << "(visibility public))\n";
-}
+defenumdefslot(llvm::GlobalValue::LinkageTypes, "external-linkage available-externally link-once-any link-once-odr weak-any weak-odr appending internal private external-weak common")
+defenumdefslot(llvm::GlobalValue::VisibilityTypes, "default hidden protected")
+defenumdefslot( llvm::GlobalValue::DLLStorageClassTypes, "default dll-import dll-export")
+defenumdefslot(llvm::GlobalValue::ThreadLocalMode, "not-thread-local general-dynamic-tls-model local-dynamic-tls-model initial-exec-tls-model local-exec-tls-model")
 
-defdefslot(llvm::GlobalValue::DLLStorageClassTypes) {
-    str << "(slot " << name << "\n"
-        << "(type SYMBOL)\n"
-        << "(allowed-values default dll-import dll-export)\n"
-        << "(storage local)\n"
-        << "(visibility public))\n";
-}
-defdefslot(llvm::GlobalValue::ThreadLocalMode) {
-    str << "(slot " << name << "\n"
-        << "(type SYMBOL)\n"
-        << "(allowed-values not-thread-local general-dynamic-tls-model\n"
-        << "                local-dynamic-tls-model initial-exec-tls-model\n"
-        << "                local-exec-tls-model)\n"
-        << "(storage local)\n"
-        << "(visibility public))\n";
-}
 BeginDefClassBuilderNode(llvm::GlobalValue) {
-    call_defclass_parent(llvm::Constant);
     slot(unsigned , "getAlignment");
     slot(bool , "hasUnnamedAddr");
     slot(bool , "hasComdat");
@@ -533,20 +359,17 @@ BeginDefClassBuilderNode(llvm::GlobalValue) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::GlobalAlias) {
-    call_defclass_parent(llvm::GlobalValue);
     slot(llvm::Constant*, "aliasee");
     slot(llvm::GlobalObject*, "base-object");
 }
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::GlobalObject) {
-    call_defclass_parent(llvm::GlobalValue);
     slot(unsigned, "global-object-sub-class-data");
 }
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::Function) {
-    call_defclass_parent(llvm::GlobalObject);
     slot(bool , "hasPersonalityFn");
     slot(llvm::Constant * , "PersonalityFn");
     slot(llvm::Type * , "ReturnType");
@@ -588,12 +411,293 @@ BeginDefClassBuilderNode(llvm::Function) {
 EndDefClassBuilderNode
 
 BeginDefClassBuilderNode(llvm::GlobalVariable) {
-    call_defclass_parent(llvm::GlobalObject);
     slot(bool , "hasInitializer");
     slot(bool , "hasDefinitiveInitializer");
     slot(bool , "hasUniqueInitializer");
     slot(const llvm::Constant * , "initializer");
     slot(bool , "isConstant");
     slot(bool , "isExternallyInitialized");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::Instruction) {
+    slot(llvm::Module*, "module");
+    slot(unsigned, "opcode");
+    slot(std::string, "opcode-name");
+    slot(bool, "is-terminator");
+    slot(bool, "is-binary-op");
+    slot(bool, "is-shift");
+    slot(bool, "is-cast");
+    slot(bool, "is-logical-shift");
+    slot(bool, "is-arithmetic-shift");
+    slot(bool, "has-Metadata");
+    slot(bool, "has-MetadataOtherThanDebugLoc");
+    slot(bool, "hasUnsafeAlgebra");
+    slot(bool, "hasNoNaNs");
+    slot(bool, "hasNoInfs");
+    slot(bool, "hasNoSignedZeros");
+    slot(bool, "hasAllowReciprocal");
+    //slot(llvm::FastMathFlags, "getFastMathFlags");
+    slot(bool, "isAssociative");
+    slot(bool, "isCommutative");
+    slot(bool, "isIdempotent");
+    slot(bool, "isNilpotent");
+    slot(bool, "mayWriteToMemory");
+    slot(bool, "mayReadFromMemory");
+    slot(bool, "mayReadOrWriteMemory");
+    slot(bool, "isAtomic");
+    slot(bool, "mayThrow");
+    slot(bool, "mayReturn");
+    slot(bool, "mayHaveSideEffects");
+    slot(bool, "isEHPad");
+}
+EndDefClassBuilderNode
+
+SimpleDefClassBuilder(llvm::UnaryInstruction)
+
+BeginDefClassBuilderNode(llvm::TerminatorInst) {
+    multislot(llvm::BasicBlock*, "successors");
+    slot(bool, "is-exceptional");
+}
+EndDefClassBuilderNode
+defenumdefslot(llvm::AtomicOrdering,"not-atomic unordered monotonic acquire release acquire-release sequentially-consistent")
+defenumdefslot(llvm::SynchronizationScope,"single-thread cross-thread");
+
+BeginDefClassBuilderNode(llvm::StoreInst) {
+    slot(bool, "is-volatile");
+    slot(unsigned, "alignment");
+    slot(llvm::AtomicOrdering, "ordering");
+    slot(llvm::SynchronizationScope, "synch-scope");
+    slot(bool, "is-simple");
+    slot(bool, "is-unordered");
+    slot(llvm::Value*, "value-operand");
+    slot(llvm::Value*, "pointer-operand");
+    slot(unsigned, "pointer-address-space");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ShuffleVectorInst) {
+    slot(llvm::VectorType*, "mask");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::SelectInst) {
+    slot(llvm::Value*, "condition");
+    slot(llvm::Value*, "true-value");
+    slot(llvm::Value*, "false-value");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::PHINode) {
+    slot(bool, "has-constant-value");
+    slot(unsigned, "num-incoming-values");
+    multislot(void*, "incoming-values");
+    multislot(void*, "blocks");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::LandingPadInst) {
+    slot(bool, "is-cleanup");
+    slot(unsigned, "num-clauses");
+    multislot(void*, "clauses");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::InsertValueInst) {
+    multislot(void*, "indices");
+    slot(llvm::Value*, "aggregate-operand");
+    slot(llvm::Value*, "inserted-value-operand");
+    slot(bool, "has-indices");
+}
+EndDefClassBuilderNode
+
+SimpleDefClassBuilder(llvm::InsertElementInst)
+
+BeginDefClassBuilderNode(llvm::GetElementPtrInst) {
+    slot(llvm::Type * , "SourceElementType");
+    slot(llvm::Type * , "ResultElementType");
+    slot(unsigned , "AddressSpace");
+    slot(const llvm::Value * , "PointerOperand");
+    slot(llvm::Type * , "PointerOperandType");
+    slot(unsigned , "PointerAddressSpace");
+    slot(unsigned , "NumIndices");
+    slot(bool , "hasIndices");
+    slot(bool , "hasAllZeroIndices");
+    slot(bool , "hasAllConstantIndices");
+    slot(bool , "isInBounds");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::FenceInst) {
+    slot(llvm::AtomicOrdering, "ordering");
+    slot(llvm::SynchronizationScope, "synch-scope");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ExtractElementInst) {
+    slot(llvm::Value*, "vector-operand");
+    slot(llvm::Value*, "index-operand");
+}
+EndDefClassBuilderNode
+
+defenumdefslot(llvm::CmpInst::Predicate, "fcmp-false fcmp-oeq fcmp-ogt fcmp-oge fcmp-olt fcmp-ole fcmp-one fcmp-ord fcmp-uno fcmp-ueq fcmp-ugt  fcmp-uge  fcmp-ult  fcmp-ule  fcmp-une  fcmp-true first-fcmp-predicate last-fcmp-predicate bad-fcmp-predicate icmp-eq icmp-ne icmp-ugt icmp-uge icmp-ult icmp-ule icmp-sgt icmp-sge icmp-slt icmp-sle first-icmp-predicate last-icmp-predicate bad-icmp-predicate")
+
+BeginDefClassBuilderNode(llvm::CmpInst) {
+    slot(llvm::CmpInst::Predicate, "predicate");
+    slot(bool , "isFPPredicate");
+    slot(bool , "isIntPredicate");
+    slot(llvm::CmpInst::Predicate , "InversePredicate");
+    slot(llvm::CmpInst::Predicate , "SwappedPredicate");
+    slot(bool , "isCommutative");
+    slot(bool , "isEquality");
+    slot(bool , "isSigned");
+    slot(bool , "isUnsigned");
+    slot(llvm::CmpInst::Predicate , "SignedPredicate");
+    slot(bool , "isTrueWhenEqual");
+    slot(bool , "isFalseWhenEqual");
+}
+EndDefClassBuilderNode
+
+//SimpleDefClassBuilder(llvm::CleanupPadInst)
+defenumdefslot(llvm::CallInst::TailCallKind, "none tail must-tail")
+
+
+BeginDefClassBuilderNode(llvm::CallInst) {
+    slot(llvm::CallInst::TailCallKind , "TailCallKind");
+    slot(bool , "isTailCall");
+    slot(bool , "isMustTailCall");
+    slot(unsigned , "NumArgOperands");
+    multislot(void*, "operands");
+    slot(llvm::CallingConv::ID , "CallingConv");
+    slot(const llvm::AttributeSet & , "Attributes");
+    slot(bool , "isNoBuiltin");
+    slot(bool , "isNoInline");
+    slot(bool , "canReturnTwice");
+    slot(bool , "doesNotAccessMemory");
+    slot(bool , "onlyReadsMemory");
+    slot(bool , "onlyAccessesArgMemory");
+    slot(bool , "doesNotReturn");
+    slot(bool , "doesNotThrow");
+    slot(bool , "cannotDuplicate");
+    slot(bool , "isConvergent");
+    slot(bool , "hasStructRetAttr");
+    slot(bool , "hasByValArgument");
+    slot(llvm::Function * , "CalledFunction");
+    slot(const llvm::Value * , "CalledValue");
+    slot(bool , "isInlineAsm");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::BinaryOperator) {
+    slot(bool , "hasNoUnsignedWrap");
+    slot(bool , "hasNoSignedWrap");
+    slot(bool , "isExact");
+}
+EndDefClassBuilderNode
+
+defenumdefslot(llvm::AtomicRMWInst::BinOp, "xchg add sub and nand or xor max min umax umin first-binop last-binop bad-binop")
+BeginDefClassBuilderNode(llvm::AtomicRMWInst) {
+    slot(bool , "is-volatile");
+    slot(llvm::AtomicRMWInst::BinOp, "bin-op");
+    slot(llvm::AtomicOrdering, "ordering");
+    slot(llvm::SynchronizationScope, "synch-scope");
+    slot(llvm::Value*, "value-operand");
+    slot(llvm::Value*, "pointer-operand");
+    slot(unsigned, "pointer-address-space");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::AtomicCmpXchgInst) {
+    slot(bool , "is-volatile");
+    slot(bool, "is-weak");
+    slot(llvm::AtomicOrdering, "success-ordering");
+    slot(llvm::AtomicOrdering, "failure-ordering");
+    slot(llvm::SynchronizationScope, "synch-scope");
+    slot(llvm::Value*, "new-value-operand");
+    slot(llvm::Value*, "compare-operand");
+    slot(llvm::Value*, "pointer-operand");
+    slot(unsigned, "pointer-address-space");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::IntrinsicInst) {
+    slot(llvm::Intrinsic::ID, "intrinsic-id");
+}
+EndDefClassBuilderNode
+
+SimpleDefClassBuilder(llvm::FCmpInst)
+
+BeginDefClassBuilderNode(llvm::ICmpInst) {
+    slot(llvm::CmpInst::Predicate , "UnsignedPredicate");
+}
+EndDefClassBuilderNode
+
+
+BeginDefClassBuilderNode(llvm::BranchInst) {
+    slot(bool , "isUnconditional");
+    slot(bool , "isConditional");
+    slot(llvm::Value * , "condition");
+}
+EndDefClassBuilderNode
+/*
+BeginDefClassBuilderNode(llvm::CatchEndPadInst) {
+    slot(bool , "hasUnwindDest");
+    slot(bool , "unwindsToCaller");
+    slot(llvm::BasicBlock* , "unwind-dest");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::CatchPadInst) {
+    slot(llvm::BasicBlock* , "unwind-dest");
+    slot(llvm::BasicBlock* , "normal-dest");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::CatchReturnInst) {
+    slot(llvm::CatchPadInst* , "catch-pad");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::CleanupEndPadInst) {
+    slot(bool, "has-unwind-dest");
+    slot(bool, "unwinds-to-caller");
+    slot(llvm::CleanupPadInst* , "cleanup-pad");
+    slot(llvm::BasicBlock* , "unwind-dest");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::CleanupReturnInst) {
+    slot(bool, "has-unwind-dest");
+    slot(bool, "unwinds-to-caller");
+    slot(llvm::CleanupPadInst* , "cleanup-pad");
+    slot(llvm::BasicBlock* , "unwind-dest");
+}
+EndDefClassBuilderNode
+*/
+
+BeginDefClassBuilderNode(llvm::IndirectBrInst) {
+    slot(llvm::Value*, "address");
+    multislot(llvm::BasicBlock*, "destinations");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::InvokeInst) {
+    slot(bool , "isNoBuiltin");
+    slot(bool , "isNoInline");
+    slot(bool , "doesNotAccessMemory");
+    slot(bool , "onlyReadsMemory");
+    slot(bool , "onlyAccessesArgMemory");
+    slot(bool , "doesNotReturn");
+    slot(bool , "doesNotThrow");
+    slot(bool , "cannotDuplicate");
+    slot(bool , "hasStructRetAttr");
+    slot(bool , "hasByValArgument");
+    slot(llvm::Function * , "CalledFunction");
+    slot(const llvm::Value * , "CalledValue");
+    slot(llvm::BasicBlock * , "NormalDest");
+    slot(llvm::BasicBlock * , "UnwindDest");
+    slot(llvm::LandingPadInst * , "LandingPadInst");
+    slot(llvm::BasicBlock* , "unwind-dest");
+    slot(llvm::BasicBlock* , "normal-dest");
 }
 EndDefClassBuilderNode
