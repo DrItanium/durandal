@@ -868,13 +868,13 @@ void defslot<int>(llvm::raw_string_ostream& str, const std::string& name) {
 
 template<typename T>
 struct DefClassBuilderNode {
-	static void buildDefClass(llvm::raw_string_ostream& str) { }
+	static void populateSlots(llvm::raw_string_ostream& str) { }
 };
 //Build DefClass Node
 #define BeginDefClassBuilderNode(type) \
 	template<> \
 	struct DefClassBuilderNode<type> { \
-		static void buildDefClass(llvm::raw_string_ostream& str)
+		static void populateSlots(llvm::raw_string_ostream& str)
 
 #define EndDefClassBuilderNode EndNode
 
@@ -890,7 +890,8 @@ void defclass() {
 	str << " ";
 	// slots are going to go here, need another router group to dispatch for
 	// this purpose
-	str << ")";
+	DefClassBuilderNode<T>::populateSlots(str);
+	str << ")\n";
 	// print it out at the end
 	printf("%s\n", tmp.c_str());
 }
