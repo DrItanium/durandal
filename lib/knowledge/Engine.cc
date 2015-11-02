@@ -28,6 +28,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/RegionPass.h"
 #include "llvm/Analysis/LoopPass.h"
+#include "llvm/ADT/Optional.h"
 extern "C" {
 #include "clips.h"
 }

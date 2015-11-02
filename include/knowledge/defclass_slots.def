@@ -434,6 +434,29 @@ BeginDefClassBuilderNode(llvm::ConstantVector) {
 }
 EndDefClassBuilderNode
 
+
+BeginDefClassBuilderNode(llvm::UndefValue) {
+    call_defclass_parent(llvm::Constant);
+    slot(llvm::UndefValue*, "sequential-element");
+    slot(unsigned, "num-elements");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantDataArray) {
+    call_defclass_parent(llvm::ConstantDataSequential);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantDataVector) {
+    call_defclass_parent(llvm::ConstantDataSequential);
+    slot(llvm::Constant*, "splat-value");
+}
+EndDefClassBuilderNode
+#define SimpleDefClassBuilder(type, parent) \
+    BeginDefClassBuilderNode(type) { \
+        call_defclass_parent(parent); \
+    } EndDefClassBuilderNode
+
 defdefslot(llvm::GlobalValue::LinkageTypes) {
     str << "(slot " << name << "\n"
         << "(type SYMBOL)\n"
@@ -509,3 +532,68 @@ BeginDefClassBuilderNode(llvm::GlobalValue) {
 }
 EndDefClassBuilderNode
 
+BeginDefClassBuilderNode(llvm::GlobalAlias) {
+    call_defclass_parent(llvm::GlobalValue);
+    slot(llvm::Constant*, "aliasee");
+    slot(llvm::GlobalObject*, "base-object");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::GlobalObject) {
+    call_defclass_parent(llvm::GlobalValue);
+    slot(unsigned, "global-object-sub-class-data");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::Function) {
+    call_defclass_parent(llvm::GlobalObject);
+    slot(bool , "hasPersonalityFn");
+    slot(llvm::Constant * , "PersonalityFn");
+    slot(llvm::Type * , "ReturnType");
+    slot(llvm::FunctionType * , "FunctionType");
+    slot(bool , "isVarArg");
+    slot(bool , "isMaterializable");
+    slot(llvm::Intrinsic::ID , "IntrinsicID");
+    slot(bool , "isIntrinsic");
+    slot(llvm::CallingConv::ID , "CallingConv");
+    slot(llvm::Optional< uint64_t > , "EntryCount");
+    slot(unsigned , "FnStackAlignment");
+    slot(bool , "hasGC");
+    slot(std::string , "GC");
+    slot(bool , "doesNotAccessMemory");
+    slot(bool , "onlyReadsMemory");
+    slot(bool , "onlyAccessesArgMemory");
+    slot(bool , "doesNotReturn");
+    slot(bool , "doesNotThrow");
+    slot(bool , "cannotDuplicate");
+    slot(bool , "isConvergent");
+    slot(bool , "hasUWTable");
+    slot(bool , "needsUnwindTableEntry");
+    slot(bool , "hasStructRetAttr");
+    slot(bool , "optForMinSize");
+    slot(bool , "optForSize");
+    multislot(const llvm::Function::ArgumentListType & , "ArgumentList");
+    multislot(const llvm::Function::BasicBlockListType & , "BasicBlockList");
+    slot(const llvm::BasicBlock & , "EntryBlock");
+    multislot(const llvm::ValueSymbolTable & , "ValueSymbolTable");
+    slot(bool , "hasPrefixData");
+    slot(llvm::Constant * , "PrefixData");
+    slot(bool , "hasPrologueData");
+    slot(llvm::Constant * , "PrologueData");
+    slot(bool , "isDefTriviallyDead");
+    slot(bool , "callsFunctionThatReturnsTwice");
+    slot(bool , "hasMetadata");
+    //slot(llvm::DISubprogram * , "Subprogram");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::GlobalVariable) {
+    call_defclass_parent(llvm::GlobalObject);
+    slot(bool , "hasInitializer");
+    slot(bool , "hasDefinitiveInitializer");
+    slot(bool , "hasUniqueInitializer");
+    slot(const llvm::Constant * , "initializer");
+    slot(bool , "isConstant");
+    slot(bool , "isExternallyInitialized");
+}
+EndDefClassBuilderNode
