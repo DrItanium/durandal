@@ -762,3 +762,32 @@ EndDefClassBuilderNode
 // TODO: add DbgInfoIntrinsic
 // TODO: add InstrProfIncrementInst
 // TODO: add MemIntrinsic
+
+BeginDefClassBuilderNode(llvm::Loop) {
+    slot(llvm::PHINode * , "CanonicalInductionVariable");
+    slot(bool , "isLoopSimplifyForm");
+    slot(bool , "isSafeToClone");
+    slot(bool , "isAnnotatedParallel");
+    slot(llvm::MDNode * , "LoopID");
+    slot(bool , "hasDedicatedExits");
+    slot(llvm::BasicBlock * , "UniqueExitBlock");
+    slot(void*, "header");
+    multislot(void*, "blocks");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::Region) {
+    multislot(void*, "blocks");
+    slot(bool, "is-sub-region");
+    slot(void*, "entry");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::Module) {
+    slot(std::string, "title");
+    multislot(void*, "aliases");
+    multislot(void*, "globals");
+    multislot(void*, "metadata-elements");
+    multislot(void*, "functions");
+}
+EndDefClassBuilderNode
