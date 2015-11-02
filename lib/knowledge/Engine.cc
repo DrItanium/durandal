@@ -885,15 +885,15 @@ void defclass() {
 	llvm::raw_string_ostream str(tmp);
 	str << "(defclass ";
 	ElectronClassNameSelector<T>::selectName(str);
-	str << " " << "(is-a ";
+	str << "\n(is-a ";
 	ElectronClassInheritanceHierarchy<T>::getSupertypes(str);
-	str << " ";
+	str << ")\n ";
 	// slots are going to go here, need another router group to dispatch for
 	// this purpose
 	DefClassBuilderNode<T>::populateSlots(str);
 	str << ")\n";
 	// print it out at the end
-	printf("%s\n", tmp.c_str());
+	printf("%s\n", str.str().c_str());
 }
 void generateDefClasses() {
 #define X(_, fullType, __, ___) \

@@ -1,6 +1,6 @@
 #define SimpleDefClassBuilder(type) BeginDefClassBuilderNode(type) { } EndDefClassBuilderNode
 #define defenumdefslot(type, input) defdefslot(type) { str << "(slot " << name << "\n" << "(type SYMBOL)\n" << "(allowed-values " << input << ")\n" << "(storage local)\n" << "(visibility public))\n"; }
-defenumdefslot(llvm::Type::TypeID, "void half float double x86-fp80 fp128 ppc-fp128 label metadata x86-mmx token integer function struct array pointer vector")
+defenumdefslot(llvm::Type::TypeID, "void\nhalf\nfloat\ndouble\nx86-fp80\nfp128\nppc-fp128\nlabel\nmetadata\nx86-mmx\ntoken\ninteger\nfunction\nstruct\narray\npointer\nvector")
 
 BeginDefClassBuilderNode(llvm::Type) {
     slot(llvm::Type::TypeID, "type-id");
@@ -104,8 +104,8 @@ BeginDefClassBuilderNode(llvm::MetadataAsValue) {
 }
 EndDefClassBuilderNode
 
-defenumdefslot(llvm::InlineAsm::AsmDialect, "att intel")
-defenumdefslot(llvm::InlineAsm::ConstraintPrefix, "is-input is-output is-clobber")
+defenumdefslot(llvm::InlineAsm::AsmDialect, "att\nintel")
+defenumdefslot(llvm::InlineAsm::ConstraintPrefix, "is-input\nis-output\nis-clobber")
 
 defstring_defslot(const std::string&);
 BeginDefClassBuilderNode(llvm::InlineAsm) {
@@ -213,7 +213,7 @@ SimpleDefClassBuilder(llvm::LShrOperator)
 SimpleDefClassBuilder(llvm::SDivOperator) 
 SimpleDefClassBuilder(llvm::UDivOperator)
 
-defenumdefslot(llvm::Constant::PossibleRelocationsTy, "no-relocation local-relocation global-relocations")
+defenumdefslot(llvm::Constant::PossibleRelocationsTy, "no-relocation\nlocal-relocation\nglobal-relocations")
 BeginDefClassBuilderNode(llvm::Constant) {
     slot(bool , "isNullValue");
     slot(bool , "isOneValue");
@@ -311,10 +311,10 @@ BeginDefClassBuilderNode(llvm::ConstantDataVector) {
 }
 EndDefClassBuilderNode
 
-defenumdefslot(llvm::GlobalValue::LinkageTypes, "external-linkage available-externally link-once-any link-once-odr weak-any weak-odr appending internal private external-weak common")
-defenumdefslot(llvm::GlobalValue::VisibilityTypes, "default hidden protected")
-defenumdefslot( llvm::GlobalValue::DLLStorageClassTypes, "default dll-import dll-export")
-defenumdefslot(llvm::GlobalValue::ThreadLocalMode, "not-thread-local general-dynamic-tls-model local-dynamic-tls-model initial-exec-tls-model local-exec-tls-model")
+defenumdefslot(llvm::GlobalValue::LinkageTypes, "external-linkage\navailable-externally\nlink-once-any\nlink-once-odr\nweak-any\nweak-odr\nappending\ninternal\nprivate\nexternal-weak\ncommon")
+defenumdefslot(llvm::GlobalValue::VisibilityTypes, "default\nhidden\nprotected")
+defenumdefslot( llvm::GlobalValue::DLLStorageClassTypes, "default\ndll-import\ndll-export")
+defenumdefslot(llvm::GlobalValue::ThreadLocalMode, "not-thread-local\ngeneral-dynamic-tls-model\nlocal-dynamic-tls-model\ninitial-exec-tls-model\nlocal-exec-tls-model")
 
 BeginDefClassBuilderNode(llvm::GlobalValue) {
     slot(unsigned , "getAlignment");
@@ -460,8 +460,8 @@ BeginDefClassBuilderNode(llvm::TerminatorInst) {
     slot(bool, "is-exceptional");
 }
 EndDefClassBuilderNode
-defenumdefslot(llvm::AtomicOrdering,"not-atomic unordered monotonic acquire release acquire-release sequentially-consistent")
-defenumdefslot(llvm::SynchronizationScope,"single-thread cross-thread");
+defenumdefslot(llvm::AtomicOrdering, "not-atomic\nunordered\nmonotonic\nacquire\nrelease\nacquire-release\nsequentially-consistent")
+defenumdefslot(llvm::SynchronizationScope,"single-thread\ncross-thread");
 
 BeginDefClassBuilderNode(llvm::StoreInst) {
     slot(bool, "is-volatile");
@@ -540,7 +540,8 @@ BeginDefClassBuilderNode(llvm::ExtractElementInst) {
 }
 EndDefClassBuilderNode
 
-defenumdefslot(llvm::CmpInst::Predicate, "fcmp-false fcmp-oeq fcmp-ogt fcmp-oge fcmp-olt fcmp-ole fcmp-one fcmp-ord fcmp-uno fcmp-ueq fcmp-ugt  fcmp-uge  fcmp-ult  fcmp-ule  fcmp-une  fcmp-true first-fcmp-predicate last-fcmp-predicate bad-fcmp-predicate icmp-eq icmp-ne icmp-ugt icmp-uge icmp-ult icmp-ule icmp-sgt icmp-sge icmp-slt icmp-sle first-icmp-predicate last-icmp-predicate bad-icmp-predicate")
+defenumdefslot(llvm::CmpInst::Predicate, 
+"fcmp-false\nfcmp-oeq\nfcmp-ogt\nfcmp-oge\nfcmp-olt\nfcmp-ole\nfcmp-one\nfcmp-ord\nfcmp-uno\nfcmp-ueq\nfcmp-ugt\n\nfcmp-uge\n\nfcmp-ult\n\nfcmp-ule\n\nfcmp-une\n\nfcmp-true\nfirst-fcmp-predicate\nlast-fcmp-predicate\nbad-fcmp-predicate\nicmp-eq\nicmp-ne\nicmp-ugt\nicmp-uge\nicmp-ult\nicmp-ule\nicmp-sgt\nicmp-sge\nicmp-slt\nicmp-sle\nfirst-icmp-predicate\nlast-icmp-predicate\nbad-icmp-predicate")
 
 BeginDefClassBuilderNode(llvm::CmpInst) {
     slot(llvm::CmpInst::Predicate, "predicate");
@@ -559,7 +560,7 @@ BeginDefClassBuilderNode(llvm::CmpInst) {
 EndDefClassBuilderNode
 
 //SimpleDefClassBuilder(llvm::CleanupPadInst)
-defenumdefslot(llvm::CallInst::TailCallKind, "none tail must-tail")
+defenumdefslot(llvm::CallInst::TailCallKind, "none\ntail\nmust-tail")
 
 
 BeginDefClassBuilderNode(llvm::CallInst) {
@@ -595,7 +596,7 @@ BeginDefClassBuilderNode(llvm::BinaryOperator) {
 }
 EndDefClassBuilderNode
 
-defenumdefslot(llvm::AtomicRMWInst::BinOp, "xchg add sub and nand or xor max min umax umin first-binop last-binop bad-binop")
+defenumdefslot(llvm::AtomicRMWInst::BinOp, "xchg\nadd\nsub\nand\nnand\nor\nxor\nmax\nmin\numax\numin\nfirst-binop\nlast-binop\nbad-binop")
 BeginDefClassBuilderNode(llvm::AtomicRMWInst) {
     slot(bool , "is-volatile");
     slot(llvm::AtomicRMWInst::BinOp, "bin-op");
