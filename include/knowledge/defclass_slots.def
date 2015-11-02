@@ -701,3 +701,64 @@ BeginDefClassBuilderNode(llvm::InvokeInst) {
     slot(llvm::BasicBlock* , "normal-dest");
 }
 EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ResumeInst) {
+    slot(llvm::Value*, "value");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ReturnInst) {
+    slot(llvm::Value*, "return-value");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::SwitchInst) {
+    slot(llvm::Value*, "condition");
+    slot(llvm::BasicBlock*, "default-case");
+    multislot(void*, "cases");
+}
+EndDefClassBuilderNode
+
+SimpleDefClassBuilder(llvm::UnreachableInst)
+
+BeginDefClassBuilderNode(llvm::AllocaInst) {
+    slot(bool, "is-array-allocation");
+    slot(const llvm::Value*, "array-size");
+    slot(const llvm::Type*, "allocated-type");
+    slot(unsigned, "alignment");
+    slot(bool, "is-static-alloca");
+    slot(bool, "is-used-with-in-alloca");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::CastInst) {
+    slot(bool, "is-integer-cast");
+    slot(bool, "is-lossless-case");
+    slot(llvm::Type*, "source-type");
+    slot(llvm::Type*, "destination-type");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ExtractValueInst) {
+    multislot(llvm::ArrayRef<unsigned>, "indices");
+    slot(llvm::Value*, "aggreate-operand");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::LoadInst) {
+    slot(bool, "is-volatile");
+    slot(unsigned, "alignment");
+    slot(llvm::AtomicOrdering, "ordering");
+    slot(llvm::SynchronizationScope, "synch-scope");
+    slot(bool, "is-simple");
+    slot(bool, "is-unordered");
+    slot(llvm::Value*, "pointer-operand");
+    slot(unsigned, "pointer-address-space");
+}
+EndDefClassBuilderNode
+
+// TODO: add TerminatePadInst
+// TODO: add VAArgInst 
+// TODO: add DbgInfoIntrinsic
+// TODO: add InstrProfIncrementInst
+// TODO: add MemIntrinsic

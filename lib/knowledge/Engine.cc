@@ -865,8 +865,7 @@ void defslot<int>(llvm::raw_string_ostream& str, const std::string& name) {
 		defslot<type>(str, name)
 #define multislot(type, name) \
 		defmultislot<type>(str, name)
-#define bool_slot(name) \
-		slot(bool, name)
+
 template<typename T>
 struct DefClassBuilderNode {
 	static void buildDefClass(llvm::raw_string_ostream& str) { }
@@ -879,8 +878,6 @@ struct DefClassBuilderNode {
 
 #define EndDefClassBuilderNode EndNode
 
-#define call_defclass_parent(type) \
-		DefClassBuilderNode<type>::buildDefClass(str)
 #include "knowledge/defclass_slots.def"
 template<typename T>
 void defclass() {
