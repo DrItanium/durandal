@@ -183,3 +183,329 @@ BeginDefClassBuilderNode(llvm::Argument) {
     slot(bool, 	"has-sext-attribute");
 }
 EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::Instruction) {
+    call_defclass_parent(llvm::User);
+    slot(llvm::Module*, "module");
+    slot(unsigned, "opcode");
+    slot(std::string, "opcode-name");
+    slot(bool, "is-terminator");
+    slot(bool, "is-binary-op");
+    slot(bool, "is-shift");
+    slot(bool, "is-cast");
+    slot(bool, "is-logical-shift");
+    slot(bool, "is-arithmetic-shift");
+    slot(bool, "has-Metadata");
+    slot(bool, "has-MetadataOtherThanDebugLoc");
+    slot(bool, "hasUnsafeAlgebra");
+    slot(bool, "hasNoNaNs");
+    slot(bool, "hasNoInfs");
+    slot(bool, "hasNoSignedZeros");
+    slot(bool, "hasAllowReciprocal");
+    //slot(llvm::FastMathFlags, "getFastMathFlags");
+    slot(bool, "isAssociative");
+    slot(bool, "isCommutative");
+    slot(bool, "isIdempotent");
+    slot(bool, "isNilpotent");
+    slot(bool, "mayWriteToMemory");
+    slot(bool, "mayReadFromMemory");
+    slot(bool, "mayReadOrWriteMemory");
+    slot(bool, "isAtomic");
+    slot(bool, "mayThrow");
+    slot(bool, "mayReturn");
+    slot(bool, "mayHaveSideEffects");
+    slot(bool, "isEHPad");
+
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::Operator) {
+    call_defclass_parent(llvm::User);
+    slot(unsigned, "opcode");
+}
+EndDefClassBuilderNode
+
+//BeginDefClassBuilderNode(llvm::BitCastOperator) {
+//    call_defclass_parent(llvm::Operator);
+//    slot(llvm::Type*, "source");
+//    slot(llvm::Type*, "destination");
+//}
+//EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::GEPOperator) {
+    call_defclass_parent(llvm::Operator);
+    slot(bool, "is-in-bounds");
+    slot(llvm::Value*, "pointer-operand");
+    slot(llvm::Type*, "pointer-operand-type");
+    slot(llvm::Type*, "source-element-type");
+    slot(unsigned, "pointer-address-space");
+    slot(unsigned, "num-indices");
+    slot(bool, "has-indices");
+    slot(bool, "has-all-zero-indices");
+    slot(bool, "has-all-constant-indices");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::PtrToIntOperator) {
+    call_defclass_parent(llvm::Operator);
+    slot(llvm::Value*, "pointer-operand");
+    slot(llvm::Type*, "pointer-operand-type");
+    slot(unsigned, "pointer-address-space");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ZExtOperator) {
+    call_defclass_parent(llvm::Operator);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::OverflowingBinaryOperator) {
+    call_defclass_parent(llvm::Operator);
+    slot(bool, "has-no-unsigned-wrap");
+    slot(bool, "has-no-signed-wrap");
+}
+EndDefClassBuilderNode
+
+defdefslot(float) {
+    str << "(slot " << name << "\n"
+        << "(type FLOAT)\n"
+        << "(visibility public))\n";
+}
+BeginDefClassBuilderNode(llvm::FPMathOperator) {
+    call_defclass_parent(llvm::Operator);
+    slot(bool, "hasUnsafeAlgebra");
+    slot(bool, "hasNoNaNs");
+    slot(bool, "hasNoInfs");
+    slot(bool, "hasNoSignedZeros");
+    slot(bool, "hasAllowReciprocal");
+    //slot(llvm::FastMathFlags, "getFastMathFlags");
+    slot(float, "fp-accuracy");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::PossiblyExactOperator) {
+    call_defclass_parent(llvm::Operator);
+    slot(bool, "is-exact");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::AddOperator) {
+    call_defclass_parent(llvm::OverflowingBinaryOperator);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::MulOperator) {
+    call_defclass_parent(llvm::OverflowingBinaryOperator);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ShlOperator) {
+    call_defclass_parent(llvm::OverflowingBinaryOperator);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::SubOperator) {
+    call_defclass_parent(llvm::OverflowingBinaryOperator);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::AShrOperator) {
+    call_defclass_parent(llvm::PossiblyExactOperator);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::LShrOperator) {
+    call_defclass_parent(llvm::PossiblyExactOperator);
+}
+EndDefClassBuilderNode
+BeginDefClassBuilderNode(llvm::SDivOperator) {
+    call_defclass_parent(llvm::PossiblyExactOperator);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::UDivOperator) {
+    call_defclass_parent(llvm::PossiblyExactOperator);
+}
+EndDefClassBuilderNode
+defdefslot(llvm::Constant::PossibleRelocationsTy) {
+    str << "(slot " << name << "\n"
+        << "(type SYMBOL)\n"
+        << "(allowed-values no-relocation local-relocation global-relocations)\n"
+        << "(storage local)\n"
+        << "(visibility public))\n";
+}
+BeginDefClassBuilderNode(llvm::Constant) {
+    call_defclass_parent(llvm::User);
+    slot(bool , "isNullValue");
+    slot(bool , "isOneValue");
+    slot(bool , "isAllOnesValue");
+    slot(bool , "isNegativeZeroValue");
+    slot(bool , "isZeroValue");
+    slot(bool , "isNotMinSignedValue");
+    slot(bool , "isMinSignedValue");
+    slot(bool , "canTrap");
+    slot(bool , "isThreadDependent");
+    slot(bool , "isDLLImportDependent");
+    slot(bool , "isConstantUsed");
+    slot(llvm::Constant::PossibleRelocationsTy , "RelocationInfo");
+    slot(llvm::Constant * , "SplatValue");
+    slot(const llvm::APInt & , "UniqueInteger");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::BlockAddress) {
+    call_defclass_parent(llvm::Constant);
+    slot(llvm::Function*, "function");
+    slot(llvm::BasicBlock*, "basic-block");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantAggregateZero) {
+    call_defclass_parent(llvm::Constant);
+    slot(llvm::Constant * , "SequentialElement");
+    slot(unsigned , "NumElements");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantArray) {
+    call_defclass_parent(llvm::Constant);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantDataSequential) {
+    call_defclass_parent(llvm::Constant);
+    slot(llvm::Type * , "getElementType");
+    slot(unsigned , "getNumElements");
+    slot(unsigned, "getElementByteSize");
+    slot(bool , "isString");
+    slot(bool , "isCString");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantExpr) {
+    call_defclass_parent(llvm::Constant);
+    slot(bool , "isCast");
+    slot(bool , "isCompare");
+    slot(bool , "hasIndices");
+    slot(bool , "isGEPWithNoNotionalOverIndexing");
+    slot(unsigned , "opcode");
+    slot(unsigned , "predicate");
+    multislot(llvm::ArrayRef<unsigned>, "indices");
+    slot(std::string, "opcode-name");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantFP) {
+    call_defclass_parent(llvm::Constant);
+    slot(const llvm::APFloat &, "float-value");
+    slot(bool , "isZero");
+    slot(bool , "isNegative");
+    slot(bool , "isInfinity");
+    slot(bool , "isNaN");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantInt) {
+    call_defclass_parent(llvm::Constant);
+    slot(const llvm::APInt & , "int-value");
+    slot(unsigned , "BitWidth");
+    slot(unsigned, "ZExtValue");
+    slot(int, "SExtValue");
+    slot(bool , "isNegative");
+    slot(bool , "isZero");
+    slot(bool , "isOne");
+    slot(bool , "isMinusOne");
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantPointerNull) {
+    call_defclass_parent(llvm::Constant);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantStruct) {
+    call_defclass_parent(llvm::Constant);
+}
+EndDefClassBuilderNode
+
+BeginDefClassBuilderNode(llvm::ConstantVector) {
+    call_defclass_parent(llvm::Constant);
+    slot(llvm::Constant*, "splat-value");
+}
+EndDefClassBuilderNode
+
+defdefslot(llvm::GlobalValue::LinkageTypes) {
+    str << "(slot " << name << "\n"
+        << "(type SYMBOL)\n"
+        << "(allowed-values external-linkage available-externally link-once-any link-once-odr\n"
+        << "                weak-any weak-odr appending internal private external-weak common)\n"
+        << "(storage local)\n"
+        << "(visibility public))\n";
+}
+defdefslot(llvm::GlobalValue::VisibilityTypes) {
+    str << "(slot " << name << "\n"
+        << "(type SYMBOL)\n"
+        << "(allowed-values default hidden protected)\n"
+        << "(storage local)\n"
+        << "(visibility public))\n";
+}
+
+defdefslot(llvm::GlobalValue::DLLStorageClassTypes) {
+    str << "(slot " << name << "\n"
+        << "(type SYMBOL)\n"
+        << "(allowed-values default dll-import dll-export)\n"
+        << "(storage local)\n"
+        << "(visibility public))\n";
+}
+defdefslot(llvm::GlobalValue::ThreadLocalMode) {
+    str << "(slot " << name << "\n"
+        << "(type SYMBOL)\n"
+        << "(allowed-values not-thread-local general-dynamic-tls-model\n"
+        << "                local-dynamic-tls-model initial-exec-tls-model\n"
+        << "                local-exec-tls-model)\n"
+        << "(storage local)\n"
+        << "(visibility public))\n";
+}
+BeginDefClassBuilderNode(llvm::GlobalValue) {
+    call_defclass_parent(llvm::Constant);
+    slot(unsigned , "getAlignment");
+    slot(bool , "hasUnnamedAddr");
+    slot(bool , "hasComdat");
+    slot(const llvm::Comdat * , "Comdat");
+    slot(llvm::GlobalValue::VisibilityTypes , "Visibility");
+    slot(bool , "hasDefaultVisibility");
+    slot(bool , "hasHiddenVisibility");
+    slot(bool , "hasProtectedVisibility");
+    slot(bool , "isThreadLocal");
+    slot(llvm::GlobalValue::ThreadLocalMode , "ThreadLocalMode");
+    slot(llvm::GlobalValue::DLLStorageClassTypes , "DLLStorageClass");
+    slot(bool , "hasDLLImportStorageClass");
+    slot(bool , "hasDLLExportStorageClass");
+    slot(bool , "hasSection");
+    slot(std::string , "Section");
+    slot(llvm::Type * , "ValueType");
+    slot(bool , "hasExternalLinkage");
+    slot(bool , "hasAvailableExternallyLinkage");
+    slot(bool , "hasLinkOnceLinkage");
+    slot(bool , "hasLinkOnceODRLinkage");
+    slot(bool , "hasWeakLinkage");
+    slot(bool , "hasWeakAnyLinkage");
+    slot(bool , "hasWeakODRLinkage");
+    slot(bool , "hasAppendingLinkage");
+    slot(bool , "hasInternalLinkage");
+    slot(bool , "hasPrivateLinkage");
+    slot(bool , "hasLocalLinkage");
+    slot(bool , "hasExternalWeakLinkage");
+    slot(bool , "hasCommonLinkage");
+    slot(llvm::GlobalValue::LinkageTypes , "Linkage");
+    slot(bool , "isDiscardableIfUnused");
+    slot(bool , "mayBeOverridden");
+    slot(bool , "isWeakForLinker");
+    slot(bool , "isDeclaration");
+    slot(bool , "isDeclarationForLinker");
+    slot(bool , "isStrongDefinitionForLinker");
+    slot(bool , "is-materializable");
+    slot(bool , "is-dematerializable");
+}
+EndDefClassBuilderNode
+
