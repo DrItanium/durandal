@@ -32,3 +32,13 @@ X(IntrinsicInst	, llvm::IntrinsicInst, "llvm::intrinsic-instruction", "call-inst
 X(BinaryOperator	, llvm::BinaryOperator, "llvm::binary-operator", "instruction")
 
 X(StoreInst	, llvm::StoreInst, "llvm::store-instruction", "instruction")
+
+X(ResumeInst, llvm::ResumeInst, "llvm::resume-instruction", "terminator-instruction")
+X(ShuffleVectorInst, llvm::ShuffleVectorInst, "llvm::shuffle-vector-instruction", "instruction")
+X(SelectInst, llvm::SelectInst, "llvm::select-instruction", "instruction")
+X(LandingPadInst, llvm::LandingPadInst, "llvm::landing-pad-instruction", "instruction")
+X(InsertValueInst, llvm::InsertValueInst, "llvm::insert-value-instruction", "instruction")
+X(InsertElementInst, llvm::InsertElementInst, "llvm::insert-element-instruction", "instruction")
+X(GetElementPtrInst, llvm::GetElementPtrInst, "llvm::get-element-pointer-instruction", "instruction")
+X(FenceInst, llvm::FenceInst, "llvm::fence-instruction", "instruction")
+X(ExtractElementInst, llvm::ExtractElementInst, "llvm::insert-element-instruction", "instruction")

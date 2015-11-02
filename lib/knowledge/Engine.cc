@@ -1013,7 +1013,9 @@ intBool DeallocateNative ## shortType (void* theEnv, void* theValue) { \
 } \
 void PrintNative ## shortType ## Address(void* theEnv, const char* logicalName, void* theValue) { \
 	printHexIntoClips(theEnv, logicalName, STR(Native ## shortType), ValueToExternalAddress(theValue)); \
-}
+} \
+intBool CallNative ## shortType (void* theEnv, DATA_OBJECT* theValue, DATA_OBJECT* retVal) { return 0; }
+
 #include "knowledge/EngineNodes.def"
 #undef X
 
