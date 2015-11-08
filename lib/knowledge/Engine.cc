@@ -287,109 +287,7 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 #define Otherwise(type, env, val) \
 	return ProcessingNode<type, Pass>::constructInstance(env, val, pass)
 
-// Define the routing code or where to dispatch things of different types to.
-// This is done using macros and templates because writing this by hand is a
-// major pain in the ass
-BeginCustomDispatch(llvm::TerminatorInst, env, inst)
-	CondDispatch(llvm::BranchInst, env, inst);
-	CondDispatch(llvm::IndirectBrInst, env, inst);
-	CondDispatch(llvm::InvokeInst, env, inst);
-	CondDispatch(llvm::ResumeInst, env, inst);
-	CondDispatch(llvm::ReturnInst, env, inst);
-	CondDispatch(llvm::SwitchInst, env, inst);
-	CondDispatch(llvm::UnreachableInst, env, inst);
-	Otherwise(llvm::TerminatorInst, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::UnaryInstruction, env, inst) 
-	CondDispatch(llvm::AllocaInst, env, inst);
-	CondDispatch(llvm::CastInst, env, inst);
-	CondDispatch(llvm::ExtractValueInst, env, inst);
-	CondDispatch(llvm::LoadInst, env, inst);
-	CondDispatch(llvm::VAArgInst, env, inst);
-	Otherwise(llvm::UnaryInstruction, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::CmpInst, env, inst)
-	CondDispatch(llvm::FCmpInst, env, inst);
-	CondDispatch(llvm::ICmpInst, env, inst);
-	Otherwise(llvm::CmpInst, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::Instruction, env, inst)
-	CondDispatch(llvm::PHINode, env, inst);
-	CondDispatch(llvm::StoreInst, env, inst);
-	CondDispatch(llvm::BinaryOperator, env, inst);
-	CondDispatch(llvm::CallInst, env, inst);
-	CondDispatch(llvm::CmpInst, env, inst);
-	CondDispatch(llvm::ExtractElementInst, env, inst);
-	CondDispatch(llvm::FenceInst, env, inst);
-	CondDispatch(llvm::GetElementPtrInst, env, inst);
-	CondDispatch(llvm::InsertElementInst, env, inst);
-	CondDispatch(llvm::InsertValueInst, env, inst);
-	CondDispatch(llvm::LandingPadInst, env, inst);
-	CondDispatch(llvm::SelectInst, env, inst);
-	CondDispatch(llvm::ShuffleVectorInst, env, inst);
-	CondDispatch(llvm::TerminatorInst, env, inst);
-	CondDispatch(llvm::UnaryInstruction, env, inst);
-	Otherwise(llvm::Instruction, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::User, env, inst) 
-	CondDispatch(llvm::Instruction, env, inst);
-	CondDispatch(llvm::Constant, env, inst);
-	CondDispatch(llvm::Operator, env, inst);
-	Otherwise(llvm::User, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::Value, env, inst)
-	CondDispatch(llvm::User, env, inst);
-	CondDispatch(llvm::BasicBlock, env, inst);
-	CondDispatch(llvm::Argument, env, inst);
-	// CondDispatch(llvm::InlineAsm, env, value);
-	// CondDispatch(llvm::MDNode, env, value);
-	// CondDispatch(llvm::MDString, env, value);
-	Otherwise(llvm::Value, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::CastInst, env, inst)
-	CondDispatch(llvm::AddrSpaceCastInst, env, inst);
-	CondDispatch(llvm::BitCastInst, env, inst);
-	CondDispatch(llvm::FPExtInst, env, inst);
-	CondDispatch(llvm::FPToSIInst, env, inst);
-	Otherwise(llvm::CastInst, env, inst);
-EndCustomDispatch
-
-//TODO: Finish defining this custom dispatch at some point
-//BeginCustomDispatch(llvm::IntrinsicInst, env, inst)
-//	CondDispatch(llvm::DbgInfoIntrinsic, env, inst);
-//	Otherwise(llvm::IntrinsicInst, env, inst);
-//EndCustomDispatch
-
-BeginCustomDispatch( llvm::CallInst, env, inst)
-	CondDispatch(llvm::IntrinsicInst, env, inst);
-	Otherwise(llvm::CallInst, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::SequentialType, env, inst);
-	CondDispatch(llvm::ArrayType, env, inst);
-	CondDispatch(llvm::PointerType, env, inst);
-	CondDispatch(llvm::VectorType, env, inst);
-	Otherwise(llvm::SequentialType, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::CompositeType, env, inst)
-	CondDispatch(llvm::StructType, env, inst);
-	CondDispatch(llvm::SequentialType, env, inst);
-	Otherwise(llvm::CompositeType, env, inst);
-EndCustomDispatch
-
-BeginCustomDispatch(llvm::Type, env, inst)
-	CondDispatch(llvm::FunctionType, env, inst);
-	CondDispatch(llvm::IntegerType, env, inst);
-	CondDispatch(llvm::CompositeType, env, inst);
-	Otherwise(llvm::Type, env, inst);
-EndCustomDispatch
+#include "knowledge/DispatchTable.def"
 
 // Generic Pass handling
 #define NewNode_Partial(type, name) \
@@ -576,22 +474,24 @@ BeginInstanceBuilderNode_Partial(llvm::Type, str, env, t, p) {
 	//
 }
 EndInstanceBuilderNode
-
+template<class I, class P>
+void constructInstanceMultifield(void* env, int count, void* native, P* p,  const std::string& name, I begin, I end) {
+	if (count > 0) {
+		void* mf = EnvCreateMultifield(env, count);
+		int index = 1;
+		for (I it = begin; it != end; ++it, ++index) {
+			SetMFType(mf, index, INSTANCE_NAME);
+			SetMFValue(mf, index, getInstanceName(env, *it, p));
+		}
+		directPutMultifield(env, native, name, mf, 1, index - 1);
+	}
+}
 BeginInstancePopulatorNode_Partial(llvm::Type, env, t, p) {
 	// first populate the scalar type, this can be a wierd case as it may
 	// return this class! So it is something to be aware of in CLIPS itself
 	directPutInstanceName(env, t, "scalar-type", 
 			getInstanceName(env, t->getScalarType(), p));
-	if (t->getNumContainedTypes() > 0) {
-		void* elementmf = EnvCreateMultifield(env, t->getNumContainedTypes());
-		int elementIndex = 1;
-		for (llvm::StructType::element_iterator it = t->subtype_begin();
-				it != t->subtype_end(); ++it, ++elementIndex) {
-			SetMFType(elementmf, elementIndex, INSTANCE_NAME);
-			SetMFValue(elementmf, elementIndex, getInstanceName(env, *it, p));
-		}
-		directPutMultifield(env, t, "subtypes", elementmf, 1, elementIndex - 1);
-	}
+	constructInstanceMultifield(env, t->getNumContainedTypes(), t, p, "subtypes", t->subtype_begin(), t->subtype_end());
 }
 EndInstancePopulatorNode
 BeginInstanceBuilderNode_Partial(llvm::Value, str, env, v, p) {
@@ -608,7 +508,7 @@ BeginInstancePopulatorNode_Partial(llvm::Value, env, v, p) {
 	// knowledge
 }
 EndInstancePopulatorNode
-
+// Argument
 BeginInstanceBuilderNode_Partial(llvm::Argument, str, env, t, p) {
 	build(str, env, (llvm::Value*)t, p);
 	field(str, "index", t->getArgNo());
@@ -640,7 +540,7 @@ BeginInstancePopulatorNode_Partial(llvm::Argument, env, t, p) {
 }
 EndInstancePopulatorNode
 
-
+// Basic Block
 BeginInstanceBuilderNode_Partial(llvm::BasicBlock, str, env, t, p) {
 	build(str, env, (llvm::Value*)t, p);
 	field(str, "is-landing-pad", t->isLandingPad());
@@ -730,7 +630,7 @@ struct InstanceBuilderNode<llvm::Function, Pass> {
 	}
 };
 // Basic Block Pass
-
+//-----------------------------------------------------------------------------
 template<typename T>
 void registerExternalAddressId(void* theEnv, struct externalAddressType* ea) {
 	RegisterExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId, ea);
