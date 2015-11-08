@@ -336,25 +336,10 @@ struct name <type, passType>
 
 #define EndInstancePopulatorNode EndNode
 	
-BeginInstanceBuilderNode_Partial(llvm::IntegerType, str, env, t, p)  {
-	build(str, env, (llvm::Type*)t, p);
-	field(str, "bit-width", t->getBitWidth());
-	field(str, "bit-mask", t->getBitMask());
-	field(str, "sign-bit", t->getSignBit());
-	field(str, "is-power-of-2-byte-width", t->isPowerOf2ByteWidth());
-}
-EndInstanceBuilderNode
-
 BeginInstancePopulatorNode_Partial(llvm::IntegerType, env, t, p) {
 	populate(env, (llvm::Type*)t, p);
 }
 EndInstancePopulatorNode
-
-BeginInstanceBuilderNode_Partial(llvm::FunctionType, str, env, t, p) {
-	build(str, env, (llvm::Type*)t, p);
-	field(str, "is-var-arg", t->isVarArg());
-}
-EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::FunctionType, env, t, p) {
 	populate(env, (llvm::Type*)t, p);
@@ -371,37 +356,16 @@ BeginInstancePopulatorNode_Partial(llvm::FunctionType, env, t, p) {
 }
 EndInstancePopulatorNode
 
-BeginInstanceBuilderNode_Partial(llvm::CompositeType, str, env, t, p) {
-	build(str, env, (llvm::Type*)t, p);
-}
-EndInstanceBuilderNode
-
 BeginInstancePopulatorNode_Partial(llvm::CompositeType, env, t, p) {
 	populate(env, (llvm::Type*)t, p);
 }
 EndInstancePopulatorNode
-
-BeginInstanceBuilderNode_Partial(llvm::StructType, str, env, t, p) {
-	build(str, env, (llvm::CompositeType*)t, p);
-	field(str, "packed", t->isPacked());
-	field(str, "literal", t->isLiteral());
-	field(str, "opaque", t->isOpaque());
-	field(str, "has-name", t->hasName());
-	if (t->hasName()) {
-		field(str, "struct-name", t->getName());
-	}
-}
-EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::StructType, env, t, p) {
 	populate(env, (llvm::CompositeType*)t, p);
 }
 EndInstancePopulatorNode
 
-BeginInstanceBuilderNode_Partial(llvm::SequentialType, str, env, t, p) {
-	build(str, env, (llvm::CompositeType*)t, p);
-}
-EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::SequentialType, env, t, p) {
 	populate(env, (llvm::CompositeType*)t, p);
@@ -410,38 +374,14 @@ BeginInstancePopulatorNode_Partial(llvm::SequentialType, env, t, p) {
 }
 EndInstancePopulatorNode
 
-BeginInstanceBuilderNode_Partial(llvm::ArrayType, str, env, t, p) {
-	build(str, env, (llvm::SequentialType*)t, p);
-	field(str, "num-elements", t->getNumElements());
-}
-EndInstanceBuilderNode
-
-BeginInstancePopulatorNode_Partial(llvm::ArrayType, env, t, p) {
-	populate(env, (llvm::SequentialType*)t, p);
-	//TODO: populate sub elements
-}
-EndInstancePopulatorNode
-
-BeginInstanceBuilderNode_Partial(llvm::PointerType, str, env, t, p) {
-	build(str, env, (llvm::SequentialType*)t, p);
-	field(str, "address-space", t->getAddressSpace());
-}
-EndInstanceBuilderNode
-
-BeginInstanceBuilderNode_Partial(llvm::VectorType, str, env, t, p) {
-	build(str, env, (llvm::SequentialType*)t, p);
-	field(str, "bit-width", t->getBitWidth());
-}
-EndInstanceBuilderNode
-
 #define X(_, name, op)  \
-		field (str, name, op)
+		field (str, name, op);
 #define Begin(type) \
 	BeginInstanceBuilderNode_Partial(type) {
 #define super(type) \
 		populate(env, (type*)t, p)
 #define End }
-#include "knowledge/populator_nodes.def"
+#include "knowledge/builder_nodes.def"
 #undef super
 #undef X
 #undef Begin

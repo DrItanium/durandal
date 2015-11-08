@@ -1,21 +1,41 @@
 Begin(llvm::Type)
-#include "knowledge/builder/llvm.type"
+	#include "knowledge/builder/llvm.type"
+End
+Begin(llvm::CompositeType)
+	super(llvm::Type);
 End
 
 Begin(llvm::SequentialType)
-super(llvm::CompositeType);
+	super(llvm::CompositeType);
+End
+
+Begin(llvm::StructType)
+	super(llvm::CompositeType);
+	#include "knowledge/builder/llvm.struct_type"
 End
 
 Begin(llvm::VectorType)
-super(llvm::SequentialType);
+	super(llvm::SequentialType);
+	#include "knowledge/builder/llvm.vector_type"
 End
 
 Begin(llvm::PointerType)
-super(llvm::SequentialType);
+	super(llvm::SequentialType);
+	#include "knowledge/builder/llvm.pointer_type"
 End
 
 Begin(llvm::ArrayType)
-super(llvm::SequentialType);
+	super(llvm::SequentialType);
+	#include "knowledge/builder/llvm.array_type"
 End
 
+Begin(llvm::IntegerType)
+	super(llvm::Type)
+	#include "knowledge/builder/llvm.integer_type"
+End
+
+Begin(llvm::FunctionType)
+	super(llvm::Type)
+	#include "knowledge/builder/llvm.function_type"
+End
 
