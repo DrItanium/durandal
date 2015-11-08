@@ -1,0 +1,21 @@
+Begin(llvm::Type)
+#include "knowledge/builder/llvm.type"
+End
+
+Begin(llvm::SequentialType)
+super(llvm::CompositeType);
+End
+
+Begin(llvm::VectorType)
+super(llvm::SequentialType);
+End
+
+Begin(llvm::PointerType)
+super(llvm::SequentialType);
+End
+
+Begin(llvm::ArrayType)
+super(llvm::SequentialType);
+End
+
+

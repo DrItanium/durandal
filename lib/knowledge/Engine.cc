@@ -308,9 +308,9 @@ struct name <type, passType>
 #define BuildInstanceHeader_Partial(type, strName, envName, typeName, passName) \
 	BuildInstanceHeader_Full(type, Pass, strName, envName, typeName, passName)
 
-#define BeginInstanceBuilderNode_Partial(type, strName, envName, typeName, passName) \
+#define BeginInstanceBuilderNode_Partial(type) \
 	NewNode_Partial(type, InstanceBuilderNode) { \
-		BuildInstanceHeader_Partial(type, strName, envName, typeName, passName)
+		BuildInstanceHeader_Partial(type, str, env, t, p)
 
 #define BeginInstanceBuilderNode_Full(type, passType, strName, envName, typeName, passName) \
 	NewNode_Full(type, passType, InstanceBuilderNode) { \
@@ -428,35 +428,24 @@ BeginInstanceBuilderNode_Partial(llvm::PointerType, str, env, t, p) {
 }
 EndInstanceBuilderNode
 
-BeginInstancePopulatorNode_Partial(llvm::PointerType, env, t, p) {
-	populate(env, (llvm::SequentialType*)t, p);
-	//TODO: populate sub elements
-}
-EndInstancePopulatorNode
-
 BeginInstanceBuilderNode_Partial(llvm::VectorType, str, env, t, p) {
 	build(str, env, (llvm::SequentialType*)t, p);
 	field(str, "bit-width", t->getBitWidth());
 }
 EndInstanceBuilderNode
 
-BeginInstancePopulatorNode_Partial(llvm::VectorType, env, t, p) {
-	populate(env, (llvm::SequentialType*)t, p);
-	//TODO: populate sub elements
-}
-EndInstancePopulatorNode
-
-
-
-#define X(name, op)  \
+#define X(_, name, op)  \
 		field (str, name, op)
-BeginInstanceBuilderNode_Partial(llvm::Type, str, env, t, p) {
-	// omit the entries like is-integer-type since CLIPS' type system has
-	// awesome reflective capabilities
-	//
-	#include "knowledge/llvm.type.builder"
-}
+#define Begin(type) \
+	BeginInstanceBuilderNode_Partial(type) {
+#define super(type) \
+		populate(env, (type*)t, p)
+#define End }
+#include "knowledge/populator_nodes.def"
+#undef super
 #undef X
+#undef Begin
+#undef End
 EndInstanceBuilderNode
 template<class I, class P>
 void constructInstanceMultifield(void* env, int count, void* native, P* p,  const std::string& name, I begin, I end) {
