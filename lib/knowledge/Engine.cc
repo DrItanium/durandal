@@ -285,7 +285,6 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 	if (type* v = llvm::dyn_cast<type>(val)) return Router<type, Pass>::dispatch(env, v, pass)
 #define Otherwise(type, env, val) \
 	return ProcessingNode<type, Pass>::constructInstance(env, val, pass)
-
 #define EndCustomDispatch(type, env, inst) \
 	Otherwise(type, env, inst); \
 } } };
@@ -449,33 +448,15 @@ EndInstancePopulatorNode
 
 
 
-
+#define X(name, op)  \
+		field (str, name, op)
 BeginInstanceBuilderNode_Partial(llvm::Type, str, env, t, p) {
-	field(str, "is-void-type", t->isVoidTy());
-	field(str, "is-half-type", t->isHalfTy());
-	field(str, "is-float-type", t->isFloatTy());
-	field(str, "is-double-type", t->isDoubleTy());
-	field(str, "is-x86-fp80-type", t->isX86_FP80Ty());
-	field(str, "is-fp128-type", t->isFP128Ty());
-	field(str, "is-ppc-fp128-type", t->isPPC_FP128Ty());
-	field(str, "is-floating-point", t->isFloatingPointTy());
-	field(str, "is-x86-mmx-type", t->isX86_MMXTy());
-	field(str, "is-fp-or-fp-vector-type", t->isFPOrFPVectorTy());
-	field(str, "is-label-type", t->isLabelTy());
-	field(str, "is-metadata-type", t->isMetadataTy());
-	field(str, "is-int-or-int-vector-type", t->isIntOrIntVectorTy());
-	field(str, "is-ptr-or-ptr-vector-type", t->isPtrOrPtrVectorTy());
-	field(str, "is-empty-type", t->isEmptyTy());
-	field(str, "is-first-class-type", t->isFirstClassType());
-	field(str, "is-single-value-type", t->isSingleValueType());
-	field(str, "is-aggregate-type", t->isAggregateType());
-	field(str, "primitive-bit-size", t->getPrimitiveSizeInBits());
-	field(str, "scalar-bit-size", t->getScalarSizeInBits());
-	field(str, "fp-mantissa-width", t->getFPMantissaWidth());
 	// omit the entries like is-integer-type since CLIPS' type system has
 	// awesome reflective capabilities
 	//
+	#include "knowledge/llvm.type.builder"
 }
+#undef X
 EndInstanceBuilderNode
 template<class I, class P>
 void constructInstanceMultifield(void* env, int count, void* native, P* p,  const std::string& name, I begin, I end) {
