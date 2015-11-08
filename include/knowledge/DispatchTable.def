@@ -9,8 +9,7 @@ BeginCustomDispatch(llvm::TerminatorInst, env, inst)
 	CondDispatch(llvm::ReturnInst, env, inst);
 	CondDispatch(llvm::SwitchInst, env, inst);
 	CondDispatch(llvm::UnreachableInst, env, inst);
-	Otherwise(llvm::TerminatorInst, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::TerminatorInst, env, inst)
 
 BeginCustomDispatch(llvm::UnaryInstruction, env, inst) 
 	CondDispatch(llvm::AllocaInst, env, inst);
@@ -18,14 +17,12 @@ BeginCustomDispatch(llvm::UnaryInstruction, env, inst)
 	CondDispatch(llvm::ExtractValueInst, env, inst);
 	CondDispatch(llvm::LoadInst, env, inst);
 	CondDispatch(llvm::VAArgInst, env, inst);
-	Otherwise(llvm::UnaryInstruction, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::UnaryInstruction, env, inst)
 
 BeginCustomDispatch(llvm::CmpInst, env, inst)
 	CondDispatch(llvm::FCmpInst, env, inst);
 	CondDispatch(llvm::ICmpInst, env, inst);
-	Otherwise(llvm::CmpInst, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::CmpInst, env, inst)
 
 BeginCustomDispatch(llvm::Instruction, env, inst)
 	CondDispatch(llvm::PHINode, env, inst);
@@ -43,15 +40,13 @@ BeginCustomDispatch(llvm::Instruction, env, inst)
 	CondDispatch(llvm::ShuffleVectorInst, env, inst);
 	CondDispatch(llvm::TerminatorInst, env, inst);
 	CondDispatch(llvm::UnaryInstruction, env, inst);
-	Otherwise(llvm::Instruction, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::Instruction, env, inst)
 
 BeginCustomDispatch(llvm::User, env, inst) 
 	CondDispatch(llvm::Instruction, env, inst);
 	CondDispatch(llvm::Constant, env, inst);
 	CondDispatch(llvm::Operator, env, inst);
-	Otherwise(llvm::User, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::User, env, inst)
 
 BeginCustomDispatch(llvm::Value, env, inst)
 	CondDispatch(llvm::User, env, inst);
@@ -60,16 +55,14 @@ BeginCustomDispatch(llvm::Value, env, inst)
 	// CondDispatch(llvm::InlineAsm, env, value);
 	// CondDispatch(llvm::MDNode, env, value);
 	// CondDispatch(llvm::MDString, env, value);
-	Otherwise(llvm::Value, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::Value, env, inst)
 
 BeginCustomDispatch(llvm::CastInst, env, inst)
 	CondDispatch(llvm::AddrSpaceCastInst, env, inst);
 	CondDispatch(llvm::BitCastInst, env, inst);
 	CondDispatch(llvm::FPExtInst, env, inst);
 	CondDispatch(llvm::FPToSIInst, env, inst);
-	Otherwise(llvm::CastInst, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::CastInst, env, inst)
 
 //TODO: Finish defining this custom dispatch at some point
 //BeginCustomDispatch(llvm::IntrinsicInst, env, inst)
@@ -79,25 +72,21 @@ EndCustomDispatch
 
 BeginCustomDispatch( llvm::CallInst, env, inst)
 	CondDispatch(llvm::IntrinsicInst, env, inst);
-	Otherwise(llvm::CallInst, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::CallInst, env, inst)
 
 BeginCustomDispatch(llvm::SequentialType, env, inst);
 	CondDispatch(llvm::ArrayType, env, inst);
 	CondDispatch(llvm::PointerType, env, inst);
 	CondDispatch(llvm::VectorType, env, inst);
-	Otherwise(llvm::SequentialType, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::SequentialType, env, inst)
 
 BeginCustomDispatch(llvm::CompositeType, env, inst)
 	CondDispatch(llvm::StructType, env, inst);
 	CondDispatch(llvm::SequentialType, env, inst);
-	Otherwise(llvm::CompositeType, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::CompositeType, env, inst)
 
 BeginCustomDispatch(llvm::Type, env, inst)
 	CondDispatch(llvm::FunctionType, env, inst);
 	CondDispatch(llvm::IntegerType, env, inst);
 	CondDispatch(llvm::CompositeType, env, inst);
-	Otherwise(llvm::Type, env, inst);
-EndCustomDispatch
+EndCustomDispatch(llvm::Type, env, inst)

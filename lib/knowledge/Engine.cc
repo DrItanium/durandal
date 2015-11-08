@@ -278,7 +278,6 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 		Route(type, env, inst) { \
 			WhenInstanceDoesNotExist(env, inst) {
 
-#define EndCustomDispatch } } };
 
 
 
@@ -286,6 +285,10 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 	if (type* v = llvm::dyn_cast<type>(val)) return Router<type, Pass>::dispatch(env, v, pass)
 #define Otherwise(type, env, val) \
 	return ProcessingNode<type, Pass>::constructInstance(env, val, pass)
+
+#define EndCustomDispatch(type, env, inst) \
+	Otherwise(type, env, inst); \
+} } };
 
 #include "knowledge/DispatchTable.def"
 
