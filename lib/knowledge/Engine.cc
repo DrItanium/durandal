@@ -386,6 +386,7 @@ EndInstancePopulatorNode
 #include "knowledge/builder_nodes.def"
 #undef super
 #undef X
+#undef Y
 #undef Begin
 #undef End
 

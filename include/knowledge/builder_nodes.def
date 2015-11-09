@@ -1,13 +1,14 @@
-#define SimpleInheritance(type, base) \
-	Begin(type) \
-	super(base) \
-	End
-
 Begin(llvm::Type)
 	#include "knowledge/builder/llvm.type"
 End
-SimpleInheritance(llvm::CompositeType, llvm::Type)
-SimpleInhiertance(llvm::SequentialType,  llvm::CompositeType)
+
+Begin(llvm::CompositeType)
+	super(llvm::Type)
+End
+
+Begin(llvm::SequentialType)
+	super(llvm::CompositeType)
+End
 
 Begin(llvm::StructType)
 	super(llvm::CompositeType)
@@ -77,6 +78,3 @@ Begin(llvm::Function)
 	super(llvm::GlobalObject)
 	#include "knowledge/builder/llvm.function"
 End
-
-
-#undef SimpleInheritance

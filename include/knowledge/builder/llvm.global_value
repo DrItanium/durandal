@@ -31,7 +31,7 @@ X(bool, "mayBeOverridden", t->mayBeOverridden())
 X(bool, "isWeakForLinker", t->isWeakForLinker())
 X(bool, "isDeclaration", t->isDeclaration())
 X(bool, "isDeclarationForLinker", t->isDeclarationForLinker())
-X(bool, "isStrongDefinitionForLinker", t->isStrongDefinitionForLinker())
+//X(bool, "isStrongDefinitionForLinker", t->isStrongDefinitionForLinker())
 
 //Module * 	getParent 
 //"PointerType *" 	getType  )
