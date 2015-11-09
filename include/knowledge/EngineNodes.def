@@ -11,5 +11,7 @@ X(GlobalValue	, llvm::GlobalValue, "llvm::global-value", "constant")
 X(GlobalAlias	, llvm::GlobalAlias, "llvm::global-alias", "global-value")
 X(GlobalVariable	, llvm::GlobalVariable, "llvm::global-variable", "global-value")
 X(Function	, llvm::Function, "llvm::function", "global-value diplomat has-contents")
+X(Use, llvm::Use, "llvm::use", "llvm-object interop")
+X(ValueName, llvm::ValueName, "llvm::value-name", "llvm-object interop")
 #include "InstructionNodes.def"
 #include "TypeNodes.def"

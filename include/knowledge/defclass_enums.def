@@ -2,6 +2,7 @@
 defenumdefslot(llvm::Type::TypeID, "void\nhalf\nfloat\ndouble\nx86-fp80\nfp128\nppc-fp128\nlabel\nmetadata\nx86-mmx\ntoken\ninteger\nfunction\nstruct\narray\npointer\nvector")
 
 
+defstring_defslot(const std::string&);
 defdefslot(float) {
     str << "(slot " << name << "\n"
         << "(type FLOAT)\n"
@@ -27,3 +28,4 @@ defenumdefslot(llvm::AtomicRMWInst::BinOp, "xchg\nadd\nsub\nand\nnand\nor\nxor\n
 
 defenumdefslot(llvm::InlineAsm::AsmDialect, "att\nintel")
 defenumdefslot(llvm::InlineAsm::ConstraintPrefix, "is-input\nis-output\nis-clobber")
+

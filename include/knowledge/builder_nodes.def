@@ -32,6 +32,7 @@ End
 Begin(llvm::SequentialType)
 	super(llvm::CompositeType)
 	X(llvm::Type*, "element-type", t->getElementType(), Reference, 0)
+	//X(llvm::Type*, "indices", 
 End
 
 Begin(llvm::StructType)
@@ -40,7 +41,8 @@ Begin(llvm::StructType)
 	X(bool, "literal", t->isLiteral(), Value, 0 )
 	X(bool, "opaque", t->isOpaque(), Value, 0)
 	X(bool, "has-name", t->hasName(), Value, 0)
-	X(const std::string&, "struct-name", t->getName(), Value, t->hasName(), 0)
+	X(const std::string&, "title", t->getName(), ConditionalValue, t->hasName(), 0)
+	X(llvm::ArrayRef<llvm::Type*> const, "elements", 0, Multifield, t->element_begin(), t->element_end(), t->getNumElements(), 0)
 End
 
 Begin(llvm::VectorType)
@@ -64,12 +66,15 @@ Begin(llvm::IntegerType)
 	X(unsigned , "bit-mask", t->getBitMask(), Value, 0)
 	X(unsigned , "sign-bit", t->getSignBit(), Value, 0)
 	X(bool, "is-power-of-2-byte-width", t->isPowerOf2ByteWidth(), Value, 0)
+	X(llvm::APInt, "mask", t->getMask(), Value, 0)
 End
 
 Begin(llvm::FunctionType)
 	super(llvm::Type)
 	X(bool, "is-var-arg", t->isVarArg(), Value, 0)
-	//X(llvm::ArrayRef<llvm::BasicBlock&>, "params", 0, Multifield, t->param_begin(), t->param_end(), t->getNumParams(), 0)
+	X(llvm::Type*, "return-type", t->getReturnType(), Reference, 0)
+	X(llvm::ArrayRef<llvm::BasicBlock&>, "parameters", 0, Multifield, t->param_begin(), t->param_end(), t->getNumParams(), 0)
+	X(unsigned, "num-parameters", t->getNumParams(), Value, 0)
 End
 
 Begin(llvm::Value)
@@ -77,6 +82,12 @@ Begin(llvm::Value)
 	X(bool, "has-value-handle", t->hasValueHandle(), Value, 0)
 	X(bool, "is-used-by-metadata", t->isUsedByMetadata(), Value, 0)
 	X(llvm::Type*, "type", t->getType(), Reference, 0)
+	X(llvm::StringRef, "title", t->getName(), ConditionalValue, t->hasName(), 0)
+	X(bool, "has-name", t->hasName(), Value, 0)
+	X(llvm::ValueName*, "value-name", t->getValueName(), Reference, 0)
+	X(llvm::Value::use_iterator, "uses", 0, Multifield, t->use_begin(), t->use_end(), t->getNumUses(), 0)
+	X(llvm::Value::user_iterator, "users", 0, Multifield, t->user_begin(), t->user_end(), (unsigned)std::distance(t->user_begin(), t->user_end()), 0)
+	X(unsigned, "raw-subclass-optional-data", t->getRawSubclassOptionalData(), Value, 0)
 End
 
 Begin(llvm::Argument)
@@ -116,7 +127,13 @@ End
 
 Begin(llvm::User)
 	super(llvm::Value)
+	X(llvm::User::op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0)
+	//X(llvm::ArrayRef<const uint8_t>, "descriptor", )   //what is this used for?
 End
+
+//Begin(llvm::MetadataAsValue)
+//	X(llvm::Metadata*, "metadata", 
+//End
 
 Begin(llvm::Constant)
 	super(llvm::User)
@@ -190,6 +207,15 @@ X(bool, "callsFunctionThatReturnsTwice", t->callsFunctionThatReturnsTwice(), Val
 X(llvm::Type*, "return-type", t->getReturnType(), Reference, 0)
 End
 
+Begin(llvm::InlineAsm) 
+	X(bool, "has-side-effects", t->hasSideEffects(), Value, 0)
+	X(bool, "is-align-stack", t->isAlignStack(), Value, 0)
+	//X(llvm::InlineAsm::AsmDialect, "dialect", t->getDialect(), Enum, 0)
+	X(llvm::FunctionType*, "function-type", t->getFunctionType(), Reference, 0)
+	X(const std::string&, "asm-string", t->getAsmString(), Value, 0)
+	X(const std::string&, "constraint-string", t->getConstraintString(), Value, 0)
+End
+
 Begin(llvm::Instruction)
 	super(llvm::User)
 End
@@ -198,3 +224,9 @@ Begin(llvm::TerminatorInst)
 	super(llvm::Instruction)
 End
 
+
+
+Begin(llvm::ValueName)
+	X(llvm::StringRef, "key", t->getKey(), Value, 0)
+	X(llvm::Value*, "value", t->getValue(), Reference, 0)
+End

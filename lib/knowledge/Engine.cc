@@ -414,18 +414,23 @@ void constructInstanceMultifield(void* env, int count, void* native, P* p,  cons
 	}
 }
 // special case for BasicBlock's not iterating over a list of instruction pointers
-template<class P>
-void constructInstanceMultifield(void* env, int count, llvm::BasicBlock* native, P* p, const std::string& name, llvm::BasicBlock::iterator begin, llvm::BasicBlock::iterator end) {
-	if (count > 0) {
-		void* mf = EnvCreateMultifield(env, count);
-		int index = 1;
-		for (llvm::BasicBlock::iterator it = begin; it != end; ++it, ++index) {
-			SetMFType(mf, index, INSTANCE_NAME);
-			SetMFValue(mf, index, knowledge::getInstanceName(env, &(*it), p));
-		}
-		directPutMultifield(env, native, name, mf, 1, index - 1);
-	}
+#define defcustomConstructInstanceMultifield(type) \
+template<class P> \
+void constructInstanceMultifield(void* env, int count, void* native, P* p, const std::string& name, type begin, type end) { \
+	if (count > 0) { \
+		void* mf = EnvCreateMultifield(env, count); \
+		int index = 1; \
+		for (type it = begin; it != end; ++it, ++index) { \
+			SetMFType(mf, index, INSTANCE_NAME); \
+			SetMFValue(mf, index, knowledge::getInstanceName(env, &(*it), p)); \
+		} \
+		directPutMultifield(env, native, name, mf, 1, index - 1); \
+	} \
 }
+defcustomConstructInstanceMultifield(llvm::BasicBlock::iterator)
+defcustomConstructInstanceMultifield(llvm::User::op_iterator)
+defcustomConstructInstanceMultifield(llvm::User::use_iterator)
+
 // Populator Node constructors
 #define BeginFull(type, pass) \
 		BeginInstancePopulatorNode_Full(type, pass) {

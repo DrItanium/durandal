@@ -1,118 +1,118 @@
 #define SimpleDefClassBuilder(type) BeginDefClassBuilderNode(type) { } EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::Type) {
-    slot(llvm::Type::TypeID, "type-id");
-	slot(bool, "is-void-type");
-	slot(bool, "is-half-type");
-	slot(bool, "is-float-type");
-	slot(bool, "is-double-type");
-	slot(bool, "is-x86-fp80-type");
-	slot(bool, "is-fp128-type");
-	slot(bool, "is-ppc-fp128-type");
-	slot(bool, "is-floating-point");
-	slot(bool, "is-x86-mmx-type");
-	slot(bool, "is-fp-or-fp-vector-type");
-	slot(bool, "is-label-type");
-	slot(bool, "is-metadata-type");
-	slot(bool, "is-int-or-int-vector-type");
-	slot(bool, "is-ptr-or-ptr-vector-type");
-	slot(bool, "is-empty-type");
-	slot(bool, "is-first-class-type");
-	slot(bool, "is-single-value-type");
-	slot(bool, "is-aggregate-type");
-	slot(unsigned, "primitive-bit-size");
-	slot(unsigned, "scalar-bit-size");
-	slot(int, "fp-mantissa-width");
-	slot(llvm::Type*, "scalar-type");
-	slot(const llvm::fltSemantics&, "float-semantics");
-	multislot(llvm::ArrayRef<llvm::Type*>, "sub-types");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::Type) {
+//    slot(llvm::Type::TypeID, "type-id");
+//	slot(bool, "is-void-type");
+//	slot(bool, "is-half-type");
+//	slot(bool, "is-float-type");
+//	slot(bool, "is-double-type");
+//	slot(bool, "is-x86-fp80-type");
+//	slot(bool, "is-fp128-type");
+//	slot(bool, "is-ppc-fp128-type");
+//	slot(bool, "is-floating-point");
+//	slot(bool, "is-x86-mmx-type");
+//	slot(bool, "is-fp-or-fp-vector-type");
+//	slot(bool, "is-label-type");
+//	slot(bool, "is-metadata-type");
+//	slot(bool, "is-int-or-int-vector-type");
+//	slot(bool, "is-ptr-or-ptr-vector-type");
+//	slot(bool, "is-empty-type");
+//	slot(bool, "is-first-class-type");
+//	slot(bool, "is-single-value-type");
+//	slot(bool, "is-aggregate-type");
+//	slot(unsigned, "primitive-bit-size");
+//	slot(unsigned, "scalar-bit-size");
+//	slot(int, "fp-mantissa-width");
+//	slot(llvm::Type*, "scalar-type");
+//	slot(const llvm::fltSemantics&, "float-semantics");
+//	multislot(llvm::ArrayRef<llvm::Type*>, "sub-types");
+//}
+//EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::FunctionType) {
-    multislot(llvm::ArrayRef<llvm::Type*>, "parameters");
-    slot(llvm::Type*, "return-type");
-    slot(bool, "is-var-arg");
-    slot(unsigned, "num-parameters");
-} 
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::FunctionType) {
+//    multislot(llvm::ArrayRef<llvm::Type*>, "parameters");
+//    slot(llvm::Type*, "return-type");
+//    slot(bool, "is-var-arg");
+//    slot(unsigned, "num-parameters");
+//} 
+//EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::IntegerType) {
-    slot(unsigned, "bit-width");
-    slot(unsigned, "bit-mask");
-    slot(unsigned, "sign-bit");
-    slot(llvm::APInt, "mask");
-    slot(bool, "is-power-of-2-byte-width");
-} 
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::IntegerType) {
+//    slot(unsigned, "bit-width");
+//    slot(unsigned, "bit-mask");
+//    slot(unsigned, "sign-bit");
+//    slot(llvm::APInt, "mask");
+//    slot(bool, "is-power-of-2-byte-width");
+//} 
+//EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::CompositeType) {
-    multislot(llvm::Type*, "indices");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::CompositeType) {
+//    multislot(llvm::Type*, "indices");
+//}
+//EndDefClassBuilderNode
 
-SimpleDefClassBuilder(llvm::SequentialType)
+//SimpleDefClassBuilder(llvm::SequentialType)
 
-BeginDefClassBuilderNode(llvm::StructType) {
-    slot(bool, "is-packed");
-    slot(bool, "is-literal");
-    slot(bool, "is-opaque");
-    slot(bool, "has-name");
-    slot(llvm::StringRef, "title");
-    multislot(llvm::ArrayRef<llvm::Type*> const, "elements");
-    //slot(unsigned, "num-elements");
-}
+//BeginDefClassBuilderNode(llvm::StructType) {
+//    slot(bool, "is-packed");
+//    slot(bool, "is-literal");
+//    slot(bool, "is-opaque");
+//    slot(bool, "has-name");
+//    slot(llvm::StringRef, "title");
+//    multislot(llvm::ArrayRef<llvm::Type*> const, "elements");
+//    //slot(unsigned, "num-elements");
+//}
 EndDefClassBuilderNode
-SimpleDefClassBuilder(llvm::ArrayType)
+//SimpleDefClassBuilder(llvm::ArrayType)
 
-BeginDefClassBuilderNode(llvm::PointerType) {
-    slot(unsigned, "address-space");
-}
-EndDefClassBuilderNode
-BeginDefClassBuilderNode(llvm::VectorType) {
-    slot(unsigned, "bit-width");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::PointerType) {
+//    slot(unsigned, "address-space");
+//}
+//EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::VectorType) {
+//    slot(unsigned, "bit-width");
+//}
+//EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::Value) {
-    slot(llvm::Type*, "type");
-    slot(bool, "has-name");
-    slot(llvm::StringRef, "title");
-    slot(llvm::ValueName*, "value-name");
-    multislot(llvm::iterator_range<llvm::Value::const_use_iterator>, "uses");
-    multislot(llvm::iterator_range<llvm::Value::const_user_iterator>, "users");
-    slot(bool, "has-one-use");
-    slot(bool, "has-value-handle");
-    slot(bool, "is-used-by-metadata");
-    slot(unsigned, "num-uses" );
-    slot(unsigned, "value-id" );
-    slot(unsigned, "raw-subclass-optional-data");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::Value) {
+//    slot(llvm::Type*, "type");
+//    slot(bool, "has-name");
+//    slot(llvm::StringRef, "title");
+//    slot(llvm::ValueName*, "value-name");
+//    multislot(llvm::iterator_range<llvm::Value::const_use_iterator>, "uses");
+//    multislot(llvm::iterator_range<llvm::Value::const_user_iterator>, "users");
+//    slot(bool, "has-one-use");
+//    slot(bool, "has-value-handle");
+//    slot(bool, "is-used-by-metadata");
+//    slot(unsigned, "num-uses" );
+//    slot(unsigned, "value-id" );
+//    slot(unsigned, "raw-subclass-optional-data");
+//}
+//EndDefClassBuilderNode
+//
+//BeginDefClassBuilderNode(llvm::User) {
+//    multislot(llvm::User::const_op_range, "operands");
+//    multislot(llvm::ArrayRef<const uint8_t>, "descriptor");
+//    multislot(llvm::iterator_range<llvm::User::value_op_iterator>, "operand-values");
+//}
+//EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::User) {
-    multislot(llvm::User::const_op_range, "operands");
-    multislot(llvm::ArrayRef<const uint8_t>, "descriptor");
-    multislot(llvm::iterator_range<llvm::User::value_op_iterator>, "operand-values");
-}
-EndDefClassBuilderNode
-
-BeginDefClassBuilderNode(llvm::MetadataAsValue) {
-    slot(llvm::Metadata*, "metadata");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::MetadataAsValue) {
+//    slot(llvm::Metadata*, "metadata");
+//}
+//EndDefClassBuilderNode
 
 
-defstring_defslot(const std::string&);
-BeginDefClassBuilderNode(llvm::InlineAsm) {
-    slot(bool, "has-side-effects");
-    slot(bool, "is-align-stack");
-    slot(llvm::InlineAsm::AsmDialect, "dialect");
-    slot(llvm::FunctionType*, "function-type");
-    slot(const std::string&, "asm-string");
-    slot(const std::string&, "constraint-string");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::InlineAsm) {
+//    slot(bool, "has-side-effects");
+//    slot(bool, "is-align-stack");
+//    slot(llvm::InlineAsm::AsmDialect, "dialect");
+//    slot(llvm::FunctionType*, "function-type");
+//    slot(const std::string&, "asm-string");
+//    slot(const std::string&, "constraint-string");
+//}
+//EndDefClassBuilderNode
+
 BeginDefClassBuilderNode(llvm::BasicBlock) {
     slot(llvm::Module*, "module");
     slot(llvm::TerminatorInst*, "terminator");
