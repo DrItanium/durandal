@@ -20,5 +20,5 @@ X(unsigned, "primitive-bit-size", t->getPrimitiveSizeInBits(), Value, 0)
 X(unsigned, "scalar-bit-size", t->getScalarSizeInBits(), Value, 0)
 X(int, "fp-mantissa-width", t->getFPMantissaWidth(), Value, 0)
 X(llvm::Type*, "scalar-type", t->getScalarType(), Reference, 0)
-X(llvm::ArrayRef<llvm::Type*>, "subtypes", 0, Multifield, t->subtype_begin(), t->subtype_end(), t->getNumContainedTypes())
+X(llvm::ArrayRef<llvm::Type*>, "subtypes", 0, Multifield, t->subtype_begin(), t->subtype_end(), t->getNumContainedTypes(), 0)
 

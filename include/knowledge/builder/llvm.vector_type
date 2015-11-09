@@ -1,1 +1,1 @@
-X(unsigned, "bit-width", t->getBitWidth(), Value)
+X(unsigned, "bit-width", t->getBitWidth(), Value, 0)

@@ -1,6 +1,6 @@
-X(unsigned, "value-id", t->getValueID(), Value)
-X(bool, "has-value-handle", t->hasValueHandle(), Value)
-X(bool, "is-used-by-metadata", t->isUsedByMetadata(), Value)
-X(llvm::Type*, "type", t->getType(), Reference)
+X(unsigned, "value-id", t->getValueID(), Value, 0)
+X(bool, "has-value-handle", t->hasValueHandle(), Value, 0)
+X(bool, "is-used-by-metadata", t->isUsedByMetadata(), Value, 0)
+X(llvm::Type*, "type", t->getType(), Reference, 0)
 
 

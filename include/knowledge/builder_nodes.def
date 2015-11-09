@@ -8,6 +8,7 @@ End
 
 Begin(llvm::SequentialType)
 	super(llvm::CompositeType)
+#include "knowledge/builder/llvm.sequential_type"
 End
 
 Begin(llvm::StructType)
