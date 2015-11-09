@@ -1,20 +1,20 @@
-X(unsigned, "index", t->getArgNo());
+X(unsigned, "index", t->getArgNo(), Value)
 //TODO: migrate these attributes to a list to make code maintentance easier
-X(bool, "non-null-attr", t->hasNonNullAttr());
-X(bool, "has-by-val-attr", t->hasByValAttr());
-X(bool, "has-by-val-or-in-alloca-attr", t->hasByValOrInAllocaAttr());
-Y(unsigned, "param-alignment", t->getParamAlignment(), t->getType()->isPointerTy());
-Y(unsigned, "num-dereferenceable-bytes", t->getDereferenceableBytes(), t->getType()->isPointerTy());
+X(bool, "non-null-attr", t->hasNonNullAttr(), Value)
+X(bool, "has-by-val-attr", t->hasByValAttr(), Value)
+X(bool, "has-by-val-or-in-alloca-attr", t->hasByValOrInAllocaAttr(), Value)
+Y(unsigned, "param-alignment", t->getParamAlignment(), t->getType()->isPointerTy(), Value)
+Y(unsigned, "num-dereferenceable-bytes", t->getDereferenceableBytes(), t->getType()->isPointerTy(), Value)
 // this is referenced in the mainline docs but not in 3.6
-//Y(unsigned, "num-dereferenceable-or-null-bytes", t->getDereferenceableOrNullBytes(), t->getType()->isPointerTy());
-X(bool, "has-nest-attr", t->hasNestAttr());
-X(bool, "has-no-alias-attr", t->hasNoAliasAttr());
-X(bool, "has-no-capture-attr", t->hasNoCaptureAttr());
-X(bool, "has-booluct-ret-attr", t->hasStructRetAttr());
-X(bool, "has-returned-attr", t->hasReturnedAttr());
-X(bool, "only-reads-memory", t->onlyReadsMemory());
-X(bool, "has-in-alloca-attr", t->hasInAllocaAttr());
-X(bool, "has-zext-attr", t->hasZExtAttr());
-X(bool, "has-sext-attr", t->hasSExtAttr());
+//Y(unsigned, "num-dereferenceable-or-null-bytes", t->getDereferenceableOrNullBytes(), t->getType()->isPointerTy(), Value)
+X(bool, "has-nest-attr", t->hasNestAttr(), Value)
+X(bool, "has-no-alias-attr", t->hasNoAliasAttr(), Value)
+X(bool, "has-no-capture-attr", t->hasNoCaptureAttr(), Value)
+X(bool, "has-booluct-ret-attr", t->hasStructRetAttr(), Value)
+X(bool, "has-returned-attr", t->hasReturnedAttr(), Value)
+X(bool, "only-reads-memory", t->onlyReadsMemory(), Value)
+X(bool, "has-in-alloca-attr", t->hasInAllocaAttr(), Value)
+X(bool, "has-zext-attr", t->hasZExtAttr(), Value)
+X(bool, "has-sext-attr", t->hasSExtAttr(), Value)
 
 

@@ -324,71 +324,17 @@ struct name <type, passType>
 #define PopulateInstanceHeader_Full(type, passType, envName, typeName, passName) \
 	static void populateInstance(void* envName, type * typeName, passType * passName)
 
-#define PopulateInstanceHeader_Partial(type, envName, typeName, passName) \
-	PopulateInstanceHeader_Full(type, Pass, envName, typeName, passName)
-#define BeginInstancePopulatorNode_Partial(type, envName, typeName, passName) \
+#define PopulateInstanceHeader_Partial(type) \
+	PopulateInstanceHeader_Full(type, Pass, env, t, p)
+#define BeginInstancePopulatorNode_Partial(type) \
 	NewNode_Partial(type, InstancePopulatorNode) { \
-		PopulateInstanceHeader_Partial(type, envName, typeName, passName)
+		PopulateInstanceHeader_Partial(type)
 
 #define BeginInstancePopulatorNode_Full(type, passType, envName, typeName, passName) \
 	NewNode_Full(type, passType, InstancePopulatorNode) { \
 		PopulateInstanceHeader_Full(type, passType, envName, typeName, passName)
 
 #define EndInstancePopulatorNode EndNode
-	
-BeginInstancePopulatorNode_Partial(llvm::IntegerType, env, t, p) {
-	populate(env, (llvm::Type*)t, p);
-}
-EndInstancePopulatorNode
-
-BeginInstancePopulatorNode_Partial(llvm::FunctionType, env, t, p) {
-	populate(env, (llvm::Type*)t, p);
-	directPutInstanceName(env, t, "return-type", 
-			getInstanceName(env, t->getReturnType(), p));
-	void* argsmf = EnvCreateMultifield(env, t->getNumParams());
-	int argIndex = 1;
-	for (llvm::FunctionType::param_iterator it = t->param_begin();
-			it != t->param_end(); ++it, ++argIndex) {
-		SetMFType(argsmf, argIndex, INSTANCE_NAME);
-		SetMFValue(argsmf, argIndex, getInstanceName(env, *it, p));
-	}
-	directPutMultifield(env, t, "params", argsmf, 1, argIndex - 1);
-}
-EndInstancePopulatorNode
-
-BeginInstancePopulatorNode_Partial(llvm::CompositeType, env, t, p) {
-	populate(env, (llvm::Type*)t, p);
-}
-EndInstancePopulatorNode
-
-BeginInstancePopulatorNode_Partial(llvm::StructType, env, t, p) {
-	populate(env, (llvm::CompositeType*)t, p);
-}
-EndInstancePopulatorNode
-
-
-BeginInstancePopulatorNode_Partial(llvm::SequentialType, env, t, p) {
-	populate(env, (llvm::CompositeType*)t, p);
-	directPutInstanceName(env, t, "element-type", 
-			getInstanceName(env, t->getElementType(), p));
-}
-EndInstancePopulatorNode
-
-#define X(_, name, op)  \
-		field (str, name, op);
-#define Y(_, name, op, cond) \
-		if (cond) X(_, name, op)
-#define Begin(type) \
-	BeginInstanceBuilderNode_Partial(type) {
-#define super(type) \
-		populate(env, (type*)t, p);
-#define End } };
-#include "knowledge/builder_nodes.def"
-#undef super
-#undef X
-#undef Y
-#undef Begin
-#undef End
 
 template<class I, class P>
 void constructInstanceMultifield(void* env, int count, void* native, P* p,  const std::string& name, I begin, I end) {
@@ -402,53 +348,37 @@ void constructInstanceMultifield(void* env, int count, void* native, P* p,  cons
 		directPutMultifield(env, native, name, mf, 1, index - 1);
 	}
 }
-BeginInstancePopulatorNode_Partial(llvm::Type, env, t, p) {
-	// first populate the scalar type, this can be a wierd case as it may
-	// return this class! So it is something to be aware of in CLIPS itself
-	directPutInstanceName(env, t, "scalar-type", 
-			getInstanceName(env, t->getScalarType(), p));
-	constructInstanceMultifield(env, t->getNumContainedTypes(), t, p, "subtypes", t->subtype_begin(), t->subtype_end());
-}
-EndInstancePopulatorNode
+#define CAT(a, ...) PRIMITIVE_CAT(a, __VA_ARGS__)
+#define PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
 
-BeginInstancePopulatorNode_Partial(llvm::Value, env, v, p) {
-	directPutInstanceName(env, v, "native-type", 
-			getInstanceName(env, v->getType(), p));
-	//TODO: add support for converting user and perhaps use iterators to
-	// knowledge
-}
-EndInstancePopulatorNode
-// Argument
+#define Begin(type) \
+	BeginInstanceBuilderNode_Partial(type) {
+#define super(type) \
+		populate(env, (type*)t, p);
+#define End } };
+#define X(_, name, op, type, ...) CAT(X, type)(name, op, __VA_ARGS__)
+#define XMultifield(b, c, ...)
+#define XReference(b, c, ...)
+#define XValue(name, op, ...) \
+		field (str, name, op);
+#define Y(_, name, op, cond, clazz) \
+		if (cond) X(_, name, op, clazz)
+#include "knowledge/builder_nodes.def"
+#undef super
+#undef X
+#undef XValue
+#undef XMultifield
+#undef XReference
+#undef Y
+#undef Begin
+#undef End
 
-BeginInstancePopulatorNode_Partial(llvm::Argument, env, t, p) {
-	populate(env, (llvm::Value*)t, p);
-	knowledge::setParent(env, t, p);
-}
-EndInstancePopulatorNode
+template<typename T, typename P = llvm::Pass>
+void customPopulationLogic(void* env, T* t, P* p) { }
 
-// Basic Block
-void commonPopulateInstance(void* env, llvm::BasicBlock* t, llvm::Pass* p) {
-	populate(env, (llvm::Value*)t, p);
-	if (t->size() > 0) {
-		void* mf = EnvCreateMultifield(env, t->size());
-		int index = 1;
-		for(llvm::BasicBlock::iterator it = t->begin();
-				it != t->end();
-				++it, ++index) {
-			llvm::Instruction& inst = *it;
-			SetMFType(mf, index, INSTANCE_NAME);
-			SetMFValue(mf, index, getInstanceName(env, &inst, p));
-		}
-		directPutMultifield(env, t, "contents", mf, 1, index - 1);
-	}
-}
-BeginInstancePopulatorNode_Full(llvm::BasicBlock, llvm::BasicBlockPass, env, t, p) {
-	commonPopulateInstance(env, t, p);
-}
-EndInstancePopulatorNode
-
-BeginInstancePopulatorNode_Partial(llvm::BasicBlock, env, blk, p) {
-	commonPopulateInstance(env, blk, p);
+void customPopulationLogic(void* env, llvm::BasicBlock* t, llvm::BasicBlockPass* p) { }
+void customPopulationLogic(void* env, llvm::BasicBlock* blk, llvm::Pass* p) {
+	// if it isn't a BasicBlockPass then absorb everything we can
 	int index = 0;
 	knowledge::setParent(env, blk, p);
 	llvm::SmallVector<llvm::BasicBlock*, 8> preds(pred_begin(blk), pred_end(blk));
@@ -475,10 +405,27 @@ BeginInstancePopulatorNode_Partial(llvm::BasicBlock, env, blk, p) {
 	}
 	directPutMultifield(env, blk, "successors", succmf, 1, succs.size());
 	directPutMultifield(env, blk, "produces", prodmf, 1, succs.size());
-}
-EndInstancePopulatorNode
 
-// Basic Block Pass
+}
+// Populator Node constructors
+//#define BeginFull(type)
+//#define Begin(type) \
+//		BeginInstancePopulatorNode_Partial(type) {
+//#define End customPopulationLogic(env, t, p); } };
+//#define super(type) \
+//			populate(env, (type*)t, p);
+//#define X(_, name, op) \
+//		directPutInstanceName(env, t, name, getInstanceName(env, op, p));
+//#define Y(name, opBegin, opEnd, opCount) \
+//		constructInstanceMultifield(env, opCount, t, p, name, opBegin, opEnd);
+//#define setParent knowledge::setParent(env, t, p);
+//#include "knowledge/populator_nodes.def"
+//#undef Y
+//#undef X
+//#undef super
+//#undef Begin
+//#undef End
+
 //-----------------------------------------------------------------------------
 template<typename T>
 void registerExternalAddressId(void* theEnv, struct externalAddressType* ea) {

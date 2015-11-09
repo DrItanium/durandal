@@ -1,2 +1,3 @@
-X(bool, "is-landing-pad", t->isLandingPad());
-X(bool, "has-address-taken", t->hasAddressTaken());
+X(bool, "is-landing-pad", t->isLandingPad(), Value)
+X(bool, "has-address-taken", t->hasAddressTaken(), Value)
+X(llvm::BasicBlock::iterator, "contents", 0, Multifield, t->begin(), t->end(), t->size())

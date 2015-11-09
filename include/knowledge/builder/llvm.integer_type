@@ -1,4 +1,4 @@
-X(unsigned , "bit-width", t->getBitWidth())
-X(unsigned , "bit-mask", t->getBitMask())
-X(unsigned , "sign-bit", t->getSignBit())
-X(bool, "is-power-of-2-byte-width", t->isPowerOf2ByteWidth())
+X(unsigned , "bit-width", t->getBitWidth(), Value)
+X(unsigned , "bit-mask", t->getBitMask(), Value)
+X(unsigned , "sign-bit", t->getSignBit(), Value)
+X(bool, "is-power-of-2-byte-width", t->isPowerOf2ByteWidth(), Value)

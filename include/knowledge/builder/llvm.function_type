@@ -1,1 +1,1 @@
-X(bool, "is-var-arg", t->isVarArg())
+X(bool, "is-var-arg", t->isVarArg(), Value)
