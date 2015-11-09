@@ -1,0 +1,5 @@
+X(unsigned, "value-id", t->getValueID())
+X(bool, "has-value-handle", t->hasValueHandle())
+X(bool, "is-used-by-metadata", t->isUsedByMetadata())
+
+

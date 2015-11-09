@@ -1,0 +1,2 @@
+	X(bool, "is-landing-pad", t->isLandingPad());
+	X(bool, "has-address-taken", t->hasAddressTaken());

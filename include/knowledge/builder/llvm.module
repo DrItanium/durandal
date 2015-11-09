@@ -1,0 +1,4 @@
+X(const std::string& , "triple", t->getTargetTriple())
+X(const DataLayout&, "data-layout", t->getDataLayoutStr())
+X(const std::string&, "module-identifier", t->getModuleIdentifier())
+X(const std::string&, "inline-asm", t->getModuleInlineAsm())

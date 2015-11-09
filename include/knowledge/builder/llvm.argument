@@ -1,0 +1,22 @@
+	X(unsigned, "index", t->getArgNo());
+	//TODO: migrate these attributes to a list to make code maintentance easier
+	X(bool, "non-null-attr", t->hasNonNullAttr());
+	X(bool, "has-by-val-attr", t->hasByValAttr());
+	X(bool, "has-by-val-or-in-alloca-attr", t->hasByValOrInAllocaAttr());
+	if (t->getType()->isPointerTy()) {
+		X(unsigned, "param-alignment", t->getParamAlignment());
+		X(unsigned, "num-dereferenceable-bytes", t->getDereferenceableBytes());
+		// this is referenced in the mainline docs but not in 3.6
+		//X(unsigned, "num-dereferenceable-or-null-bytes", t->getDereferenceableOrNullBytes());
+	} 
+	X(bool, "has-nest-attr", t->hasNestAttr());
+	X(bool, "has-no-alias-attr", t->hasNoAliasAttr());
+	X(bool, "has-no-capture-attr", t->hasNoCaptureAttr());
+	X(bool, "has-booluct-ret-attr", t->hasStructRetAttr());
+	X(bool, "has-returned-attr", t->hasReturnedAttr());
+	X(bool, "only-reads-memory", t->onlyReadsMemory());
+	X(bool, "has-in-alloca-attr", t->hasInAllocaAttr());
+	X(bool, "has-zext-attr", t->hasZExtAttr());
+	X(bool, "has-sext-attr", t->hasSExtAttr());
+
+

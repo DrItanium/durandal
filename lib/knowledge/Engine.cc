@@ -379,14 +379,14 @@ EndInstancePopulatorNode
 #define Begin(type) \
 	BeginInstanceBuilderNode_Partial(type) {
 #define super(type) \
-		populate(env, (type*)t, p)
-#define End }
+		populate(env, (type*)t, p);
+#define End } };
 #include "knowledge/builder_nodes.def"
 #undef super
 #undef X
 #undef Begin
 #undef End
-EndInstanceBuilderNode
+
 template<class I, class P>
 void constructInstanceMultifield(void* env, int count, void* native, P* p,  const std::string& name, I begin, I end) {
 	if (count > 0) {
@@ -407,12 +407,6 @@ BeginInstancePopulatorNode_Partial(llvm::Type, env, t, p) {
 	constructInstanceMultifield(env, t->getNumContainedTypes(), t, p, "subtypes", t->subtype_begin(), t->subtype_end());
 }
 EndInstancePopulatorNode
-BeginInstanceBuilderNode_Partial(llvm::Value, str, env, v, p) {
-	field(str, "value-id", v->getValueID());
-	field(str, "has-value-handle", v->hasValueHandle());
-	field(str, "is-used-by-metadata", v->isUsedByMetadata());
-}
-EndInstanceBuilderNode
 
 BeginInstancePopulatorNode_Partial(llvm::Value, env, v, p) {
 	directPutInstanceName(env, v, "native-type", 
@@ -422,30 +416,6 @@ BeginInstancePopulatorNode_Partial(llvm::Value, env, v, p) {
 }
 EndInstancePopulatorNode
 // Argument
-BeginInstanceBuilderNode_Partial(llvm::Argument, str, env, t, p) {
-	build(str, env, (llvm::Value*)t, p);
-	field(str, "index", t->getArgNo());
-	//TODO: migrate these attributes to a list to make code maintentance easier
-	field(str, "non-null-attr", t->hasNonNullAttr());
-	field(str, "has-by-val-attr", t->hasByValAttr());
-	field(str, "has-by-val-or-in-alloca-attr", t->hasByValOrInAllocaAttr());
-	if (t->getType()->isPointerTy()) {
-		field(str, "param-alignment", t->getParent());
-		field(str, "num-dereferenceable-bytes", t->getDereferenceableBytes());
-		// this is referenced in the mainline docs but not in 3.6
-		//field(str, "num-dereferenceable-or-null-bytes", t->getDereferenceableOrNullBytes());
-	} 
-	field(str, "has-nest-attr", t->hasNestAttr());
-	field(str, "has-no-alias-attr", t->hasNoAliasAttr());
-	field(str, "has-no-capture-attr", t->hasNoCaptureAttr());
-	field(str, "has-struct-ret-attr", t->hasStructRetAttr());
-	field(str, "has-returned-attr", t->hasReturnedAttr());
-	field(str, "only-reads-memory", t->onlyReadsMemory());
-	field(str, "has-in-alloca-attr", t->hasInAllocaAttr());
-	field(str, "has-zext-attr", t->hasZExtAttr());
-	field(str, "has-sext-attr", t->hasSExtAttr());
-}
-EndInstancePopulatorNode
 
 BeginInstancePopulatorNode_Partial(llvm::Argument, env, t, p) {
 	populate(env, (llvm::Value*)t, p);
@@ -454,13 +424,6 @@ BeginInstancePopulatorNode_Partial(llvm::Argument, env, t, p) {
 EndInstancePopulatorNode
 
 // Basic Block
-BeginInstanceBuilderNode_Partial(llvm::BasicBlock, str, env, t, p) {
-	build(str, env, (llvm::Value*)t, p);
-	field(str, "is-landing-pad", t->isLandingPad());
-	field(str, "has-address-taken", t->hasAddressTaken());
-}
-EndInstanceBuilderNode
-
 void commonPopulateInstance(void* env, llvm::BasicBlock* t, llvm::Pass* p) {
 	populate(env, (llvm::Value*)t, p);
 	if (t->size() > 0) {
@@ -512,36 +475,6 @@ BeginInstancePopulatorNode_Partial(llvm::BasicBlock, env, blk, p) {
 }
 EndInstancePopulatorNode
 
-template<typename Pass>
-struct InstanceBuilderNode<llvm::Module, Pass> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Module * data, Pass* pass) {
-		field(str, "triple", data->getTargetTriple());
-		field(str, "data-layout", data->getDataLayoutStr());
-		field(str, "module-identifier", data->getModuleIdentifier());
-		field(str, "inline-asm", data->getModuleInlineAsm());
-	}
-};
-
-template<typename Pass>
-struct InstanceBuilderNode<llvm::Function, Pass> {
-	static void buildInstance(llvm::raw_string_ostream& str, void* theEnv, llvm::Function* data, Pass* pass) {
-		build(str, theEnv, (llvm::GlobalObject*)data, pass);
-		field(str, "is-var-arg", data->isVarArg());
-		field(str, "is-materializable", data->isMaterializable());
-		field(str, "is-intrinsic", data->isIntrinsic());
-		field(str, "has-gc", data->hasGC());
-		field(str, "calls-function-that-returns-twice", data->callsFunctionThatReturnsTwice());
-		field(str, "is-def-trivally-dead", data->isDefTriviallyDead());
-		field(str, "has-prologue-data", data->hasPrologueData());
-		field(str, "does-not-throw", data->doesNotThrow());
-		field(str, "does-not-return", data->doesNotReturn());
-		field(str, "does-not-access-memory", data->doesNotAccessMemory());
-		field(str, "cannot-duplicate", data->cannotDuplicate());
-		field(str, "has-uw-table", data->hasUWTable());
-		field(str, "needs-unwind-table-entry", data->needsUnwindTableEntry());
-		field(str, "gc", data->getGC());
-	}
-};
 // Basic Block Pass
 //-----------------------------------------------------------------------------
 template<typename T>
