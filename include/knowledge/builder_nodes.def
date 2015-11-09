@@ -1,5 +1,28 @@
 Begin(llvm::Type)
-	#include "knowledge/builder/llvm.type"
+	X(llvm::Type::TypeID, "type-id", t->getTypeID(), Value, 0)
+	X(bool, "is-void-type", t->isVoidTy(), Value, 0)
+	X(bool, "is-half-type", t->isHalfTy(), Value, 0)
+	X(bool, "is-float-type", t->isFloatTy(), Value, 0)
+	X(bool, "is-double-type", t->isDoubleTy(), Value, 0)
+	X(bool, "is-x86-fp80-type", t->isX86_FP80Ty(), Value, 0)
+	X(bool, "is-fp128-type", t->isFP128Ty(), Value, 0)
+	X(bool, "is-ppc-fp128-type", t->isPPC_FP128Ty(), Value, 0)
+	X(bool, "is-floating-point", t->isFloatingPointTy(), Value, 0)
+	X(bool, "is-x86-mmx-type", t->isX86_MMXTy(), Value, 0)
+	X(bool, "is-fp-or-fp-vector-type", t->isFPOrFPVectorTy(), Value, 0)
+	X(bool, "is-label-type", t->isLabelTy(), Value, 0)
+	X(bool, "is-metadata-type", t->isMetadataTy(), Value, 0)
+	X(bool, "is-int-or-int-vector-type", t->isIntOrIntVectorTy(), Value, 0)
+	X(bool, "is-ptr-or-ptr-vector-type", t->isPtrOrPtrVectorTy(), Value, 0)
+	X(bool, "is-empty-type", t->isEmptyTy(), Value, 0)
+	X(bool, "is-first-class-type", t->isFirstClassType(), Value, 0)
+	X(bool, "is-single-value-type", t->isSingleValueType(), Value, 0)
+	X(bool, "is-aggregate-type", t->isAggregateType(), Value, 0)
+	X(unsigned, "primitive-bit-size", t->getPrimitiveSizeInBits(), Value, 0)
+	X(unsigned, "scalar-bit-size", t->getScalarSizeInBits(), Value, 0)
+	X(int, "fp-mantissa-width", t->getFPMantissaWidth(), Value, 0)
+	X(llvm::Type*, "scalar-type", t->getScalarType(), Reference, 0)
+	X(llvm::ArrayRef<llvm::Type*>, "subtypes", 0, Multifield, t->subtype_begin(), t->subtype_end(), t->getNumContainedTypes(), 0)
 End
 
 Begin(llvm::CompositeType)
@@ -8,77 +31,163 @@ End
 
 Begin(llvm::SequentialType)
 	super(llvm::CompositeType)
-#include "knowledge/builder/llvm.sequential_type"
+	X(llvm::Type*, "element-type", t->getElementType(), Reference, 0)
 End
 
 Begin(llvm::StructType)
 	super(llvm::CompositeType)
-	#include "knowledge/builder/llvm.struct_type"
+	X(bool, "packed", t->isPacked(), Value, 0)
+	X(bool, "literal", t->isLiteral(), Value, 0 )
+	X(bool, "opaque", t->isOpaque(), Value, 0)
+	X(bool, "has-name", t->hasName(), Value, 0)
+	X(const std::string&, "struct-name", t->getName(), Value, t->hasName(), 0)
 End
 
 Begin(llvm::VectorType)
 	super(llvm::SequentialType)
-	#include "knowledge/builder/llvm.vector_type"
+	X(unsigned, "bit-width", t->getBitWidth(), Value, 0)
 End
 
 Begin(llvm::PointerType)
 	super(llvm::SequentialType)
-	#include "knowledge/builder/llvm.pointer_type"
+	X(unsigned, "address-space", t->getAddressSpace(), Value, 0)
 End
 
 Begin(llvm::ArrayType)
 	super(llvm::SequentialType)
-	#include "knowledge/builder/llvm.array_type"
+	X(unsigned, "num-elements", t->getNumElements(), Value, 0)
 End
 
 Begin(llvm::IntegerType)
 	super(llvm::Type)
-	#include "knowledge/builder/llvm.integer_type"
+	X(unsigned , "bit-width", t->getBitWidth(), Value, 0)
+	X(unsigned , "bit-mask", t->getBitMask(), Value, 0)
+	X(unsigned , "sign-bit", t->getSignBit(), Value, 0)
+	X(bool, "is-power-of-2-byte-width", t->isPowerOf2ByteWidth(), Value, 0)
 End
 
 Begin(llvm::FunctionType)
 	super(llvm::Type)
-	#include "knowledge/builder/llvm.function_type"
+	X(bool, "is-var-arg", t->isVarArg(), Value, 0)
+	//X(llvm::ArrayRef<llvm::BasicBlock&>, "params", 0, Multifield, t->param_begin(), t->param_end(), t->getNumParams(), 0)
 End
 
 Begin(llvm::Value)
-#include "knowledge/builder/llvm.value"
+	X(unsigned, "value-id", t->getValueID(), Value, 0)
+	X(bool, "has-value-handle", t->hasValueHandle(), Value, 0)
+	X(bool, "is-used-by-metadata", t->isUsedByMetadata(), Value, 0)
+	X(llvm::Type*, "type", t->getType(), Reference, 0)
 End
 
 Begin(llvm::Argument)
 	super(llvm::Value)
-#include "knowledge/builder/llvm.argument"
+	X(unsigned, "index", t->getArgNo(), Value, 0)
+	//TODO: migrate these attributes to a list to make code maintentance easier
+	X(bool, "non-null-attr", t->hasNonNullAttr(), Value, 0)
+	X(bool, "has-by-val-attr", t->hasByValAttr(), Value, 0)
+	X(bool, "has-by-val-or-in-alloca-attr", t->hasByValOrInAllocaAttr(), Value, 0)
+	X(unsigned, "param-alignment", t->getParamAlignment(), ConditionalValue, t->getType()->isPointerTy(), 0)
+	X(unsigned, "num-dereferenceable-bytes", t->getDereferenceableBytes(), ConditionalValue, t->getType()->isPointerTy(), 0)
+	// this is referenced in the mainline docs but not in 3.6
+	//X(unsigned, "num-dereferenceable-or-null-bytes", t->getDereferenceableOrNullBytes(), ConditionalValue, t->getType()->isPointerTy(), 0)
+	X(bool, "has-nest-attr", t->hasNestAttr(), Value, 0)
+	X(bool, "has-no-alias-attr", t->hasNoAliasAttr(), Value, 0)
+	X(bool, "has-no-capture-attr", t->hasNoCaptureAttr(), Value, 0)
+	X(bool, "has-booluct-ret-attr", t->hasStructRetAttr(), Value, 0)
+	X(bool, "has-returned-attr", t->hasReturnedAttr(), Value, 0)
+	X(bool, "only-reads-memory", t->onlyReadsMemory(), Value, 0)
+	X(bool, "has-in-alloca-attr", t->hasInAllocaAttr(), Value, 0)
+	X(bool, "has-zext-attr", t->hasZExtAttr(), Value, 0)
+	X(bool, "has-sext-attr", t->hasSExtAttr(), Value, 0)
 End
 
 Begin(llvm::BasicBlock)
 	super(llvm::Value)
-	#include "knowledge/builder/llvm.basic_block"
+	#include "knowledge/BasicBlockDescription.def"
 End
 
 
 Begin(llvm::Module) 
-	#include "knowledge/builder/llvm.module"
+	X(const std::string& , "triple", t->getTargetTriple(), Value, 0)
+	X(const llvm::DataLayout&, "data-layout", t->getDataLayoutStr(), Value, 0)
+	X(const std::string&, "module-identifier", t->getModuleIdentifier(), Value, 0)
+	X(const std::string&, "inline-asm", t->getModuleInlineAsm(), Value, 0)
 End
 
 Begin(llvm::User)
 	super(llvm::Value)
-	#include "knowledge/builder/llvm.user"
 End
+
 Begin(llvm::Constant)
 	super(llvm::User)
-	#include "knowledge/builder/llvm.constant"
+	X(bool, "isNullValue" ,t->isNullValue(), Value, 0)
+	X(bool, "isOneValue" ,t->isOneValue(), Value, 0)
+	X(bool, "isAllOnesValue" ,t->isAllOnesValue(), Value, 0)
+	X(bool, "isNegativeZeroValue" ,t->isNegativeZeroValue(), Value, 0)
+	X(bool, "isZeroValue" ,t->isZeroValue(), Value, 0)
+	X(bool, "isNotMinSignedValue" ,t->isNotMinSignedValue(), Value, 0)
+	X(bool, "isMinSignedValue" ,t->isMinSignedValue(), Value, 0)
+	X(bool, "canTrap" ,t->canTrap(), Value, 0)
+	X(bool, "isThreadDependent" ,t->isThreadDependent(), Value, 0)
+	X(bool, "isDLLImportDependent" ,t->isDLLImportDependent(), Value, 0)
+	X(bool, "isConstantUsed" ,t->isConstantUsed(), Value, 0)
 End
+
 Begin(llvm::GlobalValue)
 	super(llvm::Constant)
-	#include "knowledge/builder/llvm.global_value"
+	X(bool, "isNullValue" ,t->isNullValue(), Value, 0)
+	X(bool, "isOneValue" ,t->isOneValue(), Value, 0)
+	X(bool, "isAllOnesValue" ,t->isAllOnesValue(), Value, 0)
+	X(bool, "isNegativeZeroValue" ,t->isNegativeZeroValue(), Value, 0)
+	X(bool, "isZeroValue" ,t->isZeroValue(), Value, 0)
+	X(bool, "isNotMinSignedValue" ,t->isNotMinSignedValue(), Value, 0)
+	X(bool, "isMinSignedValue" ,t->isMinSignedValue(), Value, 0)
+	X(bool, "canTrap" ,t->canTrap(), Value, 0)
+	X(bool, "isThreadDependent" ,t->isThreadDependent(), Value, 0)
+	X(bool, "isDLLImportDependent" ,t->isDLLImportDependent(), Value, 0)
+	X(bool, "isConstantUsed" ,t->isConstantUsed(), Value, 0)
 End
+
 Begin(llvm::GlobalObject)
 	super(llvm::GlobalValue)
 End
 
 Begin(llvm::Function)
 	super(llvm::GlobalObject)
-	#include "knowledge/builder/llvm.function"
+
+
+
+//Constant * 	getPersonalityFn)
+//Type * 	getReturnType)
+//FunctionType * 	getFunctionType)
+//LLVMContext & 	getContext)
+
+
+//X(bool, "hasPersonalityFn", t->hasPersonalityFn(), Value, 0)
+X(bool, "isVarArg", t->isVarArg(), Value, 0)
+X(bool, "isMaterializable", t->isMaterializable(), Value, 0)
+X(llvm::Intrinsic::ID, "getIntrinsicID", t->getIntrinsicID(), Value, 0)
+X(bool, "isIntrinsic", t->isIntrinsic(), Value, 0)
+X(llvm::CallingConv::ID, "getCallingConv", t->getCallingConv(), Value, 0)
+//X(llvm::AttributeSet, "getAttributes", t->getAttributes(), Value, 0)
+//X(unsigned, "getFnStackAlignment", t->getFnStackAlignment(), Value, 0)
+X(bool, "hasGC", t->hasGC(), Value, 0)
+X(const char *, "getGC", t->getGC(), ConditionalValue, t->hasGC(), 0)
+X(bool, "doesNotAccessMemory", t->doesNotAccessMemory(), Value, 0)
+X(bool, "onlyReadsMemory", t->onlyReadsMemory(), Value, 0)
+//X(bool, "onlyAccessesArgMemory", t->onlyAccessesArgMemory(), Value, 0)
+X(bool, "doesNotReturn", t->doesNotReturn(), Value, 0)
+X(bool, "doesNotThrow", t->doesNotThrow(), Value, 0)
+X(bool, "cannotDuplicate", t->cannotDuplicate(), Value, 0)
+//X(bool, "isConvergent", t->isConvergent(), Value, 0)
+X(bool, "hasUWTable", t->hasUWTable(), Value, 0)
+X(bool, "needsUnwindTableEntry", t->needsUnwindTableEntry(), Value, 0)
+X(bool, "hasStructRetAttr", t->hasStructRetAttr(), Value, 0)
+X(bool, "isDefTriviallyDead", t->isDefTriviallyDead(), Value, 0)
+X(bool, "callsFunctionThatReturnsTwice", t->callsFunctionThatReturnsTwice(), Value, 0)
+//X(bool, "hasMetadata", t->hasMetadata(), Value, 0)
+
+X(llvm::Type*, "return-type", t->getReturnType(), Reference, 0)
 End
 
 Begin(llvm::Instruction)

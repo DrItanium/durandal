@@ -1,2 +1,0 @@
-X(bool, "is-var-arg", t->isVarArg(), Value, 0)
-//X(llvm::ArrayRef<llvm::BasicBlock&>, "params", 0, Multifield, t->param_begin(), t->param_end(), t->getNumParams(), 0)

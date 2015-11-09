@@ -1,5 +1,0 @@
-X(bool, "packed", t->isPacked(), Value, 0)
-X(bool, "literal", t->isLiteral(), Value, 0 )
-X(bool, "opaque", t->isOpaque(), Value, 0)
-X(bool, "has-name", t->hasName(), Value, 0)
-X(const std::string&, "struct-name", t->getName(), Value, t->hasName(), 0)

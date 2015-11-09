@@ -1,4 +1,0 @@
-X(const std::string& , "triple", t->getTargetTriple(), Value, 0)
-X(const llvm::DataLayout&, "data-layout", t->getDataLayoutStr(), Value, 0)
-X(const std::string&, "module-identifier", t->getModuleIdentifier(), Value, 0)
-X(const std::string&, "inline-asm", t->getModuleInlineAsm(), Value, 0)
