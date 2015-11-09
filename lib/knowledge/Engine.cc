@@ -303,66 +303,56 @@ struct name <type, passType>
 #define EndNode };
 
 //Build Instance Node
-#define BuildInstanceHeader_Full(type, passType, strName, envName, typeName, passName) \
-	static void buildInstance(llvm::raw_string_ostream& strName, void* envName, type * typeName, passType* passName) 
-#define BuildInstanceHeader_Partial(type, strName, envName, typeName, passName) \
-	BuildInstanceHeader_Full(type, Pass, strName, envName, typeName, passName)
+#define BuildInstanceHeader_Full(type, passType) \
+	static void buildInstance(llvm::raw_string_ostream& str, void* env, type * t, passType* p) 
+#define BuildInstanceHeader_Partial(type) \
+	BuildInstanceHeader_Full(type, Pass)
 
 #define BeginInstanceBuilderNode_Partial(type) \
 	NewNode_Partial(type, InstanceBuilderNode) { \
-		BuildInstanceHeader_Partial(type, str, env, t, p)
+		BuildInstanceHeader_Partial(type)
 
-#define BeginInstanceBuilderNode_Full(type, passType, strName, envName, typeName, passName) \
+#define BeginInstanceBuilderNode_Full(type, passType) \
 	NewNode_Full(type, passType, InstanceBuilderNode) { \
-		BuildInstanceHeader_Full(type, passType, strName, envName, typeName, passName)
+		BuildInstanceHeader_Full(type, passType)
 
 
 #define EndInstanceBuilderNode EndNode
 
 
 // Instance Populator Node
-#define PopulateInstanceHeader_Full(type, passType, envName, typeName, passName) \
-	static void populateInstance(void* envName, type * typeName, passType * passName)
+#define PopulateInstanceHeader_Full(type, passType) \
+	static void populateInstance(void* env, type * t, passType * p)
 
 #define PopulateInstanceHeader_Partial(type) \
-	PopulateInstanceHeader_Full(type, Pass, env, t, p)
+	PopulateInstanceHeader_Full(type, Pass)
 #define BeginInstancePopulatorNode_Partial(type) \
-	NewNode_Partial(type, InstancePopulatorNode) { \
+	NewNode_Partial(type, knowledge::InstancePopulatorNode) { \
 		PopulateInstanceHeader_Partial(type)
 
-#define BeginInstancePopulatorNode_Full(type, passType, envName, typeName, passName) \
-	NewNode_Full(type, passType, InstancePopulatorNode) { \
-		PopulateInstanceHeader_Full(type, passType, envName, typeName, passName)
+#define BeginInstancePopulatorNode_Full(type, passType) \
+	NewNode_Full(type, passType, knowledge::InstancePopulatorNode) { \
+		PopulateInstanceHeader_Full(type, passType)
 
 #define EndInstancePopulatorNode EndNode
 
-template<class I, class P>
-void constructInstanceMultifield(void* env, int count, void* native, P* p,  const std::string& name, I begin, I end) {
-	if (count > 0) {
-		void* mf = EnvCreateMultifield(env, count);
-		int index = 1;
-		for (I it = begin; it != end; ++it, ++index) {
-			SetMFType(mf, index, INSTANCE_NAME);
-			SetMFValue(mf, index, getInstanceName(env, *it, p));
-		}
-		directPutMultifield(env, native, name, mf, 1, index - 1);
-	}
-}
 #define CAT(a, ...) PRIMITIVE_CAT(a, __VA_ARGS__)
 #define PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
-
+#define BeginFull(type, pass) \
+	BeginInstanceBuilderNode_Full(type, pass) {
 #define Begin(type) \
 	BeginInstanceBuilderNode_Partial(type) {
 #define super(type) \
 		populate(env, (type*)t, p);
 #define End } };
+#define EndFull(_, __) } };
 #define X(_, name, op, type, ...) CAT(X, type)(name, op, __VA_ARGS__)
 #define XMultifield(b, c, ...)
 #define XReference(b, c, ...)
 #define XValue(name, op, ...) \
 		field (str, name, op);
-#define Y(_, name, op, cond, clazz) \
-		if (cond) X(_, name, op, clazz)
+#define XConditionalValue(name, op, cond, ...) \
+		if (cond) XValue(name, op, __VA_ARGS__)
 #include "knowledge/builder_nodes.def"
 #undef super
 #undef X
@@ -372,6 +362,9 @@ void constructInstanceMultifield(void* env, int count, void* native, P* p,  cons
 #undef Y
 #undef Begin
 #undef End
+#undef EndFull
+#undef BeginFull
+#undef XConditionalValue
 
 template<typename T, typename P = llvm::Pass>
 void customPopulationLogic(void* env, T* t, P* p) { }
@@ -387,7 +380,7 @@ void customPopulationLogic(void* env, llvm::BasicBlock* blk, llvm::Pass* p) {
 	for (llvm::SmallVector<llvm::BasicBlock*,8>::iterator it = preds.begin();
 			it != preds.end(); ++it, ++index) {
 		SetMFType(predmf, index, INSTANCE_NAME);
-		SetMFValue(predmf, index, getInstanceName(env, *it, p));
+		SetMFValue(predmf, index, knowledge::getInstanceName(env, *it, p));
 	}
 	directPutMultifield(env, blk, "predecessors", predmf, 1, preds.size());
 
@@ -397,7 +390,7 @@ void customPopulationLogic(void* env, llvm::BasicBlock* blk, llvm::Pass* p) {
 	index = 1;
 	for (llvm::SmallVector<llvm::BasicBlock*, 8>::iterator it = succs.begin(); 
 			it != succs.end(); ++it, ++index) {
-		void* result = getInstanceName(env, *it, p);
+		void* result = knowledge::getInstanceName(env, *it, p);
 		SetMFType(prodmf, index, INSTANCE_NAME);
 		SetMFValue(prodmf, index, result);
 		SetMFType(succmf, index, INSTANCE_NAME);
@@ -407,37 +400,70 @@ void customPopulationLogic(void* env, llvm::BasicBlock* blk, llvm::Pass* p) {
 	directPutMultifield(env, blk, "produces", prodmf, 1, succs.size());
 
 }
+template<class I, class P>
+void constructInstanceMultifield(void* env, int count, void* native, P* p,  const std::string& name, I begin, I end) {
+	if (count > 0) {
+		void* mf = EnvCreateMultifield(env, count);
+		int index = 1;
+		for (I it = begin; it != end; ++it, ++index) {
+			SetMFType(mf, index, INSTANCE_NAME);
+			SetMFValue(mf, index, knowledge::getInstanceName(env, *it, p));
+		}
+		directPutMultifield(env, native, name, mf, 1, index - 1);
+	}
+}
+// special case for BasicBlock's not iterating over a list of instruction pointers
+template<class P>
+void constructInstanceMultifield(void* env, int count, llvm::BasicBlock* native, P* p, const std::string& name, llvm::BasicBlock::iterator begin, llvm::BasicBlock::iterator end) {
+	if (count > 0) {
+		void* mf = EnvCreateMultifield(env, count);
+		int index = 1;
+		for (llvm::BasicBlock::iterator it = begin; it != end; ++it, ++index) {
+			SetMFType(mf, index, INSTANCE_NAME);
+			SetMFValue(mf, index, knowledge::getInstanceName(env, &(*it), p));
+		}
+		directPutMultifield(env, native, name, mf, 1, index - 1);
+	}
+}
 // Populator Node constructors
-//#define BeginFull(type)
-//#define Begin(type) \
-//		BeginInstancePopulatorNode_Partial(type) {
-//#define End customPopulationLogic(env, t, p); } };
-//#define super(type) \
-//			populate(env, (type*)t, p);
-//#define X(_, name, op) \
-//		directPutInstanceName(env, t, name, getInstanceName(env, op, p));
-//#define Y(name, opBegin, opEnd, opCount) \
-//		constructInstanceMultifield(env, opCount, t, p, name, opBegin, opEnd);
-//#define setParent knowledge::setParent(env, t, p);
-//#include "knowledge/populator_nodes.def"
-//#undef Y
-//#undef X
-//#undef super
-//#undef Begin
-//#undef End
+#define BeginFull(type, pass) \
+		BeginInstancePopulatorNode_Full(type, pass) {
+#define Begin(type) \
+		BeginInstancePopulatorNode_Partial(type) {
+#define End customPopulationLogic(env, t, p); } };
+#define EndFull(type, pass) customPopulationLogic<type, pass>(env, t, p); } };
+#define super(type) \
+			populate(env, (type*)t, p);
+#define XReference(name, op, ...) \
+		directPutInstanceName(env, t, name, knowledge::getInstanceName(env, op, p));
+#define XMultifield(name, _, begin, end, count, ...) \
+		constructInstanceMultifield(env, count, t, p, name, begin, end);
+#define XValue(_, __, ...)
+#define XConditionalValue(name, op, cond, ...)
+#define X(_, name, op, type, ...) \
+		CAT(X, type)(name, op, __VA_ARGS__)
+#include "knowledge/builder_nodes.def"
+#undef X
+#undef super
+#undef Begin
+#undef End
+#undef XValue
+#undef XConditionalValue
+#undef XMultifield
+#undef XReference
 
 //-----------------------------------------------------------------------------
 template<typename T>
 void registerExternalAddressId(void* theEnv, struct externalAddressType* ea) {
-	RegisterExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId, ea);
+	RegisterExternalAddressId(theEnv, knowledge::ExternalAddressRegistration<T>::indirectId, ea);
 }
 template<typename T>
 bool containsExternalAddressId(void* theEnv) {
-	return ContainsExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
+	return ContainsExternalAddressId(theEnv, knowledge::ExternalAddressRegistration<T>::indirectId);
 }
 template<typename T>
 int getExternalAddressId(void* theEnv) {
-	return GetExternalAddressId(theEnv, ExternalAddressRegistration<T>::indirectId);
+	return GetExternalAddressId(theEnv, knowledge::ExternalAddressRegistration<T>::indirectId);
 }
 void EngineBookkeeping::registerInstance(void* nativeInstance, std::string& clipsInstance) {
 	std::pair<void*, std::string> pair(nativeInstance, clipsInstance);

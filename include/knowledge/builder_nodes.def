@@ -54,6 +54,11 @@ Begin(llvm::BasicBlock)
 	#include "knowledge/builder/llvm.basic_block"
 End
 
+BeginFull(llvm::BasicBlock, llvm::BasicBlockPass)
+	super(llvm::Value)
+	#include "knowledge/builder/llvm.basic_block"
+EndFull(llvm::BasicBlock, llvm::BasicBlockPass)
+
 Begin(llvm::Module) 
 	#include "knowledge/builder/llvm.module"
 End
