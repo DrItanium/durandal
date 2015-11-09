@@ -1,3 +1,4 @@
+X(llvm::Type::TypeID, "type-id", t->getTypeID(), Value, 0)
 X(bool, "is-void-type", t->isVoidTy(), Value, 0)
 X(bool, "is-half-type", t->isHalfTy(), Value, 0)
 X(bool, "is-float-type", t->isFloatTy(), Value, 0)

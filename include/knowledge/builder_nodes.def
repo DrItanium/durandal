@@ -55,10 +55,6 @@ Begin(llvm::BasicBlock)
 	#include "knowledge/builder/llvm.basic_block"
 End
 
-BeginFull(llvm::BasicBlock, llvm::BasicBlockPass)
-	super(llvm::Value)
-	#include "knowledge/builder/llvm.basic_block"
-EndFull(llvm::BasicBlock, llvm::BasicBlockPass)
 
 Begin(llvm::Module) 
 	#include "knowledge/builder/llvm.module"
@@ -84,3 +80,12 @@ Begin(llvm::Function)
 	super(llvm::GlobalObject)
 	#include "knowledge/builder/llvm.function"
 End
+
+Begin(llvm::Instruction)
+	super(llvm::User)
+End
+
+Begin(llvm::TerminatorInst)
+	super(llvm::Instruction)
+End
+

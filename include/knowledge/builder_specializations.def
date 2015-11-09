@@ -1,0 +1,4 @@
+BeginFull(llvm::BasicBlock, llvm::BasicBlockPass)
+	super(llvm::Value)
+	#include "knowledge/builder/llvm.basic_block"
+EndFull(llvm::BasicBlock, llvm::BasicBlockPass)

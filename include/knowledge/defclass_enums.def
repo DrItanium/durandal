@@ -1,0 +1,29 @@
+#define defenumdefslot(type, input) defdefslot(type) { str << "(slot " << name << "\n" << "(type SYMBOL)\n" << "(allowed-values " << input << ")\n" << "(storage local)\n" << "(visibility public))\n"; }
+defenumdefslot(llvm::Type::TypeID, "void\nhalf\nfloat\ndouble\nx86-fp80\nfp128\nppc-fp128\nlabel\nmetadata\nx86-mmx\ntoken\ninteger\nfunction\nstruct\narray\npointer\nvector")
+
+
+defdefslot(float) {
+    str << "(slot " << name << "\n"
+        << "(type FLOAT)\n"
+        << "(visibility public))\n";
+}
+
+
+defenumdefslot(llvm::Constant::PossibleRelocationsTy, "no-relocation\nlocal-relocation\nglobal-relocations")
+
+defenumdefslot(llvm::GlobalValue::LinkageTypes, "external-linkage\navailable-externally\nlink-once-any\nlink-once-odr\nweak-any\nweak-odr\nappending\ninternal\nprivate\nexternal-weak\ncommon")
+defenumdefslot(llvm::GlobalValue::VisibilityTypes, "default\nhidden\nprotected")
+defenumdefslot( llvm::GlobalValue::DLLStorageClassTypes, "default\ndll-import\ndll-export")
+defenumdefslot(llvm::GlobalValue::ThreadLocalMode, "not-thread-local\ngeneral-dynamic-tls-model\nlocal-dynamic-tls-model\ninitial-exec-tls-model\nlocal-exec-tls-model")
+
+defenumdefslot(llvm::AtomicOrdering, "not-atomic\nunordered\nmonotonic\nacquire\nrelease\nacquire-release\nsequentially-consistent")
+defenumdefslot(llvm::SynchronizationScope,"single-thread\ncross-thread");
+
+defenumdefslot(llvm::CmpInst::Predicate, "fcmp-false\nfcmp-oeq\nfcmp-ogt\nfcmp-oge\nfcmp-olt\nfcmp-ole\nfcmp-one\nfcmp-ord\nfcmp-uno\nfcmp-ueq\nfcmp-ugt\n\nfcmp-uge\n\nfcmp-ult\n\nfcmp-ule\n\nfcmp-une\n\nfcmp-true\nfirst-fcmp-predicate\nlast-fcmp-predicate\nbad-fcmp-predicate\nicmp-eq\nicmp-ne\nicmp-ugt\nicmp-uge\nicmp-ult\nicmp-ule\nicmp-sgt\nicmp-sge\nicmp-slt\nicmp-sle\nfirst-icmp-predicate\nlast-icmp-predicate\nbad-icmp-predicate")
+
+defenumdefslot(llvm::CallInst::TailCallKind, "none\ntail\nmust-tail")
+
+defenumdefslot(llvm::AtomicRMWInst::BinOp, "xchg\nadd\nsub\nand\nnand\nor\nxor\nmax\nmin\numax\numin\nfirst-binop\nlast-binop\nbad-binop")
+
+defenumdefslot(llvm::InlineAsm::AsmDialect, "att\nintel")
+defenumdefslot(llvm::InlineAsm::ConstraintPrefix, "is-input\nis-output\nis-clobber")

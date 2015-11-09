@@ -354,6 +354,7 @@ struct name <type, passType>
 #define XConditionalValue(name, op, cond, ...) \
 		if (cond) XValue(name, op, __VA_ARGS__)
 #include "knowledge/builder_nodes.def"
+#include "knowledge/builder_specializations.def"
 #undef super
 #undef X
 #undef XValue
@@ -443,6 +444,7 @@ void constructInstanceMultifield(void* env, int count, llvm::BasicBlock* native,
 #define X(_, name, op, type, ...) \
 		CAT(X, type)(name, op, __VA_ARGS__)
 #include "knowledge/builder_nodes.def"
+#include "knowledge/builder_specializations.def"
 #undef X
 #undef super
 #undef Begin
@@ -451,6 +453,8 @@ void constructInstanceMultifield(void* env, int count, llvm::BasicBlock* native,
 #undef XConditionalValue
 #undef XMultifield
 #undef XReference
+#undef BeginFull
+#undef EndFull
 
 //-----------------------------------------------------------------------------
 template<typename T>
@@ -599,7 +603,29 @@ struct DefClassBuilderNode {
 		static void populateSlots(llvm::raw_string_ostream& str)
 
 #define EndDefClassBuilderNode EndNode
-#include "knowledge/defclass_slots.def"
+
+//#include "knowledge/defclass_slots.def"
+#include "knowledge/defclass_enums.def"
+#define Begin(type) \
+		BeginDefClassBuilderNode(type) {
+#define End } EndDefClassBuilderNode
+#define super(_) 
+#define XReference(vtype, name) slot(vtype, name);
+#define XValue(vtype, name) slot(vtype, name);
+#define XReference(vtype, name) slot(vtype, name);
+#define XMultifield(vtype, name) multislot(vtype, name);
+#define XConditionalValue(vtype, name) slot(vtype, name);
+#define X(vtype, name, _, type,  ...) \
+		CAT(X, type)(vtype, name)
+#include "knowledge/builder_nodes.def"
+#undef X
+#undef super
+#undef Begin
+#undef End
+#undef XValue
+#undef XConditionalValue
+#undef XMultifield
+#undef XReference
 template<typename T>
 void defclass() {
 	std::string tmp;
