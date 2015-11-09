@@ -2,6 +2,4 @@ X(bool, "packed", t->isPacked())
 X(bool, "literal", t->isLiteral())
 X(bool, "opaque", t->isOpaque())
 X(bool, "has-name", t->hasName())
-if (t->hasName()) {
-	X(const std::string&, "struct-name", t->getName())
-}
+Y(const std::string&, "struct-name", t->getName(), t->hasName())

@@ -376,6 +376,8 @@ EndInstancePopulatorNode
 
 #define X(_, name, op)  \
 		field (str, name, op);
+#define Y(_, name, op, cond) \
+		if (cond) X(_, name, op)
 #define Begin(type) \
 	BeginInstanceBuilderNode_Partial(type) {
 #define super(type) \
@@ -623,7 +625,6 @@ struct DefClassBuilderNode {
 		static void populateSlots(llvm::raw_string_ostream& str)
 
 #define EndDefClassBuilderNode EndNode
-
 #include "knowledge/defclass_slots.def"
 template<typename T>
 void defclass() {
