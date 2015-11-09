@@ -230,3 +230,27 @@ Begin(llvm::ValueName)
 	X(llvm::StringRef, "key", t->getKey(), Value, 0)
 	X(llvm::Value*, "value", t->getValue(), Reference, 0)
 End
+
+Begin(llvm::Operator)
+	super(llvm::User)
+	X(unsigned, "opcode", t->getOpcode(), Value, 0)
+End
+Begin(llvm::Loop)
+	X(bool, "is-safe-to-clone", t->isSafeToClone(), Value, 0)
+	X(bool, "is-annotated-parallel", t->isAnnotatedParallel(), Value, 0)
+	X(bool, "is-loop-simplify-form", t->isLoopSimplifyForm(), Value, 0)
+	X(bool, "has-dedicated-exits", t->hasDedicatedExits(), Value, 0)
+	X(llvm::MDNode*, "loop-id", t->getLoopID(), ConditionalValue, t->getLoopID(), 0)
+	X(llvm::PHINode*, "canonical-induction-variable", t->getCanonicalInductionVariable(), ConditionalValue, t->getCanonicalInductionVariable(), 0)
+	X(llvm::Loop::block_iterator, "blocks", 0, Multifield, t->block_begin(), t->block_end(), t->getNumBlocks(), 0)
+	X(llvm::BasicBlock*, "header", t->getHeader(), Reference, 0)
+End
+Begin(llvm::Region)
+	X(bool, "is-sub-region", t->isSubRegion(), Value, 0)
+	X(unsigned, "depth", t->getDepth(), Value, 0)
+	X(llvm::BasicBlock*, "entry", t->getEntry(), Reference, 0)
+	X(llvm::BasicBlock*, "exit", t->getExit(), Reference, 0)
+	X(bool, "is-top-level", t->isTopLevelRegion(), Value, 0)
+	X(bool, "is-simple", t->isSimple(), Value, 0)
+	X(const std::string&, "title", t->getNameStr(), Value, 0)
+End

@@ -113,42 +113,42 @@ EndDefClassBuilderNode
 //}
 //EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::BasicBlock) {
-    slot(llvm::Module*, "module");
-    slot(llvm::TerminatorInst*, "terminator");
-    multislot(const llvm::BasicBlock*, "successors");
-    multislot(const llvm::BasicBlock*, "predecessors");
-    slot(bool, "has-address-taken");
-    slot(bool, "is-eh-pad");
-    slot(bool, "is-landing-pad");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::BasicBlock) {
+//    slot(llvm::Module*, "module");
+//    slot(llvm::TerminatorInst*, "terminator");
+//    multislot(const llvm::BasicBlock*, "successors");
+//    multislot(const llvm::BasicBlock*, "predecessors");
+//    slot(bool, "has-address-taken");
+//    slot(bool, "is-eh-pad");
+//    slot(bool, "is-landing-pad");
+//}
+//EndDefClassBuilderNode
 
-BeginDefClassBuilderNode(llvm::Argument) {
-    slot(unsigned, "arg-number");
-    slot(bool, "has-non-null-attribute");
-    slot(unsigned, "dereferenceable-bytes");
-    slot(unsigned, "dereferenceable-or-null-bytes");
-    slot(bool, "has-by-val-attribute");
-    slot(bool, "has-by-val-or-in-alloca-attribute");
-    slot(unsigned, "param-alignment");
-    slot(bool, 	"has-nest-attribute");
-    slot(bool, 	"has-no-alias-attribute");
-    slot(bool, 	"has-no-capture-attribute");
-    slot(bool, 	"has-struct-ret-attribute");
-    slot(bool, 	"has-returned-attribute");
-    slot(bool, 	"only-reads-memory");
-    slot(bool, 	"has-in-alloca-attribute");
-    slot(bool, 	"has-zext-attribute");
-    slot(bool, 	"has-sext-attribute");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::Argument) {
+//    slot(unsigned, "arg-number");
+//    slot(bool, "has-non-null-attribute");
+//    slot(unsigned, "dereferenceable-bytes");
+//    slot(unsigned, "dereferenceable-or-null-bytes");
+//    slot(bool, "has-by-val-attribute");
+//    slot(bool, "has-by-val-or-in-alloca-attribute");
+//    slot(unsigned, "param-alignment");
+//    slot(bool, 	"has-nest-attribute");
+//    slot(bool, 	"has-no-alias-attribute");
+//    slot(bool, 	"has-no-capture-attribute");
+//    slot(bool, 	"has-struct-ret-attribute");
+//    slot(bool, 	"has-returned-attribute");
+//    slot(bool, 	"only-reads-memory");
+//    slot(bool, 	"has-in-alloca-attribute");
+//    slot(bool, 	"has-zext-attribute");
+//    slot(bool, 	"has-sext-attribute");
+//}
+//EndDefClassBuilderNode
 
 
-BeginDefClassBuilderNode(llvm::Operator) {
-    slot(unsigned, "opcode");
-}
-EndDefClassBuilderNode
+//BeginDefClassBuilderNode(llvm::Operator) {
+//    slot(unsigned, "opcode");
+//}
+//EndDefClassBuilderNode
 
 
 BeginDefClassBuilderNode(llvm::GEPOperator) {
