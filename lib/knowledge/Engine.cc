@@ -577,9 +577,12 @@ void defslot<type>(llvm::raw_string_ostream& str, const std::string& name) { \
 
 defstring_defslot(std::string)
 defstring_defslot(llvm::StringRef)
+defstring_defslot(const std::string &)
+defstring_defslot(std::string&)
+defstring_defslot(const std::string)
 
 template<> 
-void defslot<unsigned>(llvm::raw_string_ostream& str, const std::string& name) { 
+void defslot<unsigned int>(llvm::raw_string_ostream& str, const std::string& name) { 
 	str << "(slot " << name << "\n" 
 		<< "(type NUMBER)\n" 
 		<< "(visibility public)\n" 
