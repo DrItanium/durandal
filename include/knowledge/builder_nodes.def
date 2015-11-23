@@ -1003,6 +1003,14 @@ Begin(llvm::BranchInst)
 	X(unsigned int, "NumSuccessors", t->getNumSuccessors(), Value ,0) // llvm::BranchInst
 	X(llvm::BranchInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::BranchInst
 End
+
+//Begin(llvm::SwitchInst::CaseIt)
+//	X(unsigned, "index", t->getCaseIndex(), Value, 0)
+//	X(unsigned, "successor-index", t->getSuccessorIndex(), Value, 0)
+//	X(llvm::ConstantInt*, "case-value", t->getCaseValue(), Reference, 0)
+//	X(llvm::BasicBlock*, "successor", t->getCaseSuccessor(), Reference, 0)
+//End
+
 Begin(llvm::SwitchInst)
 	super(llvm::TerminatorInst)
 	X(llvm::Value *, "Condition", t->getCondition(), Reference ,0) // llvm::SwitchInst
@@ -1013,7 +1021,7 @@ Begin(llvm::SwitchInst)
 //	X(ConstCaseIt, "case_default", t->case_default(), Unknown_FIXME ,0) // llvm::SwitchInst
 	X(unsigned int, "NumSuccessors", t->getNumSuccessors(), Value ,0) // llvm::SwitchInst
 	X(llvm::SwitchInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::SwitchInst
-	X(llvm::SwitchInst::CaseIt, "cases", 0, Multifield, t->case_begin(), t->case_end(), t->getNumCases(), 0) // llvm::SwitchInst
+//	X(llvm::SwitchInst::CaseIt, "cases", 0, Multifield, t->case_begin(), t->case_end(), t->getNumCases(), 0) // llvm::SwitchInst
 End
 Begin(llvm::IndirectBrInst)
 	super(llvm::TerminatorInst)

@@ -16,5 +16,8 @@ X(Use, llvm::Use, "llvm::use", "llvm-object interop")
 X(ValueName, llvm::ValueName, "llvm::value-name", "llvm-object interop")
 X(NamedMDNode, llvm::NamedMDNode, "llvm::named-md-node", "llvm-object interop")
 X(Comdat, llvm::Comdat, "llvm::comdat", "llvm-object interop")
+X(Metadata, llvm::Metadata, "llvm::metadata", "llvm-object interop")
+X(MDNode, llvm::MDNode, "llvm::md-node", "metadata")
+X(Case, llvm::SwitchInst::CaseIt, "llvm::case", "llvm-object interop")
 #include "InstructionNodes.def"
 #include "TypeNodes.def"
