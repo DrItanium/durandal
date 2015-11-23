@@ -430,6 +430,14 @@ void constructInstanceMultifield(void* env, int count, void* native, P* p, const
 defcustomConstructInstanceMultifield(llvm::BasicBlock::iterator)
 defcustomConstructInstanceMultifield(llvm::User::op_iterator)
 defcustomConstructInstanceMultifield(llvm::User::use_iterator)
+defcustomConstructInstanceMultifield(llvm::Module::global_iterator)
+defcustomConstructInstanceMultifield(llvm::InsertValueInst::idx_iterator)
+defcustomConstructInstanceMultifield(llvm::SwitchInst::CaseIt)
+defcustomConstructInstanceMultifield(llvm::Module::alias_iterator)
+defcustomConstructInstanceMultifield(llvm::Module::named_metadata_iterator)
+defcustomConstructInstanceMultifield(llvm::Function::iterator)
+defcustomConstructInstanceMultifield(llvm::Function::arg_iterator)
+defcustomConstructInstanceMultifield(llvm::Module::iterator)
 
 // Populator Node constructors
 #define BeginFull(type, pass) \
@@ -580,6 +588,8 @@ defstring_defslot(llvm::StringRef)
 defstring_defslot(const std::string &)
 defstring_defslot(std::string&)
 defstring_defslot(const std::string)
+defstring_defslot(const char*)
+defstring_defslot(char*)
 
 template<> 
 void defslot<unsigned int>(llvm::raw_string_ostream& str, const std::string& name) { 
