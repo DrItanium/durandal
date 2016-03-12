@@ -136,13 +136,9 @@ void defclass() {
 	printf("%s\n", str.str().c_str());
 }
 
-void generateDefClasses() {
+int main(int argc, char** argv) {
 #define X(_, fullType, __, ___) \
 	defclass<fullType>();
 #include "knowledge/EngineNodes.def"
 #undef X
-}
-
-int main(int argc, char** argv) {
-	generateDefClasses();
 }
