@@ -182,19 +182,6 @@ template<typename T, typename Pass = llvm::Pass>
 void* dispatch(void* env, T* inst, Pass* pass) {
 	return Router<T,Pass>::dispatch(env, inst, pass);
 }
-template<typename T, typename Pass = llvm::Pass>
-void* dispatch(void* env, T& inst, Pass* pass) {
-	return Router<T,Pass>::dispatch(env, &inst, pass);
-}
-
-template<typename T, typename Pass = llvm::Pass>
-void* dispatch(void* env, T* inst, Pass& pass) {
-	return Router<T,Pass>::dispatch(env, inst, &pass);
-}
-template<typename T, typename Pass = llvm::Pass>
-void* dispatch(void* env, T& inst, Pass& pass) {
-	return Router<T,Pass>::dispatch(env, &inst, &pass);
-}
 
 template<typename T, typename Pass>
 void* InstanceQueryNode<T,Pass>::queryInstanceName(void* env, T* inst, Pass* p) {
@@ -215,6 +202,7 @@ void InstanceParentImbueNode<T,Pass>::imbueParent(void* theEnv, T* target, Pass*
 	SetValue(wrapper, instanceName);
 	EnvDirectPutSlot(theEnv, GetNativeInstance(theEnv, target), "parent", &wrapper);
 }
+
 template<typename T>
 void installNativeInstance(void* env, T* target);
 
