@@ -262,16 +262,16 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 	static void* dispatch(void* env, type * inst, Pass* pass) 
 #define BeginCustomDispatch(type, env, inst) \
 	template<typename Pass> \
-	struct Router<type, Pass> { \
-		Route(type, env, inst) { \
+	struct Router<llvm:: type, Pass> { \
+		Route(llvm:: type, env, inst) { \
 			WhenInstanceDoesNotExist(env, inst) {
 
 #define CondDispatch(type, env, val) \
-	if (type* v = llvm::dyn_cast<type>(val)) return Router<type, Pass>::dispatch(env, v, pass)
+	if (llvm:: type* v = llvm::dyn_cast<llvm:: type>(val)) return Router<llvm:: type, Pass>::dispatch(env, v, pass)
 #define Otherwise(type, env, val) \
 	return ProcessingNode<type, Pass>::constructInstance(env, val, pass)
 #define EndCustomDispatch(type, env, inst) \
-	Otherwise(type, env, inst); \
+	Otherwise(llvm:: type, env, inst); \
 } } };
 
 #include "knowledge/DispatchTable.def"

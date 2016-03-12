@@ -1,92 +1,92 @@
 // Define the routing code or where to dispatch things of different types to.
 // This is done using macros and templates because writing this by hand is a
 // major pain in the ass
-BeginCustomDispatch(llvm::TerminatorInst, env, inst)
-	CondDispatch(llvm::BranchInst, env, inst);
-	CondDispatch(llvm::IndirectBrInst, env, inst);
-	CondDispatch(llvm::InvokeInst, env, inst);
-	CondDispatch(llvm::ResumeInst, env, inst);
-	CondDispatch(llvm::ReturnInst, env, inst);
-	CondDispatch(llvm::SwitchInst, env, inst);
-	CondDispatch(llvm::UnreachableInst, env, inst);
-EndCustomDispatch(llvm::TerminatorInst, env, inst)
+BeginCustomDispatch(TerminatorInst, env, inst)
+	CondDispatch(BranchInst, env, inst);
+	CondDispatch(IndirectBrInst, env, inst);
+	CondDispatch(InvokeInst, env, inst);
+	CondDispatch(ResumeInst, env, inst);
+	CondDispatch(ReturnInst, env, inst);
+	CondDispatch(SwitchInst, env, inst);
+	CondDispatch(UnreachableInst, env, inst);
+EndCustomDispatch(TerminatorInst, env, inst)
 
-BeginCustomDispatch(llvm::UnaryInstruction, env, inst) 
-	CondDispatch(llvm::AllocaInst, env, inst);
-	CondDispatch(llvm::CastInst, env, inst);
-	CondDispatch(llvm::ExtractValueInst, env, inst);
-	CondDispatch(llvm::LoadInst, env, inst);
-	CondDispatch(llvm::VAArgInst, env, inst);
-EndCustomDispatch(llvm::UnaryInstruction, env, inst)
+BeginCustomDispatch(UnaryInstruction, env, inst) 
+	CondDispatch(AllocaInst, env, inst);
+	CondDispatch(CastInst, env, inst);
+	CondDispatch(ExtractValueInst, env, inst);
+	CondDispatch(LoadInst, env, inst);
+	CondDispatch(VAArgInst, env, inst);
+EndCustomDispatch(UnaryInstruction, env, inst)
 
-BeginCustomDispatch(llvm::CmpInst, env, inst)
-	CondDispatch(llvm::FCmpInst, env, inst);
-	CondDispatch(llvm::ICmpInst, env, inst);
-EndCustomDispatch(llvm::CmpInst, env, inst)
+BeginCustomDispatch(CmpInst, env, inst)
+	CondDispatch(FCmpInst, env, inst);
+	CondDispatch(ICmpInst, env, inst);
+EndCustomDispatch(CmpInst, env, inst)
 
-BeginCustomDispatch(llvm::Instruction, env, inst)
-	CondDispatch(llvm::PHINode, env, inst);
-	CondDispatch(llvm::StoreInst, env, inst);
-	CondDispatch(llvm::BinaryOperator, env, inst);
-	CondDispatch(llvm::CallInst, env, inst);
-	CondDispatch(llvm::CmpInst, env, inst);
-	CondDispatch(llvm::ExtractElementInst, env, inst);
-	CondDispatch(llvm::FenceInst, env, inst);
-	CondDispatch(llvm::GetElementPtrInst, env, inst);
-	CondDispatch(llvm::InsertElementInst, env, inst);
-	CondDispatch(llvm::InsertValueInst, env, inst);
-	CondDispatch(llvm::LandingPadInst, env, inst);
-	CondDispatch(llvm::SelectInst, env, inst);
-	CondDispatch(llvm::ShuffleVectorInst, env, inst);
-	CondDispatch(llvm::TerminatorInst, env, inst);
-	CondDispatch(llvm::UnaryInstruction, env, inst);
-EndCustomDispatch(llvm::Instruction, env, inst)
+BeginCustomDispatch(Instruction, env, inst)
+	CondDispatch(PHINode, env, inst);
+	CondDispatch(StoreInst, env, inst);
+	CondDispatch(BinaryOperator, env, inst);
+	CondDispatch(CallInst, env, inst);
+	CondDispatch(CmpInst, env, inst);
+	CondDispatch(ExtractElementInst, env, inst);
+	CondDispatch(FenceInst, env, inst);
+	CondDispatch(GetElementPtrInst, env, inst);
+	CondDispatch(InsertElementInst, env, inst);
+	CondDispatch(InsertValueInst, env, inst);
+	CondDispatch(LandingPadInst, env, inst);
+	CondDispatch(SelectInst, env, inst);
+	CondDispatch(ShuffleVectorInst, env, inst);
+	CondDispatch(TerminatorInst, env, inst);
+	CondDispatch(UnaryInstruction, env, inst);
+EndCustomDispatch(Instruction, env, inst)
 
-BeginCustomDispatch(llvm::User, env, inst) 
-	CondDispatch(llvm::Instruction, env, inst);
-	CondDispatch(llvm::Constant, env, inst);
-	CondDispatch(llvm::Operator, env, inst);
-EndCustomDispatch(llvm::User, env, inst)
+BeginCustomDispatch(User, env, inst) 
+	CondDispatch(Instruction, env, inst);
+	CondDispatch(Constant, env, inst);
+	CondDispatch(Operator, env, inst);
+EndCustomDispatch(User, env, inst)
 
-BeginCustomDispatch(llvm::Value, env, inst)
-	CondDispatch(llvm::User, env, inst);
-	CondDispatch(llvm::BasicBlock, env, inst);
-	CondDispatch(llvm::Argument, env, inst);
-	// CondDispatch(llvm::InlineAsm, env, value);
-	// CondDispatch(llvm::MDNode, env, value);
-	// CondDispatch(llvm::MDString, env, value);
-EndCustomDispatch(llvm::Value, env, inst)
+BeginCustomDispatch(Value, env, inst)
+	CondDispatch(User, env, inst);
+	CondDispatch(BasicBlock, env, inst);
+	CondDispatch(Argument, env, inst);
+	// CondDispatch(InlineAsm, env, value);
+	// CondDispatch(MDNode, env, value);
+	// CondDispatch(MDString, env, value);
+EndCustomDispatch(Value, env, inst)
 
-BeginCustomDispatch(llvm::CastInst, env, inst)
-	CondDispatch(llvm::AddrSpaceCastInst, env, inst);
-	CondDispatch(llvm::BitCastInst, env, inst);
-	CondDispatch(llvm::FPExtInst, env, inst);
-	CondDispatch(llvm::FPToSIInst, env, inst);
-EndCustomDispatch(llvm::CastInst, env, inst)
+BeginCustomDispatch(CastInst, env, inst)
+	CondDispatch(AddrSpaceCastInst, env, inst);
+	CondDispatch(BitCastInst, env, inst);
+	CondDispatch(FPExtInst, env, inst);
+	CondDispatch(FPToSIInst, env, inst);
+EndCustomDispatch(CastInst, env, inst)
 
 //TODO: Finish defining this custom dispatch at some point
-//BeginCustomDispatch(llvm::IntrinsicInst, env, inst)
-//	CondDispatch(llvm::DbgInfoIntrinsic, env, inst);
-//	Otherwise(llvm::IntrinsicInst, env, inst);
+//BeginCustomDispatch(IntrinsicInst, env, inst)
+//	CondDispatch(DbgInfoIntrinsic, env, inst);
+//	Otherwise(IntrinsicInst, env, inst);
 //EndCustomDispatch
 
-BeginCustomDispatch( llvm::CallInst, env, inst)
-	CondDispatch(llvm::IntrinsicInst, env, inst);
-EndCustomDispatch(llvm::CallInst, env, inst)
+BeginCustomDispatch( CallInst, env, inst)
+	CondDispatch(IntrinsicInst, env, inst);
+EndCustomDispatch(CallInst, env, inst)
 
-BeginCustomDispatch(llvm::SequentialType, env, inst);
-	CondDispatch(llvm::ArrayType, env, inst);
-	CondDispatch(llvm::PointerType, env, inst);
-	CondDispatch(llvm::VectorType, env, inst);
-EndCustomDispatch(llvm::SequentialType, env, inst)
+BeginCustomDispatch(SequentialType, env, inst);
+	CondDispatch(ArrayType, env, inst);
+	CondDispatch(PointerType, env, inst);
+	CondDispatch(VectorType, env, inst);
+EndCustomDispatch(SequentialType, env, inst)
 
-BeginCustomDispatch(llvm::CompositeType, env, inst)
-	CondDispatch(llvm::StructType, env, inst);
-	CondDispatch(llvm::SequentialType, env, inst);
-EndCustomDispatch(llvm::CompositeType, env, inst)
+BeginCustomDispatch(CompositeType, env, inst)
+	CondDispatch(StructType, env, inst);
+	CondDispatch(SequentialType, env, inst);
+EndCustomDispatch(CompositeType, env, inst)
 
-BeginCustomDispatch(llvm::Type, env, inst)
-	CondDispatch(llvm::FunctionType, env, inst);
-	CondDispatch(llvm::IntegerType, env, inst);
-	CondDispatch(llvm::CompositeType, env, inst);
-EndCustomDispatch(llvm::Type, env, inst)
+BeginCustomDispatch(Type, env, inst)
+	CondDispatch(FunctionType, env, inst);
+	CondDispatch(IntegerType, env, inst);
+	CondDispatch(CompositeType, env, inst);
+EndCustomDispatch(Type, env, inst)
