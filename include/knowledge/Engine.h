@@ -7,7 +7,6 @@
 #include "llvm/Analysis/LoopPass.h"
 extern "C" void RegisterEngineBookkeeping(void* theEnv);
 namespace knowledge {
-void generateDefClasses();
 bool convert(void* env, llvm::BasicBlock* blk, llvm::BasicBlockPass* pass);
 bool convert(void* env, llvm::Function* fn, llvm::FunctionPass* pass);
 bool convert(void* env, llvm::Module* mod, llvm::ModulePass* pass);
