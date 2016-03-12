@@ -278,9 +278,6 @@ void* constructInstance(void* env, T* inst, Pass* pass) {
 		Route(type, env, inst) { \
 			WhenInstanceDoesNotExist(env, inst) {
 
-
-
-
 #define CondDispatch(type, env, val) \
 	if (type* v = llvm::dyn_cast<type>(val)) return Router<type, Pass>::dispatch(env, v, pass)
 #define Otherwise(type, env, val) \
@@ -416,28 +413,28 @@ void constructInstanceMultifield(void* env, int count, void* native, P* p,  cons
 // special case for BasicBlock's not iterating over a list of instruction pointers
 #define defcustomConstructInstanceMultifield(type) \
 template<class P> \
-void constructInstanceMultifield(void* env, int count, void* native, P* p, const std::string& name, type begin, type end) { \
+void constructInstanceMultifield(void* env, int count, void* native, P* p, const std::string& name, llvm:: type begin, llvm:: type end) { \
 	if (count > 0) { \
 		void* mf = EnvCreateMultifield(env, count); \
 		int index = 1; \
-		for (type it = begin; it != end; ++it, ++index) { \
+		for (llvm:: type it = begin; it != end; ++it, ++index) { \
 			SetMFType(mf, index, INSTANCE_NAME); \
 			SetMFValue(mf, index, knowledge::getInstanceName(env, &(*it), p)); \
 		} \
 		directPutMultifield(env, native, name, mf, 1, index - 1); \
 	} \
 }
-defcustomConstructInstanceMultifield(llvm::BasicBlock::iterator)
-defcustomConstructInstanceMultifield(llvm::User::op_iterator)
-defcustomConstructInstanceMultifield(llvm::User::use_iterator)
-defcustomConstructInstanceMultifield(llvm::Module::global_iterator)
-defcustomConstructInstanceMultifield(llvm::InsertValueInst::idx_iterator)
-defcustomConstructInstanceMultifield(llvm::SwitchInst::CaseIt)
-defcustomConstructInstanceMultifield(llvm::Module::alias_iterator)
-defcustomConstructInstanceMultifield(llvm::Module::named_metadata_iterator)
-defcustomConstructInstanceMultifield(llvm::Function::iterator)
-defcustomConstructInstanceMultifield(llvm::Function::arg_iterator)
-defcustomConstructInstanceMultifield(llvm::Module::iterator)
+defcustomConstructInstanceMultifield(BasicBlock::iterator)
+defcustomConstructInstanceMultifield(User::op_iterator)
+defcustomConstructInstanceMultifield(User::use_iterator)
+defcustomConstructInstanceMultifield(Module::global_iterator)
+defcustomConstructInstanceMultifield(InsertValueInst::idx_iterator)
+defcustomConstructInstanceMultifield(SwitchInst::CaseIt)
+defcustomConstructInstanceMultifield(Module::alias_iterator)
+defcustomConstructInstanceMultifield(Module::named_metadata_iterator)
+defcustomConstructInstanceMultifield(Function::iterator)
+defcustomConstructInstanceMultifield(Function::arg_iterator)
+defcustomConstructInstanceMultifield(Module::iterator)
 
 // Populator Node constructors
 #define BeginFull(type, pass) \
@@ -474,17 +471,18 @@ template<typename T>
 void registerExternalAddressId(void* theEnv, struct externalAddressType* ea) {
 	RegisterExternalAddressId(theEnv, knowledge::ExternalAddressRegistration<T>::indirectId, ea);
 }
+
 template<typename T>
 bool containsExternalAddressId(void* theEnv) {
 	return ContainsExternalAddressId(theEnv, knowledge::ExternalAddressRegistration<T>::indirectId);
 }
+
 template<typename T>
 int getExternalAddressId(void* theEnv) {
 	return GetExternalAddressId(theEnv, knowledge::ExternalAddressRegistration<T>::indirectId);
 }
 void EngineBookkeeping::registerInstance(void* nativeInstance, std::string& clipsInstance) {
-	std::pair<void*, std::string> pair(nativeInstance, clipsInstance);
-	instanceMap.insert(pair);
+	instanceMap.insert(std::pair<void*, std::string>(nativeInstance, clipsInstance));
 }
 bool EngineBookkeeping::containsInstance(void* nativeInstance) {
 	return instanceMap.find(nativeInstance) != instanceMap.end();
@@ -523,12 +521,12 @@ bool conv(void* env, T* t, P* p) {
 	return result != NULL;
 }
 #define declareConvert(type, passType) \
-	bool convert(void* e, type * t, passType * p) { return conv(e, t, p); }
-declareConvert(llvm::Function, llvm::FunctionPass);
-declareConvert(llvm::BasicBlock, llvm::BasicBlockPass);
-declareConvert(llvm::Module, llvm::ModulePass);
-declareConvert(llvm::Loop, llvm::LoopPass);
-declareConvert(llvm::Region, llvm::RegionPass);
+	bool convert(void* e, llvm:: type * t, llvm:: passType * p) { return conv(e, t, p); }
+declareConvert(Function, FunctionPass);
+declareConvert(BasicBlock, BasicBlockPass);
+declareConvert(Module, ModulePass);
+declareConvert(Loop, LoopPass);
+declareConvert(Region, RegionPass);
 #undef declareConvert
 
 template<typename T>
