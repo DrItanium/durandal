@@ -48,8 +48,7 @@ extern "C" int GetExternalAddressId(void* theEnv, int type);
 	((knowledge::EngineBookkeeping*) GetEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA))
 namespace knowledge {
 #define ExtAddrType(name) RegisterExternalAddressId_ ## name
-enum 
-{
+enum {
 	// according to the c++ spec these values will start from 0
 #define X(a, b, c, unused) \
 	ExtAddrType(a),
@@ -57,6 +56,7 @@ enum
 #undef X
 	RegisteredExternalAddressTypes,
 };
+
 class EngineBookkeeping {
 	public:
 		EngineBookkeeping() { }
@@ -102,6 +102,7 @@ void directPutInstanceName(void* env, void* addr, const std::string& slotName, v
 	SetValue(wrapper, iname);
 	EnvDirectPutSlot(env, GetNativeInstance(env, addr), slotName.c_str(), &wrapper);
 }
+
 template<typename T>
 void field(llvm::raw_string_ostream& str, const std::string& name, T value) {
 	str << " (" << name << " " << value << ") ";
@@ -492,7 +493,7 @@ std::string EngineBookkeeping::getRelatedInstance(void* nativeInstance) {
 }
 
 void EngineBookkeeping::registerExternalAddress(int type, int id) {
-    if (type >= 0 && type < RegisteredExternalAddressTypes) {
+	if (containsExternalAddress(type)) {
         externalAddrs[type] = id;
     }
 }
@@ -502,11 +503,7 @@ bool EngineBookkeeping::containsExternalAddress(int type) {
 }
 
 int EngineBookkeeping::getRelatedExternalAddress(int type) {
-    if (type >= 0 && type < RegisteredExternalAddressTypes) {
-        return externalAddrs[type];
-    } else {
-        return -1;
-    }
+	return containsExternalAddress(type) ? externalAddrs[type] : -1;
 }
 template<typename T>
 void installNativeInstance(void* env, T* target) {
