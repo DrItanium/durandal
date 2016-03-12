@@ -1,4 +1,4 @@
-//Begin(llvm::Type)
+//Begin(Type)
 //	X(llvm::Type::TypeID, "type-id", t->getTypeID(), Value, 0)
 //	X(bool, "is-void-type", t->isVoidTy(), Value, 0)
 //	X(bool, "is-half-type", t->isHalfTy(), Value, 0)
@@ -25,18 +25,18 @@
 //	X(llvm::ArrayRef<llvm::Type*>, "subtypes", 0, Multifield, t->subtype_begin(), t->subtype_end(), t->getNumContainedTypes(), 0)
 //End
 //
-//Begin(llvm::CompositeType)
-//	super(llvm::Type)
+//Begin(CompositeType)
+//	super(Type)
 //End
 //
-//Begin(llvm::SequentialType)
-//	super(llvm::CompositeType)
+//Begin(SequentialType)
+//	super(CompositeType)
 //	X(llvm::Type*, "element-type", t->getElementType(), Reference, 0)
 //	//X(llvm::Type*, "indices", 
 //End
 //
-//Begin(llvm::StructType)
-//	super(llvm::CompositeType)
+//Begin(StructType)
+//	super(CompositeType)
 //	X(bool, "packed", t->isPacked(), Value, 0)
 //	X(bool, "literal", t->isLiteral(), Value, 0 )
 //	X(bool, "opaque", t->isOpaque(), Value, 0)
@@ -45,23 +45,23 @@
 //	X(llvm::ArrayRef<llvm::Type*> const, "elements", 0, Multifield, t->element_begin(), t->element_end(), t->getNumElements(), 0)
 //End
 //
-//Begin(llvm::VectorType)
-//	super(llvm::SequentialType)
+//Begin(VectorType)
+//	super(SequentialType)
 //	X(unsigned, "bit-width", t->getBitWidth(), Value, 0)
 //End
 //
-//Begin(llvm::PointerType)
-//	super(llvm::SequentialType)
+//Begin(PointerType)
+//	super(SequentialType)
 //	X(unsigned, "address-space", t->getAddressSpace(), Value, 0)
 //End
 //
-//Begin(llvm::ArrayType)
-//	super(llvm::SequentialType)
+//Begin(ArrayType)
+//	super(SequentialType)
 //	X(unsigned, "num-elements", t->getNumElements(), Value, 0)
 //End
 //
-//Begin(llvm::IntegerType)
-//	super(llvm::Type)
+//Begin(IntegerType)
+//	super(Type)
 //	X(unsigned , "bit-width", t->getBitWidth(), Value, 0)
 //	X(unsigned , "bit-mask", t->getBitMask(), Value, 0)
 //	X(unsigned , "sign-bit", t->getSignBit(), Value, 0)
@@ -69,15 +69,15 @@
 //	X(llvm::APInt, "mask", t->getMask(), Value, 0)
 //End
 //
-//Begin(llvm::FunctionType)
-//	super(llvm::Type)
+//Begin(FunctionType)
+//	super(Type)
 //	X(bool, "is-var-arg", t->isVarArg(), Value, 0)
 //	X(llvm::Type*, "return-type", t->getReturnType(), Reference, 0)
 //	X(llvm::ArrayRef<llvm::BasicBlock&>, "parameters", 0, Multifield, t->param_begin(), t->param_end(), t->getNumParams(), 0)
 //	X(unsigned, "num-parameters", t->getNumParams(), Value, 0)
 //End
 //
-//Begin(llvm::Value)
+//Begin(Value)
 //	X(unsigned, "value-id", t->getValueID(), Value, 0)
 //	X(bool, "has-value-handle", t->hasValueHandle(), Value, 0)
 //	X(bool, "is-used-by-metadata", t->isUsedByMetadata(), Value, 0)
@@ -90,8 +90,8 @@
 //	X(unsigned, "raw-subclass-optional-data", t->getRawSubclassOptionalData(), Value, 0)
 //End
 //
-//Begin(llvm::Argument)
-//	super(llvm::Value)
+//Begin(Argument)
+//	super(Value)
 //	X(unsigned, "index", t->getArgNo(), Value, 0)
 //	//TODO: migrate these attributes to a list to make code maintentance easier
 //	X(bool, "non-null-attr", t->hasNonNullAttr(), Value, 0)
@@ -112,31 +112,31 @@
 //	X(bool, "has-sext-attr", t->hasSExtAttr(), Value, 0)
 //End
 //
-//Begin(llvm::BasicBlock)
-//	super(llvm::Value)
+//Begin(BasicBlock)
+//	super(Value)
 //	#include "knowledge/BasicBlockDescription.def"
 //End
 //
 //
-//Begin(llvm::Module) 
+//Begin(Module) 
 //	X(const std::string& , "triple", t->getTargetTriple(), Value, 0)
 //	X(const llvm::DataLayout&, "data-layout", t->getDataLayoutStr(), Value, 0)
 //	X(const std::string&, "module-identifier", t->getModuleIdentifier(), Value, 0)
 //	X(const std::string&, "inline-asm", t->getModuleInlineAsm(), Value, 0)
 //End
 //
-//Begin(llvm::User)
-//	super(llvm::Value)
+//Begin(User)
+//	super(Value)
 //	X(llvm::User::op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0)
 //	//X(llvm::ArrayRef<const uint8_t>, "descriptor", )   //what is this used for?
 //End
 //
-////Begin(llvm::MetadataAsValue)
+////Begin(MetadataAsValue)
 ////	X(llvm::Metadata*, "metadata", 
 ////End
 //
-//Begin(llvm::Constant)
-//	super(llvm::User)
+//Begin(Constant)
+//	super(User)
 //	X(bool, "isNullValue" ,t->isNullValue(), Value, 0)
 //	X(bool, "isOneValue" ,t->isOneValue(), Value, 0)
 //	X(bool, "isAllOnesValue" ,t->isAllOnesValue(), Value, 0)
@@ -150,8 +150,8 @@
 //	X(bool, "isConstantUsed" ,t->isConstantUsed(), Value, 0)
 //End
 //
-//Begin(llvm::GlobalValue)
-//	super(llvm::Constant)
+//Begin(GlobalValue)
+//	super(Constant)
 //	X(bool, "isNullValue" ,t->isNullValue(), Value, 0)
 //	X(bool, "isOneValue" ,t->isOneValue(), Value, 0)
 //	X(bool, "isAllOnesValue" ,t->isAllOnesValue(), Value, 0)
@@ -165,12 +165,12 @@
 //	X(bool, "isConstantUsed" ,t->isConstantUsed(), Value, 0)
 //End
 //
-//Begin(llvm::GlobalObject)
-//	super(llvm::GlobalValue)
+//Begin(GlobalObject)
+//	super(GlobalValue)
 //End
 //
-//Begin(llvm::Function)
-//	super(llvm::GlobalObject)
+//Begin(Function)
+//	super(GlobalObject)
 //
 //
 //
@@ -207,7 +207,7 @@
 //X(llvm::Type*, "return-type", t->getReturnType(), Reference, 0)
 //End
 //
-//Begin(llvm::InlineAsm) 
+//Begin(InlineAsm) 
 //	X(bool, "has-side-effects", t->hasSideEffects(), Value, 0)
 //	X(bool, "is-align-stack", t->isAlignStack(), Value, 0)
 //	//X(llvm::InlineAsm::AsmDialect, "dialect", t->getDialect(), Enum, 0)
@@ -216,8 +216,8 @@
 //	X(const std::string&, "constraint-string", t->getConstraintString(), Value, 0)
 //End
 //
-//Begin(llvm::Instruction)
-//	super(llvm::User)
+//Begin(Instruction)
+//	super(User)
 //	//X(llvm::Module*, "module", t->getModule(), Reference, 0)
 //	X(unsigned, "opcode", t->getOpcode(), Value, 0)
 //	X(bool, "is-terminator", t->isTerminator(), Value, 0)
@@ -248,22 +248,22 @@
 //    //X(bool, "isEHPad", t->isEHPad(), Value, 0)
 //End
 //
-//Begin(llvm::TerminatorInst)
-//	super(llvm::Instruction)
+//Begin(TerminatorInst)
+//	super(Instruction)
 //End
 //
 //
 //
-//Begin(llvm::ValueName)
+//Begin(ValueName)
 //	X(llvm::StringRef, "key", t->getKey(), Value, 0)
 //	X(llvm::Value*, "value", t->getValue(), Reference, 0)
 //End
 //
-//Begin(llvm::Operator)
-//	super(llvm::User)
+//Begin(Operator)
+//	super(User)
 //	X(unsigned, "opcode", t->getOpcode(), Value, 0)
 //End
-//Begin(llvm::Loop)
+//Begin(Loop)
 //	X(bool, "is-safe-to-clone", t->isSafeToClone(), Value, 0)
 //	X(bool, "is-annotated-parallel", t->isAnnotatedParallel(), Value, 0)
 //	X(bool, "is-loop-simplify-form", t->isLoopSimplifyForm(), Value, 0)
@@ -273,7 +273,7 @@
 //	X(llvm::Loop::block_iterator, "blocks", 0, Multifield, t->block_begin(), t->block_end(), t->getNumBlocks(), 0)
 //	X(llvm::BasicBlock*, "header", t->getHeader(), Reference, 0)
 //End
-//Begin(llvm::Region)
+//Begin(Region)
 //	X(bool, "is-sub-region", t->isSubRegion(), Value, 0)
 //	X(unsigned, "depth", t->getDepth(), Value, 0)
 //	X(llvm::BasicBlock*, "entry", t->getEntry(), Reference, 0)
@@ -285,11 +285,11 @@
 //
 //
 
-Begin(llvm::Comdat)
+Begin(Comdat)
 	X(llvm::Comdat::SelectionKind, "SelectionKind", t->getSelectionKind(), Value ,0) // llvm::Comdat
 	X(llvm::StringRef, "Name", t->getName(), Value ,0) // llvm::Comdat
 End
-Begin(llvm::APInt)
+Begin(APInt)
 	X(bool, "needsCleanup", t->needsCleanup(), Value ,0) // llvm::APInt
 	X(bool, "isNegative", t->isNegative(), Value ,0) // llvm::APInt
 	X(bool, "isNonNegative", t->isNonNegative(), Value ,0) // llvm::APInt
@@ -329,7 +329,7 @@ Begin(llvm::APInt)
 	X(llvm::APInt, "abs", t->abs(), Value ,0) // llvm::APInt
 //	X(llvm::APInt::ms, "magic", t->magic(), Unknown_FIXME ,0) // llvm::APInt
 End
-Begin(llvm::APFloat)
+Begin(APFloat)
 	X(bool, "needsCleanup", t->needsCleanup(), Value ,0) // llvm::APFloat
 	X(llvm::APInt, "bitcastToAPInt", t->bitcastToAPInt(), Value ,0) // llvm::APFloat
 	X(bool, "isNegative", t->isNegative(), Value ,0) // llvm::APFloat
@@ -349,7 +349,7 @@ Begin(llvm::APFloat)
 	X(bool, "isSmallest", t->isSmallest(), Value ,0) // llvm::APFloat
 	X(bool, "isLargest", t->isLargest(), Value ,0) // llvm::APFloat
 End
-Begin(llvm::Type)
+Begin(Type)
 	X(llvm::Type::TypeID, "TypeID", t->getTypeID(), Value ,0) // llvm::Type
 	X(bool, "isVoidTy", t->isVoidTy(), Value ,0) // llvm::Type
 	X(bool, "isHalfTy", t->isHalfTy(), Value ,0) // llvm::Type
@@ -394,25 +394,25 @@ Begin(llvm::Type)
 	X(unsigned int, "PointerAddressSpace", t->getPointerAddressSpace(), Value ,0) // llvm::Type
 	X(llvm::Type::subtype_iterator, "subtypes", 0, Multifield, t->subtype_begin(), t->subtype_end(), t->getNumContainedTypes(), 0) // llvm::Type
 End
-Begin(llvm::IntegerType)
-	super(llvm::Type)
+Begin(IntegerType)
+	super(Type)
 	X(unsigned int, "BitWidth", t->getBitWidth(), Value ,0) // llvm::IntegerType
 	X(uint64_t, "BitMask", t->getBitMask(), Value ,0) // llvm::IntegerType
 	X(uint64_t, "SignBit", t->getSignBit(), Value ,0) // llvm::IntegerType
 	X(llvm::APInt, "Mask", t->getMask(), Value ,0) // llvm::IntegerType
 	X(bool, "isPowerOf2ByteWidth", t->isPowerOf2ByteWidth(), Value ,0) // llvm::IntegerType
 End
-Begin(llvm::FunctionType)
-	super(llvm::Type)
+Begin(FunctionType)
+	super(Type)
 	X(bool, "isVarArg", t->isVarArg(), Value ,0) // llvm::FunctionType
 	X(llvm::Type *, "ReturnType", t->getReturnType(), Reference ,0) // llvm::FunctionType
 	X(llvm::FunctionType::param_iterator, "params", 0, Multifield, t->param_begin(), t->param_end(), t->getNumParams(), 0) // llvm::FunctionType
 End
-Begin(llvm::CompositeType)
-	super(llvm::Type)
+Begin(CompositeType)
+	super(Type)
 End
-Begin(llvm::StructType)
-	super(llvm::CompositeType)
+Begin(StructType)
+	super(CompositeType)
 	X(bool, "isPacked", t->isPacked(), Value ,0) // llvm::StructType
 	X(bool, "isLiteral", t->isLiteral(), Value ,0) // llvm::StructType
 	X(bool, "isOpaque", t->isOpaque(), Value ,0) // llvm::StructType
@@ -420,18 +420,18 @@ Begin(llvm::StructType)
 	X(llvm::StringRef, "Name", t->getName(), Value ,0) // llvm::StructType
 	X(llvm::StructType::element_iterator, "elements", 0, Multifield, t->element_begin(), t->element_end(), t->getNumElements(), 0) // llvm::StructType
 End
-Begin(llvm::SequentialType)
-	super(llvm::CompositeType)
+Begin(SequentialType)
+	super(CompositeType)
 	X(llvm::Type *, "ElementType", t->getElementType(), Reference ,0) // llvm::SequentialType
 End
-Begin(llvm::ArrayType)
-	super(llvm::SequentialType)
+Begin(ArrayType)
+	super(SequentialType)
 End
-Begin(llvm::PointerType)
-	super(llvm::SequentialType)
+Begin(PointerType)
+	super(SequentialType)
 	X(unsigned int, "AddressSpace", t->getAddressSpace(), Value ,0) // llvm::PointerType
 End
-//Begin(llvm::DataLayout)
+//Begin(DataLayout)
 //	X(bool, "isLittleEndian", t->isLittleEndian(), Value ,0) // llvm::DataLayout
 //	X(bool, "isBigEndian", t->isBigEndian(), Value ,0) // llvm::DataLayout
 //	X(std::string, "StringRepresentation", t->getStringRepresentation(), Value ,0) // llvm::DataLayout
@@ -443,18 +443,18 @@ End
 //	X(const char *, "PrivateGlobalPrefix", t->getPrivateGlobalPrefix(), Reference ,0) // llvm::DataLayout
 //	X(unsigned int, "LargestLegalIntTypeSize", t->getLargestLegalIntTypeSize(), Value ,0) // llvm::DataLayout
 //End
-Begin(llvm::StructLayout)
+Begin(StructLayout)
 	X(uint64_t, "SizeInBytes", t->getSizeInBytes(), Value ,0) // llvm::StructLayout
 	X(uint64_t, "SizeInBits", t->getSizeInBits(), Value ,0) // llvm::StructLayout
 	X(unsigned int, "Alignment", t->getAlignment(), Value ,0) // llvm::StructLayout
 End
-Begin(llvm::Twine)
+Begin(Twine)
 	X(bool, "isTriviallyEmpty", t->isTriviallyEmpty(), Value ,0) // llvm::Twine
 	X(bool, "isSingleStringRef", t->isSingleStringRef(), Value ,0) // llvm::Twine
 	X(std::string, "str", t->str(), Value ,0) // llvm::Twine
 	X(llvm::StringRef, "SingleStringRef", t->getSingleStringRef(), Value ,0) // llvm::Twine
 End
-Begin(llvm::Attribute)
+Begin(Attribute)
 	X(bool, "isEnumAttribute", t->isEnumAttribute(), Value ,0) // llvm::Attribute
 	X(bool, "isIntAttribute", t->isIntAttribute(), Value ,0) // llvm::Attribute
 	X(bool, "isStringAttribute", t->isStringAttribute(), Value ,0) // llvm::Attribute
@@ -466,14 +466,14 @@ Begin(llvm::Attribute)
 	X(unsigned int, "StackAlignment", t->getStackAlignment(), Value ,0) // llvm::Attribute
 	X(uint64_t, "DereferenceableBytes", t->getDereferenceableBytes(), Value ,0) // llvm::Attribute
 End
-Begin(llvm::Use)
+Begin(Use)
 	X(llvm::Value *, "operator llvm::Value *", t->operator llvm::Value *(), Reference ,0) // llvm::Use
 	X(llvm::Value *, "", t->get(), Reference ,0) // llvm::Use
 	X(llvm::User *, "User", t->getUser(), Reference ,0) // llvm::Use
 	X(llvm::Use *, "Next", t->getNext(), Reference ,0) // llvm::Use
 	X(unsigned int, "OperandNo", t->getOperandNo(), Value ,0) // llvm::Use
 End
-Begin(llvm::Value)
+Begin(Value)
 	X(llvm::Type *, "Type", t->getType(), Reference ,0) // llvm::Value
 	X(bool, "hasName", t->hasName(), Value ,0) // llvm::Value
 	X(llvm::ValueName *, "ValueName", t->getValueName(), Reference ,0) // llvm::Value
@@ -489,8 +489,8 @@ Begin(llvm::Value)
 	X(llvm::Value::const_use_iterator, "uses", 0, Multifield, t->use_begin(), t->use_end(), t->getNumUses(), 0) // llvm::Value
 	X(llvm::Value::const_user_iterator, "users", 0, Multifield, t->user_begin(), t->user_end(), std::distance(t->user_begin(), t->user_end()), 0) // llvm::Value
 End
-Begin(llvm::Argument)
-	super(llvm::Value)
+Begin(Argument)
+	super(Value)
 	X(const llvm::Function *, "Parent", t->getParent(), Reference ,0) // llvm::Argument
 	X(unsigned int, "ArgNo", t->getArgNo(), Value ,0) // llvm::Argument
 	X(bool, "hasNonNullAttr", t->hasNonNullAttr(), Value ,0) // llvm::Argument
@@ -508,7 +508,7 @@ Begin(llvm::Argument)
 	X(bool, "hasZExtAttr", t->hasZExtAttr(), Value ,0) // llvm::Argument
 	X(bool, "hasSExtAttr", t->hasSExtAttr(), Value ,0) // llvm::Argument
 End
-Begin(llvm::DebugLoc)
+Begin(DebugLoc)
 	X(bool, "hasTrivialDestructor", t->hasTrivialDestructor(), Value ,0) // llvm::DebugLoc
 	X(bool, "isUnknown", t->isUnknown(), Value ,0) // llvm::DebugLoc
 	X(unsigned int, "Line", t->getLine(), Value ,0) // llvm::DebugLoc
@@ -519,12 +519,12 @@ Begin(llvm::DebugLoc)
 //	X(llvm::DebugLoc, "FnDebugLoc", t->getFnDebugLoc(), Unknown_FIXME ,0) // llvm::DebugLoc
 	X(llvm::MDNode *, "AsMDNode", t->getAsMDNode(), Reference ,0) // llvm::DebugLoc
 End
-Begin(llvm::User)
-	super(llvm::Value)
+Begin(User)
+	super(Value)
 	X(llvm::User::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::User
 End
-Begin(llvm::Instruction)
-	super(llvm::User)
+Begin(Instruction)
+	super(User)
 //	X(const llvm::Instruction *, "user_back", t->user_back(), Reference ,0) // llvm::Instruction
 	X(const llvm::BasicBlock *, "Parent", t->getParent(), Reference ,0) // llvm::Instruction
 //	X(const llvm::DataLayout *, "DataLayout", t->getDataLayout(), Reference ,0) // llvm::Instruction
@@ -556,8 +556,8 @@ Begin(llvm::Instruction)
 	X(bool, "mayReturn", t->mayReturn(), Value ,0) // llvm::Instruction
 	X(bool, "mayHaveSideEffects", t->mayHaveSideEffects(), Value ,0) // llvm::Instruction
 End
-Begin(llvm::BasicBlock)
-	super(llvm::Value)
+Begin(BasicBlock)
+	super(Value)
 	X(const llvm::Function *, "Parent", t->getParent(), Reference ,0) // llvm::BasicBlock
 //	X(const llvm::DataLayout *, "DataLayout", t->getDataLayout(), Reference ,0) // llvm::BasicBlock
 	X(const llvm::TerminatorInst *, "Terminator", t->getTerminator(), Reference ,0) // llvm::BasicBlock
@@ -576,8 +576,8 @@ Begin(llvm::BasicBlock)
 	X(const llvm::LandingPadInst *, "LandingPadInst", t->getLandingPadInst(), Reference ,0) // llvm::BasicBlock
 	X(llvm::BasicBlock::const_iterator, "children", 0, Multifield, t->begin(), t->end(), t->size(), 0) // llvm::BasicBlock
 End
-Begin(llvm::Constant)
-	super(llvm::User)
+Begin(Constant)
+	super(User)
 	X(bool, "isNullValue", t->isNullValue(), Value ,0) // llvm::Constant
 	X(bool, "isOneValue", t->isOneValue(), Value ,0) // llvm::Constant
 	X(bool, "isAllOnesValue", t->isAllOnesValue(), Value ,0) // llvm::Constant
@@ -593,8 +593,8 @@ Begin(llvm::Constant)
 	X(llvm::Constant *, "SplatValue", t->getSplatValue(), Reference ,0) // llvm::Constant
 	//X(const llvm::APInt &, "UniqueInteger", t->getUniqueInteger(), Reference ,0) // llvm::Constant
 End
-Begin(llvm::GlobalValue)
-	super(llvm::Constant)
+Begin(GlobalValue)
+	super(Constant)
 	X(unsigned int, "Alignment", t->getAlignment(), Value ,0) // llvm::GlobalValue
 	X(bool, "hasUnnamedAddr", t->hasUnnamedAddr(), Value ,0) // llvm::GlobalValue
 	X(bool, "hasComdat", t->hasComdat(), Value ,0) // llvm::GlobalValue
@@ -635,8 +635,8 @@ Begin(llvm::GlobalValue)
 	X(const llvm::Module *, "Parent", t->getParent(), Reference ,0) // llvm::GlobalValue
 //	X(const llvm::DataLayout *, "DataLayout", t->getDataLayout(), Reference ,0) // llvm::GlobalValue
 End
-Begin(llvm::GlobalObject)
-	super(llvm::GlobalValue)
+Begin(GlobalObject)
+	super(GlobalValue)
 	X(unsigned int, "Alignment", t->getAlignment(), Value ,0) // llvm::GlobalObject
 	X(unsigned int, "GlobalObjectSubClassData", t->getGlobalObjectSubClassData(), Value ,0) // llvm::GlobalObject
 //	X(bool, "hasSection", t->hasSection(), Value ,0) // llvm::GlobalObject
@@ -644,8 +644,8 @@ Begin(llvm::GlobalObject)
 	X(bool, "hasComdat", t->hasComdat(), Value ,0) // llvm::GlobalObject
 	X(const llvm::Comdat *, "Comdat", t->getComdat(), Reference ,0) // llvm::GlobalObject
 End
-Begin(llvm::Function)
-	super(llvm::GlobalObject)
+Begin(Function)
+	super(GlobalObject)
 	X(llvm::Type *, "ReturnType", t->getReturnType(), Reference ,0) // llvm::Function
 	X(llvm::FunctionType *, "FunctionType", t->getFunctionType(), Reference ,0) // llvm::Function
 	X(bool, "isVarArg", t->isVarArg(), Value ,0) // llvm::Function
@@ -680,14 +680,14 @@ Begin(llvm::Function)
 	X(llvm::Function::iterator, "children", 0, Multifield, t->begin(), t->end(), t->size(), 0) // llvm::Function
 	X(llvm::Function::arg_iterator, "args", 0, Multifield, t->arg_begin(), t->arg_end(), t->arg_size(), 0) // llvm::Function
 End
-Begin(llvm::GlobalAlias)
-	super(llvm::GlobalValue)
+Begin(GlobalAlias)
+	super(GlobalValue)
 	X(const llvm::Constant *, "Aliasee", t->getAliasee(), Reference ,0) // llvm::GlobalAlias
 	X(const llvm::GlobalObject *, "BaseObject", t->getBaseObject(), Reference ,0) // llvm::GlobalAlias
 	X(llvm::GlobalAlias::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::GlobalAlias
 End
-Begin(llvm::GlobalVariable)
-	super(llvm::GlobalObject)
+Begin(GlobalVariable)
+	super(GlobalObject)
 	X(bool, "hasInitializer", t->hasInitializer(), Value ,0) // llvm::GlobalVariable
 	X(bool, "hasDefinitiveInitializer", t->hasDefinitiveInitializer(), Value ,0) // llvm::GlobalVariable
 	X(bool, "hasUniqueInitializer", t->hasUniqueInitializer(), Value ,0) // llvm::GlobalVariable
@@ -696,50 +696,50 @@ Begin(llvm::GlobalVariable)
 	X(bool, "isExternallyInitialized", t->isExternallyInitialized(), Value ,0) // llvm::GlobalVariable
 	X(llvm::GlobalVariable::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::GlobalVariable
 End
-Begin(llvm::Metadata)
+Begin(Metadata)
 	X(unsigned int, "MetadataID", t->getMetadataID(), Value ,0) // llvm::Metadata
 End
-Begin(llvm::MetadataAsValue)
-	super(llvm::Value)
+Begin(MetadataAsValue)
+	super(Value)
 	X(llvm::Metadata *, "Metadata", t->getMetadata(), Reference ,0) // llvm::MetadataAsValue
 End
-Begin(llvm::ValueAsMetadata)
-	super(llvm::Metadata)
-	super(llvm::ReplaceableMetadataImpl)
+Begin(ValueAsMetadata)
+	super(Metadata)
+	super(ReplaceableMetadataImpl)
 	X(llvm::Value *, "Value", t->getValue(), Reference ,0) // llvm::ValueAsMetadata
 	X(llvm::Type *, "Type", t->getType(), Reference ,0) // llvm::ValueAsMetadata
 End
-Begin(llvm::ConstantAsMetadata)
-	super(llvm::ValueAsMetadata)
+Begin(ConstantAsMetadata)
+	super(ValueAsMetadata)
 	X(llvm::Constant *, "Value", t->getValue(), Reference ,0) // llvm::ConstantAsMetadata
 End
-Begin(llvm::LocalAsMetadata)
-	super(llvm::ValueAsMetadata)
+Begin(LocalAsMetadata)
+	super(ValueAsMetadata)
 End
-Begin(llvm::MDString)
-	super(llvm::Metadata)
+Begin(MDString)
+	super(Metadata)
 	X(llvm::StringRef, "String", t->getString(), Value ,0) // llvm::MDString
 	//X(unsigned int, "Length", t->getLength(), Value ,0) // llvm::MDString
 	//X(const unsigned char *, "bytes_end", t->bytes_end(), Reference ,0) // llvm::MDString
 	X(llvm::MDString::iterator, "children", 0, Multifield, t->begin(), t->end(), t->getLength(), 0) // llvm::MDString
 	X(const unsigned char *, "bytes", 0, Multifield, t->bytes_begin(), t->bytes_end(), t->getLength(), 0) // llvm::MDString
 End
-Begin(llvm::MDOperand)
+Begin(MDOperand)
 	X(llvm::Metadata *, "", t->get(), Reference ,0) // llvm::MDOperand
 	X(llvm::Metadata *, "operator llvm::Metadata *", t->operator llvm::Metadata *(), Reference ,0) // llvm::MDOperand
 End
-Begin(llvm::MDTuple)
-	super(llvm::UniquableMDNode)
+Begin(MDTuple)
+	super(UniquableMDNode)
 	X(unsigned int, "Hash", t->getHash(), Value ,0) // llvm::MDTuple
 End
-Begin(llvm::MDLocation)
-	super(llvm::UniquableMDNode)
+Begin(MDLocation)
+	super(UniquableMDNode)
 	X(unsigned int, "Line", t->getLine(), Value ,0) // llvm::MDLocation
 	X(unsigned int, "Column", t->getColumn(), Value ,0) // llvm::MDLocation
 	X(llvm::Metadata *, "Scope", t->getScope(), Reference ,0) // llvm::MDLocation
 	X(llvm::Metadata *, "InlinedAt", t->getInlinedAt(), Reference ,0) // llvm::MDLocation
 End
-Begin(llvm::Module)
+Begin(Module)
 	X(const std::string &, "ModuleIdentifier", t->getModuleIdentifier(), Value ,0) // llvm::Module
 	X(llvm::StringRef, "Name", t->getName(), Value ,0) // llvm::Module
 	X(const std::string &, "DataLayoutStr", t->getDataLayoutStr(), Value ,0) // llvm::Module
@@ -763,32 +763,32 @@ Begin(llvm::Module)
 	X(llvm::Module::alias_iterator, "aliases", 0, Multifield, t->alias_begin(), t->alias_end(), t->alias_size(), 0) // llvm::Module
 	X(llvm::Module::named_metadata_iterator, "named_metadata", 0, Multifield, t->named_metadata_begin(), t->named_metadata_end(), t->named_metadata_size(), 0) // llvm::Module
 End
-Begin(llvm::TerminatorInst)
-	super(llvm::Instruction)
+Begin(TerminatorInst)
+	super(Instruction)
 	X(unsigned int, "NumSuccessors", t->getNumSuccessors(), Value ,0) // llvm::TerminatorInst
 End
-Begin(llvm::UnaryInstruction)
-	super(llvm::Instruction)
+Begin(UnaryInstruction)
+	super(Instruction)
 	X(llvm::UnaryInstruction::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::UnaryInstruction
 End
-Begin(llvm::BinaryOperator)
-	super(llvm::Instruction)
+Begin(BinaryOperator)
+	super(Instruction)
 	X(llvm::Instruction::BinaryOps, "Opcode", t->getOpcode(), Value ,0) // llvm::BinaryOperator
 	X(bool, "hasNoUnsignedWrap", t->hasNoUnsignedWrap(), Value ,0) // llvm::BinaryOperator
 	X(bool, "hasNoSignedWrap", t->hasNoSignedWrap(), Value ,0) // llvm::BinaryOperator
 	X(bool, "isExact", t->isExact(), Value ,0) // llvm::BinaryOperator
 	X(llvm::BinaryOperator::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::BinaryOperator
 End
-Begin(llvm::CastInst)
-	super(llvm::UnaryInstruction)
+Begin(CastInst)
+	super(UnaryInstruction)
 	X(bool, "isIntegerCast", t->isIntegerCast(), Value ,0) // llvm::CastInst
 	X(bool, "isLosslessCast", t->isLosslessCast(), Value ,0) // llvm::CastInst
 	X(llvm::Instruction::CastOps, "Opcode", t->getOpcode(), Value ,0) // llvm::CastInst
 	X(llvm::Type *, "SrcTy", t->getSrcTy(), Reference ,0) // llvm::CastInst
 	X(llvm::Type *, "DestTy", t->getDestTy(), Reference ,0) // llvm::CastInst
 End
-Begin(llvm::CmpInst)
-	super(llvm::Instruction)
+Begin(CmpInst)
+	super(Instruction)
 	X(llvm::Instruction::OtherOps, "Opcode", t->getOpcode(), Value ,0) // llvm::CmpInst
 	X(llvm::CmpInst::Predicate, "Predicate", t->getPredicate(), Value ,0) // llvm::CmpInst
 	X(bool, "isFPPredicate", t->isFPPredicate(), Value ,0) // llvm::CmpInst
@@ -803,12 +803,12 @@ Begin(llvm::CmpInst)
 	X(bool, "isFalseWhenEqual", t->isFalseWhenEqual(), Value ,0) // llvm::CmpInst
 	X(llvm::CmpInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::CmpInst
 End
-Begin(llvm::BasicBlockEdge)
+Begin(BasicBlockEdge)
 	X(const llvm::BasicBlock *, "Start", t->getStart(), Reference ,0) // llvm::BasicBlockEdge
 	X(const llvm::BasicBlock *, "End", t->getEnd(), Reference ,0) // llvm::BasicBlockEdge
 	X(bool, "isSingleEdge", t->isSingleEdge(), Value ,0) // llvm::BasicBlockEdge
 End
-Begin(llvm::Region)
+Begin(Region)
 	X(bool, "is-sub-region", t->isSubRegion(), Value, 0)
 	X(unsigned, "depth", t->getDepth(), Value, 0)
 	X(llvm::BasicBlock*, "entry", t->getEntry(), Reference, 0)
@@ -817,7 +817,7 @@ Begin(llvm::Region)
 	X(bool, "is-simple", t->isSimple(), Value, 0)
 	X(const std::string&, "title", t->getNameStr(), Value, 0)
 End
-Begin(llvm::Loop)
+Begin(Loop)
 	X(llvm::PHINode *, "CanonicalInductionVariable", t->getCanonicalInductionVariable(), Reference ,0) // llvm::Loop
 	X(bool, "isLoopSimplifyForm", t->isLoopSimplifyForm(), Value ,0) // llvm::Loop
 	X(bool, "isSafeToClone", t->isSafeToClone(), Value ,0) // llvm::Loop
@@ -827,8 +827,8 @@ Begin(llvm::Loop)
 	X(llvm::BasicBlock *, "UniqueExitBlock", t->getUniqueExitBlock(), Reference ,0) // llvm::Loop
 //	X(llvm::DebugLoc, "StartLoc", t->getStartLoc(), Unknown_FIXME ,0) // llvm::Loop
 End
-Begin(llvm::AllocaInst)
-	super(llvm::UnaryInstruction)
+Begin(AllocaInst)
+	super(UnaryInstruction)
 	X(bool, "isArrayAllocation", t->isArrayAllocation(), Value ,0) // llvm::AllocaInst
 	X(const llvm::Value *, "ArraySize", t->getArraySize(), Reference ,0) // llvm::AllocaInst
 	X(llvm::PointerType *, "Type", t->getType(), Reference ,0) // llvm::AllocaInst
@@ -837,8 +837,8 @@ Begin(llvm::AllocaInst)
 	X(bool, "isStaticAlloca", t->isStaticAlloca(), Value ,0) // llvm::AllocaInst
 	X(bool, "isUsedWithInAlloca", t->isUsedWithInAlloca(), Value ,0) // llvm::AllocaInst
 End
-Begin(llvm::LoadInst)
-	super(llvm::UnaryInstruction)
+Begin(LoadInst)
+	super(UnaryInstruction)
 	X(bool, "isVolatile", t->isVolatile(), Value ,0) // llvm::LoadInst
 	X(unsigned int, "Alignment", t->getAlignment(), Value ,0) // llvm::LoadInst
 	X(llvm::AtomicOrdering, "Ordering", t->getOrdering(), Value ,0) // llvm::LoadInst
@@ -848,8 +848,8 @@ Begin(llvm::LoadInst)
 	X(const llvm::Value *, "PointerOperand", t->getPointerOperand(), Reference ,0) // llvm::LoadInst
 	X(unsigned int, "PointerAddressSpace", t->getPointerAddressSpace(), Value ,0) // llvm::LoadInst
 End
-Begin(llvm::StoreInst)
-	super(llvm::Instruction)
+Begin(StoreInst)
+	super(Instruction)
 	X(bool, "isVolatile", t->isVolatile(), Value ,0) // llvm::StoreInst
 	X(unsigned int, "Alignment", t->getAlignment(), Value ,0) // llvm::StoreInst
 	X(llvm::AtomicOrdering, "Ordering", t->getOrdering(), Value ,0) // llvm::StoreInst
@@ -861,13 +861,13 @@ Begin(llvm::StoreInst)
 	X(unsigned int, "PointerAddressSpace", t->getPointerAddressSpace(), Value ,0) // llvm::StoreInst
 	X(llvm::StoreInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::StoreInst
 End
-Begin(llvm::FenceInst)
-	super(llvm::Instruction)
+Begin(FenceInst)
+	super(Instruction)
 	X(llvm::AtomicOrdering, "Ordering", t->getOrdering(), Value ,0) // llvm::FenceInst
 	X(llvm::SynchronizationScope, "SynchScope", t->getSynchScope(), Value ,0) // llvm::FenceInst
 End
-Begin(llvm::AtomicCmpXchgInst)
-	super(llvm::Instruction)
+Begin(AtomicCmpXchgInst)
+	super(Instruction)
 	X(bool, "isVolatile", t->isVolatile(), Value ,0) // llvm::AtomicCmpXchgInst
 	X(bool, "isWeak", t->isWeak(), Value ,0) // llvm::AtomicCmpXchgInst
 	X(llvm::AtomicOrdering, "SuccessOrdering", t->getSuccessOrdering(), Value ,0) // llvm::AtomicCmpXchgInst
@@ -879,8 +879,8 @@ Begin(llvm::AtomicCmpXchgInst)
 	X(unsigned int, "PointerAddressSpace", t->getPointerAddressSpace(), Value ,0) // llvm::AtomicCmpXchgInst
 	X(llvm::AtomicCmpXchgInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::AtomicCmpXchgInst
 End
-Begin(llvm::AtomicRMWInst)
-	super(llvm::Instruction)
+Begin(AtomicRMWInst)
+	super(Instruction)
 	X(llvm::AtomicRMWInst::BinOp, "Operation", t->getOperation(), Value ,0) // llvm::AtomicRMWInst
 	X(bool, "isVolatile", t->isVolatile(), Value ,0) // llvm::AtomicRMWInst
 	X(llvm::AtomicOrdering, "Ordering", t->getOrdering(), Value ,0) // llvm::AtomicRMWInst
@@ -890,8 +890,8 @@ Begin(llvm::AtomicRMWInst)
 	X(unsigned int, "PointerAddressSpace", t->getPointerAddressSpace(), Value ,0) // llvm::AtomicRMWInst
 	X(llvm::AtomicRMWInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::AtomicRMWInst
 End
-Begin(llvm::GetElementPtrInst)
-	super(llvm::Instruction)
+Begin(GetElementPtrInst)
+	super(Instruction)
 	X(llvm::SequentialType *, "Type", t->getType(), Reference ,0) // llvm::GetElementPtrInst
 	X(unsigned int, "AddressSpace", t->getAddressSpace(), Value ,0) // llvm::GetElementPtrInst
 	X(const llvm::Value *, "PointerOperand", t->getPointerOperand(), Reference ,0) // llvm::GetElementPtrInst
@@ -904,22 +904,22 @@ Begin(llvm::GetElementPtrInst)
 	X(llvm::GetElementPtrInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::GetElementPtrInst
 	X(llvm::GetElementPtrInst::const_op_iterator, "indices", 0, Multifield, t->idx_begin(), t->idx_end(), t->getNumIndices(), 0) // llvm::GetElementPtrInst
 End
-Begin(llvm::ICmpInst)
-	super(llvm::CmpInst)
+Begin(ICmpInst)
+	super(CmpInst)
 	X(llvm::CmpInst::Predicate, "SignedPredicate", t->getSignedPredicate(), Value ,0) // llvm::ICmpInst
 	X(llvm::CmpInst::Predicate, "UnsignedPredicate", t->getUnsignedPredicate(), Value ,0) // llvm::ICmpInst
 	X(bool, "isEquality", t->isEquality(), Value ,0) // llvm::ICmpInst
 	X(bool, "isCommutative", t->isCommutative(), Value ,0) // llvm::ICmpInst
 	X(bool, "isRelational", t->isRelational(), Value ,0) // llvm::ICmpInst
 End
-Begin(llvm::FCmpInst)
-	super(llvm::CmpInst)
+Begin(FCmpInst)
+	super(CmpInst)
 	X(bool, "isEquality", t->isEquality(), Value ,0) // llvm::FCmpInst
 	X(bool, "isCommutative", t->isCommutative(), Value ,0) // llvm::FCmpInst
 	X(bool, "isRelational", t->isRelational(), Value ,0) // llvm::FCmpInst
 End
-Begin(llvm::CallInst)
-	super(llvm::Instruction)
+Begin(CallInst)
+	super(Instruction)
 	X(llvm::CallInst::TailCallKind, "TailCallKind", t->getTailCallKind(), Value ,0) // llvm::CallInst
 	X(bool, "isTailCall", t->isTailCall(), Value ,0) // llvm::CallInst
 	X(bool, "isMustTailCall", t->isMustTailCall(), Value ,0) // llvm::CallInst
@@ -942,39 +942,39 @@ Begin(llvm::CallInst)
 	X(bool, "isInlineAsm", t->isInlineAsm(), Value ,0) // llvm::CallInst
 	X(llvm::CallInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::CallInst
 End
-Begin(llvm::SelectInst)
-	super(llvm::Instruction)
+Begin(SelectInst)
+	super(Instruction)
 	X(const llvm::Value *, "Condition", t->getCondition(), Reference ,0) // llvm::SelectInst
 	X(const llvm::Value *, "TrueValue", t->getTrueValue(), Reference ,0) // llvm::SelectInst
 	X(const llvm::Value *, "FalseValue", t->getFalseValue(), Reference ,0) // llvm::SelectInst
 	X(llvm::Instruction::OtherOps, "Opcode", t->getOpcode(), Value ,0) // llvm::SelectInst
 	X(llvm::SelectInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::SelectInst
 End
-Begin(llvm::VAArgInst)
-	super(llvm::UnaryInstruction)
+Begin(VAArgInst)
+	super(UnaryInstruction)
 	X(const llvm::Value *, "PointerOperand", t->getPointerOperand(), Reference ,0) // llvm::VAArgInst
 End
-Begin(llvm::ExtractElementInst)
-	super(llvm::Instruction)
+Begin(ExtractElementInst)
+	super(Instruction)
 	X(const llvm::Value *, "VectorOperand", t->getVectorOperand(), Reference ,0) // llvm::ExtractElementInst
 	X(const llvm::Value *, "IndexOperand", t->getIndexOperand(), Reference ,0) // llvm::ExtractElementInst
 	X(llvm::VectorType *, "VectorOperandType", t->getVectorOperandType(), Reference ,0) // llvm::ExtractElementInst
 	X(llvm::ExtractElementInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::ExtractElementInst
 End
-Begin(llvm::InsertElementInst)
-	super(llvm::Instruction)
+Begin(InsertElementInst)
+	super(Instruction)
 	X(llvm::VectorType *, "Type", t->getType(), Reference ,0) // llvm::InsertElementInst
 	X(llvm::InsertElementInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::InsertElementInst
 End
-Begin(llvm::ExtractValueInst)
-	super(llvm::UnaryInstruction)
+Begin(ExtractValueInst)
+	super(UnaryInstruction)
 	X(const llvm::Value *, "AggregateOperand", t->getAggregateOperand(), Reference ,0) // llvm::ExtractValueInst
 //	X(ArrayRef<unsigned int>, "Indices", t->getIndices(), Unknown_FIXME ,0) // llvm::ExtractValueInst
 	X(bool, "hasIndices", t->hasIndices(), Value ,0) // llvm::ExtractValueInst
 //	X(llvm::ExtractValueInst::idx_iterator, "indices", 0, Multifield, t->idx_begin(), t->idx_end(), t->getNumIndices(), 0) // llvm::ExtractValueInst
 End
-Begin(llvm::InsertValueInst)
-	super(llvm::Instruction)
+Begin(InsertValueInst)
+	super(Instruction)
 	X(const llvm::Value *, "AggregateOperand", t->getAggregateOperand(), Reference ,0) // llvm::InsertValueInst
 	X(const llvm::Value *, "InsertedValueOperand", t->getInsertedValueOperand(), Reference ,0) // llvm::InsertValueInst
 //	X(ArrayRef<unsigned int>, "Indices", t->getIndices(), Unknown_FIXME ,0) // llvm::InsertValueInst
@@ -982,21 +982,21 @@ Begin(llvm::InsertValueInst)
 	X(llvm::InsertValueInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::InsertValueInst
 //	X(llvm::InsertValueInst::idx_iterator, "indices", 0, Multifield, t->idx_begin(), t->idx_end(), t->getNumIndices(), 0) // llvm::InsertValueInst
 End
-Begin(llvm::LandingPadInst)
-	super(llvm::Instruction)
+Begin(LandingPadInst)
+	super(Instruction)
 	X(llvm::Value *, "PersonalityFn", t->getPersonalityFn(), Reference ,0) // llvm::LandingPadInst
 	X(bool, "isCleanup", t->isCleanup(), Value ,0) // llvm::LandingPadInst
 	X(unsigned int, "NumClauses", t->getNumClauses(), Value ,0) // llvm::LandingPadInst
 	X(llvm::LandingPadInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::LandingPadInst
 End
-Begin(llvm::ReturnInst)
-	super(llvm::TerminatorInst)
+Begin(ReturnInst)
+	super(TerminatorInst)
 	X(llvm::Value *, "ReturnValue", t->getReturnValue(), Reference ,0) // llvm::ReturnInst
 	X(unsigned int, "NumSuccessors", t->getNumSuccessors(), Value ,0) // llvm::ReturnInst
 	X(llvm::ReturnInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::ReturnInst
 End
-Begin(llvm::BranchInst)
-	super(llvm::TerminatorInst)
+Begin(BranchInst)
+	super(TerminatorInst)
 	X(bool, "isUnconditional", t->isUnconditional(), Value ,0) // llvm::BranchInst
 	X(bool, "isConditional", t->isConditional(), Value ,0) // llvm::BranchInst
 	X(llvm::Value *, "Condition", t->getCondition(), Reference ,0) // llvm::BranchInst
@@ -1004,15 +1004,15 @@ Begin(llvm::BranchInst)
 	X(llvm::BranchInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::BranchInst
 End
 
-//Begin(llvm::SwitchInst::CaseIt)
+//Begin(SwitchInst::CaseIt)
 //	X(unsigned, "index", t->getCaseIndex(), Value, 0)
 //	X(unsigned, "successor-index", t->getSuccessorIndex(), Value, 0)
 //	X(llvm::ConstantInt*, "case-value", t->getCaseValue(), Reference, 0)
 //	X(llvm::BasicBlock*, "successor", t->getCaseSuccessor(), Reference, 0)
 //End
 
-Begin(llvm::SwitchInst)
-	super(llvm::TerminatorInst)
+Begin(SwitchInst)
+	super(TerminatorInst)
 	X(llvm::Value *, "Condition", t->getCondition(), Reference ,0) // llvm::SwitchInst
 	X(llvm::BasicBlock *, "DefaultDest", t->getDefaultDest(), Reference ,0) // llvm::SwitchInst
 //	X(unsigned int, "NumCases", t->getNumCases(), Value ,0) // llvm::SwitchInst
@@ -1023,15 +1023,15 @@ Begin(llvm::SwitchInst)
 	X(llvm::SwitchInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::SwitchInst
 //	X(llvm::SwitchInst::CaseIt, "cases", 0, Multifield, t->case_begin(), t->case_end(), t->getNumCases(), 0) // llvm::SwitchInst
 End
-Begin(llvm::IndirectBrInst)
-	super(llvm::TerminatorInst)
+Begin(IndirectBrInst)
+	super(TerminatorInst)
 	X(const llvm::Value *, "Address", t->getAddress(), Reference ,0) // llvm::IndirectBrInst
 	X(unsigned int, "NumDestinations", t->getNumDestinations(), Value ,0) // llvm::IndirectBrInst
 	X(unsigned int, "NumSuccessors", t->getNumSuccessors(), Value ,0) // llvm::IndirectBrInst
 	X(llvm::IndirectBrInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::IndirectBrInst
 End
-Begin(llvm::InvokeInst)
-	super(llvm::TerminatorInst)
+Begin(InvokeInst)
+	super(TerminatorInst)
 	X(unsigned int, "NumArgOperands", t->getNumArgOperands(), Value ,0) // llvm::InvokeInst
 //	X(iterator_range<const_op_iterator>, "arg_operands", t->arg_operands(), Unknown_FIXME ,0) // llvm::InvokeInst
 	X(llvm::CallingConv::ID, "CallingConv", t->getCallingConv(), Value ,0) // llvm::InvokeInst
@@ -1053,60 +1053,60 @@ Begin(llvm::InvokeInst)
 	X(unsigned int, "NumSuccessors", t->getNumSuccessors(), Value ,0) // llvm::InvokeInst
 	X(llvm::InvokeInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::InvokeInst
 End
-Begin(llvm::ResumeInst)
-	super(llvm::TerminatorInst)
+Begin(ResumeInst)
+	super(TerminatorInst)
 	X(llvm::Value *, "Value", t->getValue(), Reference ,0) // llvm::ResumeInst
 	X(unsigned int, "NumSuccessors", t->getNumSuccessors(), Value ,0) // llvm::ResumeInst
 	X(llvm::ResumeInst::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::ResumeInst
 End
-Begin(llvm::UnreachableInst)
-	super(llvm::TerminatorInst)
+Begin(UnreachableInst)
+	super(TerminatorInst)
 	X(unsigned int, "NumSuccessors", t->getNumSuccessors(), Value ,0) // llvm::UnreachableInst
 End
-Begin(llvm::TruncInst)
-	super(llvm::CastInst)
+Begin(TruncInst)
+	super(CastInst)
 End
-Begin(llvm::ZExtInst)
-	super(llvm::CastInst)
+Begin(ZExtInst)
+	super(CastInst)
 End
-Begin(llvm::SExtInst)
-	super(llvm::CastInst)
+Begin(SExtInst)
+	super(CastInst)
 End
-Begin(llvm::FPTruncInst)
-	super(llvm::CastInst)
+Begin(FPTruncInst)
+	super(CastInst)
 End
-Begin(llvm::FPExtInst)
-	super(llvm::CastInst)
+Begin(FPExtInst)
+	super(CastInst)
 End
-Begin(llvm::UIToFPInst)
-	super(llvm::CastInst)
+Begin(UIToFPInst)
+	super(CastInst)
 End
-Begin(llvm::SIToFPInst)
-	super(llvm::CastInst)
+Begin(SIToFPInst)
+	super(CastInst)
 End
-Begin(llvm::FPToUIInst)
-	super(llvm::CastInst)
+Begin(FPToUIInst)
+	super(CastInst)
 End
-Begin(llvm::FPToSIInst)
-	super(llvm::CastInst)
+Begin(FPToSIInst)
+	super(CastInst)
 End
-Begin(llvm::IntToPtrInst)
-	super(llvm::CastInst)
+Begin(IntToPtrInst)
+	super(CastInst)
 	X(unsigned int, "AddressSpace", t->getAddressSpace(), Value ,0) // llvm::IntToPtrInst
 End
-Begin(llvm::PtrToIntInst)
-	super(llvm::CastInst)
+Begin(PtrToIntInst)
+	super(CastInst)
 	X(const llvm::Value *, "PointerOperand", t->getPointerOperand(), Reference ,0) // llvm::PtrToIntInst
 	X(unsigned int, "PointerAddressSpace", t->getPointerAddressSpace(), Value ,0) // llvm::PtrToIntInst
 End
-Begin(llvm::BitCastInst)
-	super(llvm::CastInst)
+Begin(BitCastInst)
+	super(CastInst)
 End
-Begin(llvm::AddrSpaceCastInst)
-	super(llvm::CastInst)
+Begin(AddrSpaceCastInst)
+	super(CastInst)
 End
-Begin(llvm::ConstantInt)
-	super(llvm::Constant)
+Begin(ConstantInt)
+	super(Constant)
 	X(const llvm::APInt &, "Value", t->getValue(), Reference ,0) // llvm::ConstantInt
 	X(unsigned int, "BitWidth", t->getBitWidth(), Value ,0) // llvm::ConstantInt
 	X(uint64_t, "ZExtValue", t->getZExtValue(), Value ,0) // llvm::ConstantInt
@@ -1117,34 +1117,34 @@ Begin(llvm::ConstantInt)
 	X(bool, "isOne", t->isOne(), Value ,0) // llvm::ConstantInt
 	X(bool, "isMinusOne", t->isMinusOne(), Value ,0) // llvm::ConstantInt
 End
-Begin(llvm::ConstantFP)
-	super(llvm::Constant)
+Begin(ConstantFP)
+	super(Constant)
 	X(const llvm::APFloat &, "ValueAPF", t->getValueAPF(), Reference ,0) // llvm::ConstantFP
 	X(bool, "isZero", t->isZero(), Value ,0) // llvm::ConstantFP
 	X(bool, "isNegative", t->isNegative(), Value ,0) // llvm::ConstantFP
 	X(bool, "isInfinity", t->isInfinity(), Value ,0) // llvm::ConstantFP
 	X(bool, "isNaN", t->isNaN(), Value ,0) // llvm::ConstantFP
 End
-Begin(llvm::ConstantAggregateZero)
-	super(llvm::Constant)
+Begin(ConstantAggregateZero)
+	super(Constant)
 	X(llvm::Constant *, "SequentialElement", t->getSequentialElement(), Reference ,0) // llvm::ConstantAggregateZero
 End
-Begin(llvm::ConstantArray)
-	super(llvm::Constant)
+Begin(ConstantArray)
+	super(Constant)
 	X(llvm::ArrayType *, "Type", t->getType(), Reference ,0) // llvm::ConstantArray
 	X(llvm::ConstantArray::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::ConstantArray
 End
-Begin(llvm::ConstantStruct)
-	super(llvm::Constant)
+Begin(ConstantStruct)
+	super(Constant)
 	X(llvm::StructType *, "Type", t->getType(), Reference ,0) // llvm::ConstantStruct
 	X(llvm::ConstantStruct::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::ConstantStruct
 End
-Begin(llvm::ConstantPointerNull)
-	super(llvm::Constant)
+Begin(ConstantPointerNull)
+	super(Constant)
 	X(llvm::PointerType *, "Type", t->getType(), Reference ,0) // llvm::ConstantPointerNull
 End
-Begin(llvm::ConstantDataSequential)
-	super(llvm::Constant)
+Begin(ConstantDataSequential)
+	super(Constant)
 	X(llvm::SequentialType *, "Type", t->getType(), Reference ,0) // llvm::ConstantDataSequential
 	X(llvm::Type *, "ElementType", t->getElementType(), Reference ,0) // llvm::ConstantDataSequential
 	X(uint64_t, "ElementByteSize", t->getElementByteSize(), Value ,0) // llvm::ConstantDataSequential
@@ -1154,18 +1154,18 @@ Begin(llvm::ConstantDataSequential)
 	X(llvm::StringRef, "AsCString", t->getAsCString(), Value ,0) // llvm::ConstantDataSequential
 	X(llvm::StringRef, "RawDataValues", t->getRawDataValues(), Value ,0) // llvm::ConstantDataSequential
 End
-Begin(llvm::ConstantDataArray)
-	super(llvm::ConstantDataSequential)
+Begin(ConstantDataArray)
+	super(ConstantDataSequential)
 	X(llvm::ArrayType *, "Type", t->getType(), Reference ,0) // llvm::ConstantDataArray
 End
-Begin(llvm::BlockAddress)
-	super(llvm::Constant)
+Begin(BlockAddress)
+	super(Constant)
 	X(llvm::Function *, "Function", t->getFunction(), Reference ,0) // llvm::BlockAddress
 	X(llvm::BasicBlock *, "BasicBlock", t->getBasicBlock(), Reference ,0) // llvm::BlockAddress
 	X(llvm::BlockAddress::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::BlockAddress
 End
-Begin(llvm::ConstantExpr)
-	super(llvm::Constant)
+Begin(ConstantExpr)
+	super(Constant)
 	X(bool, "isCast", t->isCast(), Value ,0) // llvm::ConstantExpr
 	X(bool, "isCompare", t->isCompare(), Value ,0) // llvm::ConstantExpr
 	X(bool, "hasIndices", t->hasIndices(), Value ,0) // llvm::ConstantExpr
@@ -1176,32 +1176,32 @@ Begin(llvm::ConstantExpr)
 	X(const char *, "OpcodeName", t->getOpcodeName(), Reference ,0) // llvm::ConstantExpr
 	X(llvm::ConstantExpr::const_op_iterator, "operands", 0, Multifield, t->op_begin(), t->op_end(), t->getNumOperands(), 0) // llvm::ConstantExpr
 End
-Begin(llvm::UndefValue)
-	super(llvm::Constant)
+Begin(UndefValue)
+	super(Constant)
 	X(llvm::UndefValue *, "SequentialElement", t->getSequentialElement(), Reference ,0) // llvm::UndefValue
 End
-Begin(llvm::IntrinsicInst)
-	super(llvm::CallInst)
+Begin(IntrinsicInst)
+	super(CallInst)
 	X(llvm::Intrinsic::ID, "IntrinsicID", t->getIntrinsicID(), Value ,0) // llvm::IntrinsicInst
 End
-Begin(llvm::DbgInfoIntrinsic)
-	super(llvm::IntrinsicInst)
+Begin(DbgInfoIntrinsic)
+	super(IntrinsicInst)
 End
-Begin(llvm::DbgDeclareInst)
-	super(llvm::DbgInfoIntrinsic)
+Begin(DbgDeclareInst)
+	super(DbgInfoIntrinsic)
 	X(llvm::Value *, "Address", t->getAddress(), Reference ,0) // llvm::DbgDeclareInst
 	X(llvm::MDNode *, "Variable", t->getVariable(), Reference ,0) // llvm::DbgDeclareInst
 	X(llvm::MDNode *, "Expression", t->getExpression(), Reference ,0) // llvm::DbgDeclareInst
 End
-Begin(llvm::DbgValueInst)
-	super(llvm::DbgInfoIntrinsic)
+Begin(DbgValueInst)
+	super(DbgInfoIntrinsic)
 	X(const llvm::Value *, "Value", t->getValue(), Reference ,0) // llvm::DbgValueInst
 	X(uint64_t, "Offset", t->getOffset(), Value ,0) // llvm::DbgValueInst
 	X(llvm::MDNode *, "Variable", t->getVariable(), Reference ,0) // llvm::DbgValueInst
 	X(llvm::MDNode *, "Expression", t->getExpression(), Reference ,0) // llvm::DbgValueInst
 End
-Begin(llvm::MemIntrinsic)
-	super(llvm::IntrinsicInst)
+Begin(MemIntrinsic)
+	super(IntrinsicInst)
 	X(llvm::Value *, "RawDest", t->getRawDest(), Reference ,0) // llvm::MemIntrinsic
 	X(const llvm::Use &, "RawDestUse", t->getRawDestUse(), Reference ,0) // llvm::MemIntrinsic
 	X(llvm::Value *, "Length", t->getLength(), Reference ,0) // llvm::MemIntrinsic
@@ -1214,59 +1214,59 @@ Begin(llvm::MemIntrinsic)
 	X(llvm::Value *, "Dest", t->getDest(), Reference ,0) // llvm::MemIntrinsic
 	X(llvm::Type *, "AlignmentType", t->getAlignmentType(), Reference ,0) // llvm::MemIntrinsic
 End
-Begin(llvm::MemSetInst)
-	super(llvm::MemIntrinsic)
+Begin(MemSetInst)
+	super(MemIntrinsic)
 	X(llvm::Value *, "Value", t->getValue(), Reference ,0) // llvm::MemSetInst
 	X(const llvm::Use &, "ValueUse", t->getValueUse(), Reference ,0) // llvm::MemSetInst
 End
-Begin(llvm::MemTransferInst)
-	super(llvm::MemIntrinsic)
+Begin(MemTransferInst)
+	super(MemIntrinsic)
 	X(llvm::Value *, "RawSource", t->getRawSource(), Reference ,0) // llvm::MemTransferInst
 	X(const llvm::Use &, "RawSourceUse", t->getRawSourceUse(), Reference ,0) // llvm::MemTransferInst
 	X(llvm::Value *, "Source", t->getSource(), Reference ,0) // llvm::MemTransferInst
 	X(unsigned int, "SourceAddressSpace", t->getSourceAddressSpace(), Value ,0) // llvm::MemTransferInst
 End
-Begin(llvm::MemCpyInst)
-	super(llvm::MemTransferInst)
+Begin(MemCpyInst)
+	super(MemTransferInst)
 End
-Begin(llvm::MemMoveInst)
-	super(llvm::MemTransferInst)
+Begin(MemMoveInst)
+	super(MemTransferInst)
 End
-Begin(llvm::VAStartInst)
-	super(llvm::IntrinsicInst)
+Begin(VAStartInst)
+	super(IntrinsicInst)
 	X(llvm::Value *, "ArgList", t->getArgList(), Reference ,0) // llvm::VAStartInst
 End
-Begin(llvm::VAEndInst)
-	super(llvm::IntrinsicInst)
+Begin(VAEndInst)
+	super(IntrinsicInst)
 	X(llvm::Value *, "ArgList", t->getArgList(), Reference ,0) // llvm::VAEndInst
 End
-Begin(llvm::VACopyInst)
-	super(llvm::IntrinsicInst)
+Begin(VACopyInst)
+	super(IntrinsicInst)
 	X(llvm::Value *, "Dest", t->getDest(), Reference ,0) // llvm::VACopyInst
 	X(llvm::Value *, "Src", t->getSrc(), Reference ,0) // llvm::VACopyInst
 End
-Begin(llvm::InstrProfIncrementInst)
-	super(llvm::IntrinsicInst)
+Begin(InstrProfIncrementInst)
+	super(IntrinsicInst)
 	X(llvm::GlobalVariable *, "Name", t->getName(), Reference ,0) // llvm::InstrProfIncrementInst
 	X(llvm::ConstantInt *, "Hash", t->getHash(), Reference ,0) // llvm::InstrProfIncrementInst
 	X(llvm::ConstantInt *, "NumCounters", t->getNumCounters(), Reference ,0) // llvm::InstrProfIncrementInst
 	X(llvm::ConstantInt *, "Index", t->getIndex(), Reference ,0) // llvm::InstrProfIncrementInst
 End
-Begin(llvm::Operator)
-	super(llvm::User)
+Begin(Operator)
+	super(User)
 	X(unsigned int, "Opcode", t->getOpcode(), Value ,0) // llvm::Operator
 End
-Begin(llvm::OverflowingBinaryOperator)
-	super(llvm::Operator)
+Begin(OverflowingBinaryOperator)
+	super(Operator)
 	X(bool, "hasNoUnsignedWrap", t->hasNoUnsignedWrap(), Value ,0) // llvm::OverflowingBinaryOperator
 	X(bool, "hasNoSignedWrap", t->hasNoSignedWrap(), Value ,0) // llvm::OverflowingBinaryOperator
 End
-Begin(llvm::PossiblyExactOperator)
-	super(llvm::Operator)
+Begin(PossiblyExactOperator)
+	super(Operator)
 	X(bool, "isExact", t->isExact(), Value ,0) // llvm::PossiblyExactOperator
 End
-Begin(llvm::FPMathOperator)
-	super(llvm::Operator)
+Begin(FPMathOperator)
+	super(Operator)
 	X(bool, "hasUnsafeAlgebra", t->hasUnsafeAlgebra(), Value ,0) // llvm::FPMathOperator
 	X(bool, "hasNoNaNs", t->hasNoNaNs(), Value ,0) // llvm::FPMathOperator
 	X(bool, "hasNoInfs", t->hasNoInfs(), Value ,0) // llvm::FPMathOperator
@@ -1275,35 +1275,35 @@ Begin(llvm::FPMathOperator)
 //	X(llvm::FastMathFlags, "FastMathFlags", t->getFastMathFlags(), Unknown_FIXME ,0) // llvm::FPMathOperator
 	X(float, "FPAccuracy", t->getFPAccuracy(), Value ,0) // llvm::FPMathOperator
 End
-Begin(llvm::AddOperator)
-	super(llvm::OverflowingBinaryOperator)
+Begin(AddOperator)
+	super(OverflowingBinaryOperator)
 End
-Begin(llvm::SubOperator)
-	super(llvm::OverflowingBinaryOperator)
+Begin(SubOperator)
+	super(OverflowingBinaryOperator)
 End
-Begin(llvm::MulOperator)
-	super(llvm::OverflowingBinaryOperator)
+Begin(MulOperator)
+	super(OverflowingBinaryOperator)
 End
-Begin(llvm::ShlOperator)
-	super(llvm::OverflowingBinaryOperator)
+Begin(ShlOperator)
+	super(OverflowingBinaryOperator)
 End
-Begin(llvm::SDivOperator)
-	super(llvm::PossiblyExactOperator)
+Begin(SDivOperator)
+	super(PossiblyExactOperator)
 End
-Begin(llvm::UDivOperator)
-	super(llvm::PossiblyExactOperator)
+Begin(UDivOperator)
+	super(PossiblyExactOperator)
 End
-Begin(llvm::AShrOperator)
-	super(llvm::PossiblyExactOperator)
+Begin(AShrOperator)
+	super(PossiblyExactOperator)
 End
-Begin(llvm::LShrOperator)
-	super(llvm::PossiblyExactOperator)
+Begin(LShrOperator)
+	super(PossiblyExactOperator)
 End
-Begin(llvm::ZExtOperator)
-	super(llvm::Operator)
+Begin(ZExtOperator)
+	super(Operator)
 End
-Begin(llvm::GEPOperator)
-	super(llvm::Operator)
+Begin(GEPOperator)
+	super(Operator)
 	X(bool, "isInBounds", t->isInBounds(), Value ,0) // llvm::GEPOperator
 	X(const llvm::Value *, "PointerOperand", t->getPointerOperand(), Reference ,0) // llvm::GEPOperator
 	X(llvm::Type *, "PointerOperandType", t->getPointerOperandType(), Reference ,0) // llvm::GEPOperator
@@ -1313,14 +1313,14 @@ Begin(llvm::GEPOperator)
 	X(bool, "hasAllConstantIndices", t->hasAllConstantIndices(), Value ,0) // llvm::GEPOperator
 	X(llvm::GEPOperator::const_op_iterator, "indices", 0, Multifield, t->idx_begin(), t->idx_end(), t->getNumIndices(), 0) // llvm::GEPOperator
 End
-Begin(llvm::PtrToIntOperator)
-	super(llvm::Operator)
+Begin(PtrToIntOperator)
+	super(Operator)
 	X(const llvm::Value *, "PointerOperand", t->getPointerOperand(), Reference ,0) // llvm::PtrToIntOperator
 	X(llvm::Type *, "PointerOperandType", t->getPointerOperandType(), Reference ,0) // llvm::PtrToIntOperator
 	X(unsigned int, "PointerAddressSpace", t->getPointerAddressSpace(), Value ,0) // llvm::PtrToIntOperator
 End
-Begin(llvm::InlineAsm)
-	super(llvm::Value)
+Begin(InlineAsm)
+	super(Value)
 	X(bool, "hasSideEffects", t->hasSideEffects(), Value ,0) // llvm::InlineAsm
 	X(bool, "isAlignStack", t->isAlignStack(), Value ,0) // llvm::InlineAsm
 	X(llvm::InlineAsm::AsmDialect, "Dialect", t->getDialect(), Value ,0) // llvm::InlineAsm

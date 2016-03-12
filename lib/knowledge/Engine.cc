@@ -324,6 +324,7 @@ struct name <type, passType>
 
 #define PopulateInstanceHeader_Partial(type) \
 	PopulateInstanceHeader_Full(type, Pass)
+
 #define BeginInstancePopulatorNode_Partial(type) \
 	NewNode_Partial(type, knowledge::InstancePopulatorNode) { \
 		PopulateInstanceHeader_Partial(type)
@@ -337,11 +338,11 @@ struct name <type, passType>
 #define CAT(a, ...) PRIMITIVE_CAT(a, __VA_ARGS__)
 #define PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
 #define BeginFull(type, pass) \
-	BeginInstanceBuilderNode_Full(type, pass) {
+	BeginInstanceBuilderNode_Full(llvm:: type, llvm:: pass) {
 #define Begin(type) \
-	BeginInstanceBuilderNode_Partial(type) {
+	BeginInstanceBuilderNode_Partial(llvm:: type) {
 #define super(type) \
-		populate(env, (type*)t, p);
+		populate(env, (llvm:: type*)t, p);
 #define End } };
 #define EndFull(_, __) } };
 #define X(_, name, op, type, ...) CAT(X, type)(name, op, __VA_ARGS__)
@@ -439,13 +440,13 @@ defcustomConstructInstanceMultifield(Module::iterator)
 
 // Populator Node constructors
 #define BeginFull(type, pass) \
-		BeginInstancePopulatorNode_Full(type, pass) {
+		BeginInstancePopulatorNode_Full(llvm:: type, llvm:: pass) {
 #define Begin(type) \
-		BeginInstancePopulatorNode_Partial(type) {
+		BeginInstancePopulatorNode_Partial(llvm:: type) {
 #define End customPopulationLogic(env, t, p); } };
-#define EndFull(type, pass) customPopulationLogic<type, pass>(env, t, p); } };
+#define EndFull(type, pass) customPopulationLogic<llvm:: type, llvm:: pass>(env, t, p); } };
 #define super(type) \
-			populate(env, (type*)t, p);
+			populate(env, (llvm:: type*)t, p);
 #define XReference(name, op, ...) \
 		directPutInstanceName(env, t, name, knowledge::getInstanceName(env, op, p));
 #define XMultifield(name, _, begin, end, count, ...) \
@@ -620,7 +621,7 @@ struct DefClassBuilderNode {
 //#include "knowledge/defclass_slots.def"
 #include "knowledge/defclass_enums.def"
 #define Begin(type) \
-		BeginDefClassBuilderNode(type) {
+		BeginDefClassBuilderNode(llvm:: type) {
 #define End } EndDefClassBuilderNode
 #define super(_) 
 #define XReference(vtype, name) slot(vtype, name);
