@@ -108,20 +108,24 @@ template<typename T>
 void field(llvm::raw_string_ostream& str, const std::string& name, T value) {
 	str << " (" << name << " " << value << ") ";
 }
-void field(llvm::raw_string_ostream& str, const std::string& name, const std::string& value) {
-	str << " (" << name << " " << value << ") ";
-}
+
+template
+void field<const std::string&>(llvm::raw_string_ostream& str, const std::string& name, const std::string& value);
+template
+void field<const char*>(llvm::raw_string_ostream& str, const std::string& name, const char* value);
+
 void field(llvm::raw_string_ostream& str, const std::string& name, uint64_t value) {
 	if (value > 0) {
 		str << " (" << name << " " << value << ") ";
 	}
 }
+
 void field(llvm::raw_string_ostream& str, const std::string& name, unsigned value) {
 	if (value > 0) {
 		str << " (" << name << " " << value << ") ";
 	}
-
 }
+
 void field(llvm::raw_string_ostream& str, const std::string& name, bool value) {
 	if (value) {
 		field(str, name, "TRUE");
@@ -136,7 +140,7 @@ struct ExternalAddressRegistration {
 #define X(unused, type, className, unused2) \
 	template<> \
 	struct ExternalAddressRegistration<type> { \
-		static int indirectId; \
+		static const int indirectId = ExtAddrType(unused); \
 	}; 
 #include "knowledge/EngineNodes.def"
 #undef X
@@ -191,6 +195,11 @@ void* InstanceQueryNode<T,Pass>::queryInstanceName(void* env, T* inst, Pass* p) 
 template<typename T, typename Pass = llvm::Pass>
 void* getInstanceName(void* theEnv, T* instance, Pass* pass) {
 	return InstanceQueryNode<T,Pass>::queryInstanceName(theEnv, instance, pass);
+}
+
+template<typename T, typename Pass = llvm::Pass>
+void* getInstanceName(void* theEnv, T& instance, Pass* pass) {
+	return InstanceQueryNode<T,Pass>::queryInstanceName(theEnv, &instance, pass);
 }
 
 
@@ -375,7 +384,8 @@ void customPopulationLogic(void* env, llvm::BasicBlock* blk, llvm::Pass* p) {
 	directPutMultifield(env, blk, "produces", prodmf, 1, succs.size());
 
 }
-template<class I, class P>
+
+template<typename I, typename P>
 void constructInstanceMultifield(void* env, int count, void* native, P* p,  const std::string& name, I begin, I end) {
 	if (count > 0) {
 		void* mf = EnvCreateMultifield(env, count);
@@ -388,30 +398,6 @@ void constructInstanceMultifield(void* env, int count, void* native, P* p,  cons
 	}
 }
 // special case for BasicBlock's not iterating over a list of instruction pointers
-#define defcustomConstructInstanceMultifield(type) \
-template<class P> \
-void constructInstanceMultifield(void* env, int count, void* native, P* p, const std::string& name, llvm:: type begin, llvm:: type end) { \
-	if (count > 0) { \
-		void* mf = EnvCreateMultifield(env, count); \
-		int index = 1; \
-		for (llvm:: type it = begin; it != end; ++it, ++index) { \
-			SetMFType(mf, index, INSTANCE_NAME); \
-			SetMFValue(mf, index, knowledge::getInstanceName(env, &(*it), p)); \
-		} \
-		directPutMultifield(env, native, name, mf, 1, index - 1); \
-	} \
-}
-defcustomConstructInstanceMultifield(BasicBlock::iterator)
-defcustomConstructInstanceMultifield(User::op_iterator)
-defcustomConstructInstanceMultifield(User::use_iterator)
-defcustomConstructInstanceMultifield(Module::global_iterator)
-defcustomConstructInstanceMultifield(InsertValueInst::idx_iterator)
-defcustomConstructInstanceMultifield(SwitchInst::CaseIt)
-defcustomConstructInstanceMultifield(Module::alias_iterator)
-defcustomConstructInstanceMultifield(Module::named_metadata_iterator)
-defcustomConstructInstanceMultifield(Function::iterator)
-defcustomConstructInstanceMultifield(Function::arg_iterator)
-defcustomConstructInstanceMultifield(Module::iterator)
 
 // Populator Node constructors
 #define BeginFull(type, pass) \
@@ -621,7 +607,3 @@ intBool CallNative ## shortType (void* theEnv, DATA_OBJECT* theValue, DATA_OBJEC
 #undef X
 
 
-#define X(a, b, c, unused) \
-	int knowledge::ExternalAddressRegistration<b>::indirectId = ExtAddrType(a);
-#include "knowledge/EngineNodes.def"
-#undef X
