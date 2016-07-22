@@ -48,11 +48,11 @@ extern "C" int GetExternalAddressId(void* theEnv, int type);
 #define EngineBookkeepingData(theEnv) \
 	((knowledge::EngineBookkeeping*) GetEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA))
 namespace knowledge {
-#define ExtAddrType(name) RegisterExternalAddressId_ ## name
-enum {
+#define ExtAddrType(name) ExternalAddressTypes:: RegisterExternalAddressId_ ## name
+enum class ExternalAddressTypes {
 	// according to the c++ spec these values will start from 0
 #define X(a, b, c, unused) \
-	ExtAddrType(a),
+	RegisterExternalAddressId_ ## a ,
 #include "knowledge/EngineNodes.def"
 #undef X
 	RegisteredExternalAddressTypes,
@@ -60,9 +60,9 @@ enum {
 
 class EngineBookkeeping {
 	public:
-		EngineBookkeeping() { }
-		~EngineBookkeeping() { }
-		void registerInstance(void* key, std::string& value);
+		EngineBookkeeping();
+		virtual ~EngineBookkeeping();
+		void registerInstance(void* key, const std::string& value);
 		bool containsInstance(void* key);
 		std::string getRelatedInstance(void* key);
 		void registerExternalAddress(int type, int id);
@@ -73,12 +73,13 @@ class EngineBookkeeping {
 		llvm::DenseMap<void*, std::string> instanceMap;
 		// make it a statically sized array as registration is done at compile
 		// time :D
-		int externalAddrs[RegisteredExternalAddressTypes];
+		int externalAddrs[static_cast<int>(ExternalAddressTypes::RegisteredExternalAddressTypes)];
 };
-
+EngineBookkeeping::EngineBookkeeping() { }
+EngineBookkeeping::~EngineBookkeeping() { }
 void* makeInstance(void* theEnv, const std::string& str) {
 	void* result = EnvMakeInstance(theEnv, str.c_str());
-	if (result == NULL) {
+	if (result == nullptr) {
 		std::string tmp;
 		llvm::raw_string_ostream msg(tmp);
 		msg << "Couldn't create instance from " << str;
@@ -140,7 +141,7 @@ struct ExternalAddressRegistration {
 #define X(unused, type, className, unused2) \
 	template<> \
 	struct ExternalAddressRegistration<type> { \
-		static const int indirectId = ExtAddrType(unused); \
+		static const int indirectId = static_cast<int>(ExtAddrType(unused)); \
 	}; 
 #include "knowledge/EngineNodes.def"
 #undef X
@@ -148,7 +149,7 @@ struct ExternalAddressRegistration {
 // SO FUCKING BEAUTIFUL :D
 #define WhenInstanceDoesNotExist(env, instance) \
 	void* potentiallyAlreadyExistingInstance = GetNativeInstance(env, instance); \
-if (potentiallyAlreadyExistingInstance != NULL) { \
+if (potentiallyAlreadyExistingInstance != nullptr) { \
 	return potentiallyAlreadyExistingInstance; \
 } else 
 template<typename T, typename Pass = llvm::Pass>
@@ -182,6 +183,7 @@ struct Router {
 		}
 	}
 };
+
 template<typename T, typename Pass = llvm::Pass>
 void* dispatch(void* env, T* inst, Pass* pass) {
 	return Router<T,Pass>::dispatch(env, inst, pass);
@@ -202,7 +204,6 @@ void* getInstanceName(void* theEnv, T& instance, Pass* pass) {
 	return InstanceQueryNode<T,Pass>::queryInstanceName(theEnv, &instance, pass);
 }
 
-
 template<typename T, typename Pass>
 void InstanceParentImbueNode<T,Pass>::imbueParent(void* theEnv, T* target, Pass* pass) {
 	DATA_OBJECT wrapper;
@@ -219,22 +220,6 @@ template<typename T, typename Pass = llvm::Pass>
 void setParent(void* theEnv, T* inst, Pass* pass) {
 	InstanceParentImbueNode<T,Pass>::imbueParent(theEnv, inst, pass);
 }
-template<typename T, typename Pass>
-void* ProcessingNode<T,Pass>::constructInstance(void* env, T* inst, Pass* pass) {
-	std::string tmp;
-	llvm::raw_string_ostream str(tmp);
-	str << "( of ";
-	ElectronClassNameSelector<T>::selectName(str);
-	str << " ";
-	InstanceBuilderNode<T, Pass>::buildInstance(str, env, inst, pass);
-	str << ")";
-	RegisterNativeInstance(env, inst, makeInstance(env, str.str().c_str()));
-	InstancePopulatorNode<T,Pass>::populateInstance(env, inst, pass);
-	// install the native instance
-	installNativeInstance(env, inst);
-	return GetNativeInstance(env, inst);
-}
-
 template<typename T, typename Pass = llvm::Pass>
 void populate(void* env, T* instance, Pass* pass) {
 	InstancePopulatorNode<T, Pass>::populateInstance(env, instance, pass);
@@ -244,15 +229,21 @@ template<typename T, typename Pass = llvm::Pass>
 void build(llvm::raw_string_ostream& str, void* env, T* instance, Pass* pass) {
 	InstanceBuilderNode<T, Pass>::buildInstance(str, env, instance, pass);
 }
-
-/*
-template<typename T, typename Pass = llvm::Pass>
-void* constructInstance(void* env, T* inst, Pass* pass) {
-	return ProcessingNode<T, Pass>::constructInstance(env, inst, pass);
+template<typename T, typename Pass>
+void* ProcessingNode<T,Pass>::constructInstance(void* env, T* inst, Pass* pass) {
+	std::string tmp;
+	llvm::raw_string_ostream str(tmp);
+	str << "( of ";
+	ElectronClassNameSelector<T>::selectName(str);
+	str << " ";
+	build<T, Pass>(str, env, inst, pass);
+	str << ")";
+	RegisterNativeInstance(env, inst, makeInstance(env, str.str().c_str()));
+	populate<T, Pass>(env, inst, pass);
+	// install the native instance
+	installNativeInstance(env, inst);
+	return GetNativeInstance(env, inst);
 }
-*/
-
-
 
 // SO FUCKING BEAUTIFUL :D
 #define Route(type, env, inst) \
@@ -444,8 +435,8 @@ template<typename T>
 int getExternalAddressId(void* theEnv) {
 	return GetExternalAddressId(theEnv, knowledge::ExternalAddressRegistration<T>::indirectId);
 }
-void EngineBookkeeping::registerInstance(void* nativeInstance, std::string& clipsInstance) {
-	instanceMap.insert(std::pair<void*, std::string>(nativeInstance, clipsInstance));
+void EngineBookkeeping::registerInstance(void* nativeInstance, const std::string& clipsInstance) {
+	instanceMap.insert({nativeInstance, clipsInstance});
 }
 bool EngineBookkeeping::containsInstance(void* nativeInstance) {
 	return instanceMap.find(nativeInstance) != instanceMap.end();
@@ -459,9 +450,8 @@ void EngineBookkeeping::registerExternalAddress(int type, int id) {
         externalAddrs[type] = id;
     }
 }
-
 bool EngineBookkeeping::containsExternalAddress(int type) {
-    return type >= 0 && type < RegisteredExternalAddressTypes;
+    return type >= 0 && type < static_cast<int>(ExternalAddressTypes::RegisteredExternalAddressTypes);
 }
 
 int EngineBookkeeping::getRelatedExternalAddress(int type) {
@@ -477,7 +467,7 @@ void installNativeInstance(void* env, T* target) {
 template<typename T, typename P>
 bool conv(void* env, T* t, P* p) {
 	void* result = dispatch(env, t, p);
-	return result != NULL;
+	return result != nullptr;
 }
 #define declareConvert(type, passType) \
 	bool convert(void* e, llvm:: type * t, llvm:: passType * p) { return conv(e, t, p); }
@@ -502,7 +492,7 @@ declareConvert(Region, RegionPass);
 #undef X
 extern "C" void RegisterEngineBookkeeping(void* theEnv) {
 	if(!AllocateEnvironmentData(theEnv, ENGINE_BOOKKEEPING_DATA, 
-				sizeof(knowledge::EngineBookkeeping), NULL)) {
+				sizeof(knowledge::EngineBookkeeping), nullptr)) {
 		llvm::report_fatal_error("Error allocating environment data for ENGINE_BOOKKEEPING_DATA");
 	}
 // call of the registration functions
@@ -521,9 +511,9 @@ extern "C" bool ContainsNativeInstance(void* theEnv, void* key) {
 extern "C" void* GetNativeInstance(void* theEnv, void* key) {
     if (EngineBookkeepingData(theEnv)->containsInstance(key)) {
         std::string tmp = EngineBookkeepingData(theEnv)->getRelatedInstance(key);
-        return EnvFindInstance(theEnv, NULL, tmp.c_str(), TRUE);
+        return EnvFindInstance(theEnv, nullptr, tmp.c_str(), TRUE);
     } else {
-        return NULL;
+        return nullptr;
     }
 }
 extern "C" void RegisterExternalAddressId(void* theEnv, int type, struct externalAddressType* ea) {
@@ -605,5 +595,3 @@ intBool CallNative ## shortType (void* theEnv, DATA_OBJECT* theValue, DATA_OBJEC
 
 #include "knowledge/EngineNodes.def"
 #undef X
-
-
